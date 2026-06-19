@@ -1,0 +1,349 @@
+# 📅 GFG Problem of the day 3rd
+
+**Problem:** Equalize All Prefix Sums
+**Difficulty:** 🟡 Medium
+**Platform:** GeeksforGeeks (GFG)
+**Topics:** `Prefix Sum` `Median` `Greedy` `Array`
+
+---
+
+## 📝 Problem Statement
+
+Given a sorted array `arr[]`, for every index `i (0 <= i < n)`, make all elements in the prefix `arr[0...i]` equal using the **minimum number of operations**.
+
+In one operation, an element can be increased or decreased by `1`.
+
+Return an array where `ans[i]` denotes the minimum operations required to equalize the prefix `arr[0...i]`.
+
+---
+
+## 📌 Example
+
+**Input:**
+```python
+arr = [1, 6, 9, 12]
+```
+
+**Output:**
+```python
+[0, 5, 8, 14]
+```
+
+---
+
+## 🧠 Core Intuition — Why Median?
+
+To minimize the sum
+```python
+|a1 - x| + |a2 - x| + ... + |an - x|
+```
+the optimal value of `x` is the **median** of the elements. This is a classic and very useful fact for interviews:
+
+> Mean minimizes sum of squared differences.
+> **Median minimizes sum of absolute differences.**
+
+Since the array is already **sorted**, the median of prefix `0...i` (length `i+1`) is simply:
+```python
+mid = i // 2
+median = arr[mid]
+```
+No sorting needed at each step — sortedness is given, which is exactly what makes the O(1) per-prefix trick possible later.
+
+**Quick sanity check (whole array `[1,6,9,12]`):**
+```
+mid = 3 // 2 = 1 → median = 6
+|1-6| + |6-6| + |9-6| + |12-6| = 5 + 0 + 3 + 6 = 14
+```
+
+---
+
+## ❌ Brute Force Approach
+
+### Idea
+For each prefix:
+1. Find the median (`arr[i//2]`).
+2. Traverse the **entire prefix** from scratch.
+3. Sum up `abs(arr[j] - median)` for every `j` in that prefix.
+
+```python
+class Solution:
+    def equalizePrefix(self, arr):
+        n = len(arr)
+        ans = []
+
+        for i in range(n):
+            median = arr[i // 2]
+            cost = 0
+
+            for j in range(i + 1):
+                cost += abs(arr[j] - median)
+
+            ans.append(cost)
+
+        return ans
+```
+
+**Why it's not optimal:**
+For every index `i`, we re-traverse the whole prefix `0...i` again — that's an inner loop of size `i+1` inside an outer loop of size `n`, giving:
+
+```
+Time:  O(n²)
+Space: O(1)
+```
+
+This works but is wasteful — at index `i`, we already computed similar sums for index `i-1`, yet we throw that work away and redo it.
+
+---
+
+## ✅ Why Prefix Sum? (The Optimization Insight)
+
+Without prefix sums, every prefix requires traversing all its elements again — that's the O(n²) bottleneck above.
+
+A **prefix sum array** lets us get the sum of any range `arr[l...r]` in O(1):
+```python
+prefix[i] = arr[0] + arr[1] + ... + arr[i]
+range_sum(l, r) = prefix[r] - prefix[l-1]
+```
+
+If we can compute "sum of left part" and "sum of right part" of any prefix in O(1), we no longer need to loop over the prefix at all — reducing total complexity from `O(n²)` to `O(n)`.
+
+---
+
+## 🔢 Mathematical Derivation
+
+Let `mid = i // 2` and `median = arr[mid]`.
+
+### Left Side: `arr[0] ... arr[mid-1]`
+These elements are `≤ median` (sorted array), so each needs to be **increased** up to `median`:
+```python
+(median - arr[0]) + (median - arr[1]) + ... + (median - arr[mid-1])
+```
+Expanding (distributing `median` across `left_cnt` terms):
+```python
+= median * left_cnt - (arr[0] + arr[1] + ... + arr[mid-1])
+= median * left_cnt - left_sum
+```
+So:
+```python
+left_cost = median * left_cnt - left_sum
+```
+
+### Right Side: `arr[mid+1] ... arr[i]`
+These elements are `≥ median`, so each needs to be **decreased** down to `median`:
+```python
+(arr[mid+1] - median) + (arr[mid+2] - median) + ... + (arr[i] - median)
+```
+Expanding:
+```python
+= (arr[mid+1] + ... + arr[i]) - median * right_cnt
+= right_sum - median * right_cnt
+```
+So:
+```python
+right_cost = right_sum - median * right_cnt
+```
+
+### Total Cost for prefix `0...i`
+```python
+answer[i] = left_cost + right_cost
+```
+
+**Why does the median itself cost 0?** It's already equal to itself — `|median - median| = 0` — so it contributes nothing and is correctly excluded from both `left_cost` and `right_cost`.
+
+---
+
+## ⚠️ Important Edge Case: `mid == 0`
+
+When `i = 0` or `i = 1`, `mid = 0`, meaning there is **no left side at all** (`left_cnt = 0`). In that case `prefix[mid - 1]` would be `prefix[-1]`, which is invalid/wraps incorrectly in Python. This must be explicitly guarded:
+```python
+left_sum = prefix[mid - 1] if mid > 0 else 0
+```
+This is a small but easy-to-miss detail — exactly the kind of edge case interviewers probe for.
+
+---
+
+## 🛠️ Prefix Sum Construction
+
+```python
+prefix[i] = arr[0] + arr[1] + ... + arr[i]
+```
+
+For `arr = [1, 6, 9, 12]`:
+```python
+prefix[0] = 1
+prefix[1] = 1 + 6  = 7
+prefix[2] = 1 + 6 + 9 = 16
+prefix[3] = 1 + 6 + 9 + 12 = 28
+
+prefix = [1, 7, 16, 28]
+```
+
+---
+
+## 🚀 Optimal Algorithm (Per Prefix, O(1) Each)
+
+For every index `i`:
+
+1. **Find median:**
+   ```python
+   mid = i // 2
+   median = arr[mid]
+   ```
+2. **Left part:**
+   ```python
+   left_sum = prefix[mid - 1] if mid > 0 else 0
+   left_cnt = mid
+   left_cost = median * left_cnt - left_sum
+   ```
+3. **Right part:**
+   ```python
+   right_sum = prefix[i] - prefix[mid]
+   right_cnt = i - mid
+   right_cost = right_sum - median * right_cnt
+   ```
+4. **Total:**
+   ```python
+   ans.append(left_cost + right_cost)
+   ```
+
+---
+
+## 💻 Optimal Code
+
+```python
+class Solution:
+    def equalizePrefix(self, arr):
+        n = len(arr)
+
+        # Build Prefix Sum Array
+        prefix = [0] * n
+        prefix[0] = arr[0]
+
+        for i in range(1, n):
+            prefix[i] = prefix[i - 1] + arr[i]
+
+        ans = []
+
+        for i in range(n):
+            # Median Index (array is sorted, so middle index = median)
+            mid = i // 2
+            median = arr[mid]
+
+            # Left Part
+            left_sum = prefix[mid - 1] if mid > 0 else 0
+            left_cnt = mid
+            left_cost = median * left_cnt - left_sum
+
+            # Right Part
+            right_sum = prefix[i] - prefix[mid]
+            right_cnt = i - mid
+            right_cost = right_sum - median * right_cnt
+
+            ans.append(left_cost + right_cost)
+
+        return ans
+```
+
+---
+
+## 🔍 Dry Run: `arr = [1, 6, 9, 12]`
+
+**Prefix sum array:** `[1, 7, 16, 28]`
+
+### i = 0 → prefix = `[1]`
+```
+mid = 0, median = 1
+left_cnt = 0  → left_cost = 0
+right_sum = prefix[0] - prefix[0] = 0
+right_cnt = 0 → right_cost = 0
+Total = 0
+```
+`ans = [0]`
+
+### i = 1 → prefix = `[1, 6]`
+```
+mid = 0, median = 1
+left_cnt = 0 → left_cost = 0
+right_sum = prefix[1] - prefix[0] = 7 - 1 = 6
+right_cnt = 1 - 0 = 1
+right_cost = 6 - 1×1 = 5
+Total = 0 + 5 = 5
+```
+`ans = [0, 5]`
+
+### i = 2 → prefix = `[1, 6, 9]`
+```
+mid = 1, median = 6
+left_sum = prefix[0] = 1, left_cnt = 1
+left_cost = 6×1 - 1 = 5
+
+right_sum = prefix[2] - prefix[1] = 16 - 7 = 9
+right_cnt = 2 - 1 = 1
+right_cost = 9 - 6×1 = 3
+
+Total = 5 + 3 = 8
+```
+`ans = [0, 5, 8]`
+
+### i = 3 → prefix = `[1, 6, 9, 12]`
+```
+mid = 1, median = 6
+left_sum = prefix[0] = 1, left_cnt = 1
+left_cost = 6×1 - 1 = 5
+
+right_sum = prefix[3] - prefix[1] = 28 - 7 = 21
+right_cnt = 3 - 1 = 2
+right_cost = 21 - 6×2 = 21 - 12 = 9
+
+Total = 5 + 9 = 14
+```
+`ans = [0, 5, 8, 14]` ✅ matches expected output.
+
+---
+
+## ⏱️ Complexity Analysis
+
+| Approach | Time | Space (extra) |
+|----------|------|----------------|
+| Brute Force | `O(n²)` — inner loop re-traverses each prefix | `O(1)` |
+| **Optimal (Prefix Sum)** | **`O(n)`** — build prefix in O(n), then O(1) work per index | **`O(n)`** — for the prefix array |
+
+The optimal approach trades a little extra space (the prefix array) for a massive time improvement — from quadratic to linear — which is the right trade-off for almost every interview setting and for large `n`.
+
+---
+
+## 🔑 Key Interview Points
+
+**Why median?**
+Because the median minimizes `Σ |arr[i] - x|` — this is a fact worth memorizing cold; it comes up across many "minimum operations to equalize" style problems.
+
+**Why prefix sum?**
+To compute left-sum and right-sum of any prefix in `O(1)` instead of re-traversing the prefix every time — this is what collapses `O(n²)` down to `O(n)`.
+
+**Core formula to remember:**
+```python
+mid = i // 2
+median = arr[mid]
+
+left_cost  = median * left_cnt  - left_sum
+right_cost = right_sum - median * right_cnt
+
+answer[i] = left_cost + right_cost
+```
+
+**Don't forget the edge case:** `mid == 0` → no left side exists, guard `prefix[mid - 1]` accordingly.
+
+---
+
+## 🔗 Similar Problems
+
+- LeetCode 462 — Minimum Moves to Equal Array Elements II
+- "Median minimizes sum of absolute differences" — recurring fact across many problems
+- Prefix Sum pattern problems
+- Running Median problems
+- Cost-to-equalize-array style problems
+
+---
+
+## 🏷️ Tags
+`#GFGProblemOfTheDay` `#PrefixSum` `#Median` `#Array` `#InterviewPrep`
