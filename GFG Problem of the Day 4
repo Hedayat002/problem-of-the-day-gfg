@@ -1,0 +1,195 @@
+Yes, your solution is **correct and optimal**. Here is a clean **GitHub repository template** for a GFG Problem of the Day solution.
+
+---
+
+# Last Digit of a Large Number
+
+## Problem Statement
+
+Given two numbers `a` and `b` represented as strings, find the last digit of (a^b).
+
+---
+
+## Approach
+
+The last digit of powers repeats in a cycle of length at most `4`.
+
+For example, for `3`:
+
+```
+3¹ = 3
+3² = 9
+3³ = 27 → 7
+3⁴ = 81 → 1
+3⁵ = 243 → 3
+```
+
+Pattern:
+
+```
+3, 9, 7, 1
+```
+
+Therefore, instead of computing the whole exponent `b`, we only need:
+
+```
+b % 4
+```
+
+If `b % 4 == 0`, we take exponent as `4`.
+
+---
+
+## Python Solution
+
+```python
+class Solution:
+    def modulo(self, d, b):
+        mod = 0
+        for i in range(len(b)):
+            mod = (mod * 10 + int(b[i])) % d
+        return mod
+
+    def getLastDigit(self, a, b):
+        n = len(a)
+        m = len(b)
+
+        # a^0 = 1
+        if m == 1 and b[0] == '0':
+            return 1
+
+        # 0^positive = 0
+        if n == 1 and a[0] == '0':
+            return 0
+
+        rem = self.modulo(4, b)
+        exp = 4 if rem == 0 else rem
+
+        return pow(int(a[-1]), exp) % 10
+```
+
+---
+
+## Dry Run
+
+### Input
+
+```text
+a = "3"
+b = "10"
+```
+
+### Step 1: Find `10 % 4`
+
+```
+rem = 2
+```
+
+### Step 2: Determine exponent
+
+```
+exp = 2
+```
+
+### Step 3: Take last digit of base
+
+```
+base = 3
+```
+
+### Step 4: Compute
+
+```
+3² = 9
+```
+
+### Output
+
+```text
+9
+```
+
+---
+
+## Another Example
+
+### Input
+
+```text
+a = "7"
+b = "4"
+```
+
+### Step 1
+
+```
+4 % 4 = 0
+```
+
+### Step 2
+
+```
+exp = 4
+```
+
+### Step 3
+
+```
+7⁴ = 2401
+```
+
+### Output
+
+```text
+1
+```
+
+---
+
+## Time Complexity
+
+Let:
+
+* `N = len(a)`
+* `M = len(b)`
+
+### Computing `b % 4`
+
+```
+O(M)
+```
+
+### Power Calculation
+
+Since exponent ≤ 4,
+
+```
+O(1)
+```
+
+### Overall Time Complexity
+
+```text
+O(M)
+```
+
+---
+
+## Space Complexity
+
+```text
+O(1)
+```
+
+---
+
+## Why This Approach is Optimal?
+
+* Avoids computing huge numbers.
+* Uses cyclicity of last digits.
+* Requires constant extra space.
+* Handles very large values of `a` and `b`.
+
+---
+
+This format is suitable for maintaining a professional **GFG Problem of the Day GitHub repository**.
