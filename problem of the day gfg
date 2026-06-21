@@ -1,0 +1,358 @@
+# GFG POTD: Lexicographically Smallest String After One Global Character Swap
+
+## Intuition
+
+We are allowed to **swap all occurrences of two distinct characters at most once**.
+
+To make the string lexicographically smallest:
+
+* Traverse the string from left to right.
+* At position `i`, try to replace `s[i]` with the smallest character that:
+
+  1. is smaller than `s[i]`,
+  2. exists somewhere later in the string,
+  3. has **no occurrence before `i`** (otherwise those earlier occurrences would become larger after swapping).
+
+As soon as we find such a pair, perform the swap for all occurrences and return the answer.
+
+---
+
+# Approach
+
+### Step 1: Store first occurrence of every character.
+
+```python
+first[ch] = first index where ch appears
+```
+
+### Step 2: Traverse from left to right.
+
+For character `s[i]`, check all smaller characters `'a'...s[i]-1`.
+
+If a smaller character `c` exists and
+
+```python
+first[c] > i
+```
+
+then swapping `s[i]` and `c` gives the optimal answer.
+
+### Step 3: Swap all occurrences of those two characters.
+
+---
+
+# Python Solution
+
+```python
+class Solution:
+    def lexicographicallySmallest(self, s):
+        n = len(s)
+
+        # first occurrence of each character
+        first = [-1] * 26
+
+        for i, ch in enumerate(s):
+            idx = ord(ch) - ord('a')
+            if first[idx] == -1:
+                first[idx] = i
+
+        x = y = -1
+
+        # Find the first beneficial swap
+        for i, ch in enumerate(s):
+            curr = ord(ch) - ord('a')
+
+            for smaller in range(curr):
+                # character exists and all its occurrences start after i
+                if first[smaller] > i:
+                    x = curr
+                    y = smaller
+                    break
+
+            if x != -1:
+                break
+
+        # No swap required
+        if x == -1:
+            return s
+
+        ch1 = chr(x + ord('a'))
+        ch2 = chr(y + ord('a'))
+
+        ans = []
+
+        # Swap all occurrences
+        for ch in s:
+            if ch == ch1:
+                ans.append(ch2)
+            elif ch == ch2:
+                ans.append(ch1)
+            else:
+                ans.append(ch)
+
+        return "".join(ans)
+```
+
+---
+
+# Dry Run
+
+## Example 1
+
+### Input
+
+```python
+s = "ccad"
+```
+
+### First occurrence array
+
+| Character | First Index |
+| --------- | ----------- |
+| a         | 2           |
+| c         | 0           |
+| d         | 3           |
+
+---
+
+### i = 0
+
+Current character:
+
+```python
+'c'
+```
+
+Smaller characters:
+
+```python
+'a', 'b'
+```
+
+* `'a'` exists.
+* first['a'] = 2 > 0 ✓
+
+Therefore swap:
+
+```python
+c ↔ a
+```
+
+---
+
+### Original String
+
+```text
+c c a d
+```
+
+### After swapping all occurrences
+
+```text
+a a c d
+```
+
+Output:
+
+```python
+"aacd"
+```
+
+---
+
+# Example 2
+
+### Input
+
+```python
+s = "abba"
+```
+
+First occurrence:
+
+| Character | First Index |
+| --------- | ----------- |
+| a         | 0           |
+| b         | 1           |
+
+---
+
+At index 1:
+
+```python
+s[1]='b'
+```
+
+Smaller character:
+
+```python
+'a'
+```
+
+But
+
+```python
+first['a']=0
+```
+
+and
+
+```python
+0 > 1 ❌
+```
+
+No valid swap exists.
+
+Output:
+
+```python
+"abba"
+```
+
+---
+
+# Example 3
+
+### Input
+
+```python
+s = "ce"
+```
+
+First occurrence:
+
+| Character | First Index |
+| --------- | ----------- |
+| c         | 0           |
+| e         | 1           |
+
+No smaller character present later.
+
+Hence answer:
+
+```python
+"ce"
+```
+
+---
+
+# Correctness Proof
+
+Suppose the first position where we can improve the string is `i`.
+
+To minimize the string lexicographically:
+
+1. We must make position `i` as small as possible.
+2. Among all smaller characters, choose the smallest one appearing later.
+3. Ensure that character has no occurrence before `i`, otherwise earlier positions become larger.
+4. Since lexicographic order depends on the earliest differing position, this choice is optimal.
+
+Thus the algorithm always produces the lexicographically smallest string.
+
+---
+
+# Complexity Analysis
+
+### Time Complexity
+
+Building first occurrence array:
+
+```text
+O(n)
+```
+
+Checking at most 26 characters for each position:
+
+```text
+O(26 × n)
+```
+
+Constructing answer:
+
+```text
+O(n)
+```
+
+Overall:
+
+> **Time Complexity = O(n)**
+
+(26 is constant)
+
+---
+
+### Space Complexity
+
+First occurrence array:
+
+```text
+26 elements
+```
+
+Output array:
+
+```text
+O(n)
+```
+
+Auxiliary space:
+
+> **Space Complexity = O(1)**
+
+---
+
+# Template for GitHub Repository
+
+```python
+# Approach:
+# 1. Store first occurrence of every character.
+# 2. Traverse string from left to right.
+# 3. Find the smallest character occurring later whose first occurrence is after current index.
+# 4. Swap all occurrences once.
+#
+# Time Complexity: O(n)
+# Space Complexity: O(1)
+
+class Solution:
+    def lexicographicallySmallest(self, s):
+        first = [-1] * 26
+
+        for i, ch in enumerate(s):
+            idx = ord(ch) - ord('a')
+            if first[idx] == -1:
+                first[idx] = i
+
+        x = y = -1
+
+        for i, ch in enumerate(s):
+            curr = ord(ch) - ord('a')
+
+            for smaller in range(curr):
+                if first[smaller] > i:
+                    x = curr
+                    y = smaller
+                    break
+
+            if x != -1:
+                break
+
+        if x == -1:
+            return s
+
+        ch1 = chr(x + ord('a'))
+        ch2 = chr(y + ord('a'))
+
+        ans = []
+
+        for ch in s:
+            if ch == ch1:
+                ans.append(ch2)
+            elif ch == ch2:
+                ans.append(ch1)
+            else:
+                ans.append(ch)
+
+        return "".join(ans)
+```
+
+This is the **optimal O(n) greedy solution** suitable for a **GFG Problem of the Day GitHub repository**.
