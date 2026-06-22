@@ -1,0 +1,227 @@
+# Maximum Area Between Bars
+
+## Understanding the Problem
+- Find maximum rectangular area formed by selecting **any two bars**
+- Area = min(height[i], height[j]) × (j - i - 1) [bars **between** them, not including selected bars]
+- Width = number of bars **between** the two selected bars = j - i - 1
+
+---
+
+## 🔴 Brute Force Approach
+
+```python
+class Solution:
+    def maxArea_brute(self, height):
+        """
+        Brute Force: Check all pairs of bars
+        Time Complexity: O(n²)
+        Space Complexity: O(1)
+        """
+        n = len(height)
+        res = 0
+        
+        for i in range(n):
+            for j in range(i + 1, n):
+                # Width = bars between i and j (not including i and j)
+                width = j - i - 1
+                # Height = minimum of two selected bars
+                h = min(height[i], height[j])
+                area = h * width
+                res = max(res, area)
+        
+        return res
+```
+
+### 🔍 Brute Force Dry Run
+```
+height[] = [2, 5, 4, 3, 7]
+Indices:    [0, 1, 2, 3, 4]
+
+i=0, j=1: width=0, min(2,5)=2, area=0
+i=0, j=2: width=1, min(2,4)=2, area=2
+i=0, j=3: width=2, min(2,3)=2, area=4
+i=0, j=4: width=3, min(2,7)=2, area=6
+
+i=1, j=2: width=0, min(5,4)=4, area=0
+i=1, j=3: width=1, min(5,3)=3, area=3
+i=1, j=4: width=2, min(5,7)=5, area=10  ← MAX
+
+i=2, j=3: width=0, min(4,3)=3, area=0
+i=2, j=4: width=1, min(4,7)=4, area=4
+
+i=3, j=4: width=0, min(3,7)=3, area=0
+
+Result: 10 ✅
+```
+
+---
+
+## 🟢 Optimal Approach (Two Pointer)
+
+```python
+class Solution:
+    def maxArea(self, height):
+        """
+        Optimal: Two Pointer Approach
+        Time Complexity: O(n)
+        Space Complexity: O(1)
+        
+        Logic:
+        - Start with widest possible gap (i=0, j=n-1)
+        - Move pointer with smaller height inward
+        - This way we never miss the optimal solution
+        """
+        res = 0
+        n = len(height)
+        
+        i = 0           # Left pointer
+        j = n - 1       # Right pointer
+        
+        while i < j:
+            # Bars BETWEEN i and j
+            width = j - i - 1
+            
+            if height[i] < height[j]:
+                # Left bar is smaller, calculate area with left bar
+                res = max(res, width * height[i])
+                i += 1          # Move left pointer right
+                
+            elif height[j] < height[i]:
+                # Right bar is smaller, calculate area with right bar
+                res = max(res, width * height[j])
+                j -= 1          # Move right pointer left
+                
+            else:
+                # Both equal, move both pointers
+                res = max(res, width * height[i])
+                i += 1
+                j -= 1
+        
+        return res
+```
+
+---
+
+## 🔍 Optimal Dry Run
+
+```
+height[] = [2, 5, 4, 3, 7]
+Indices:    [0, 1, 2, 3, 4]
+
+Initial: i=0, j=4, res=0
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Step 1: i=0, j=4
+        width = 4 - 0 - 1 = 3
+        height[0]=2, height[4]=7
+        2 < 7 → area = 3 × 2 = 6
+        res = max(0, 6) = 6
+        Move i → i=1
+
+[2,  5,  4,  3,  7]
+ ↑i              ↑j
+ 
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Step 2: i=1, j=4
+        width = 4 - 1 - 1 = 2
+        height[1]=5, height[4]=7
+        5 < 7 → area = 2 × 5 = 10
+        res = max(6, 10) = 10  ← NEW MAX
+        Move i → i=2
+
+[2,  5,  4,  3,  7]
+     ↑i          ↑j
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Step 3: i=2, j=4
+        width = 4 - 2 - 1 = 1
+        height[2]=4, height[4]=7
+        4 < 7 → area = 1 × 4 = 4
+        res = max(10, 4) = 10
+        Move i → i=3
+
+[2,  5,  4,  3,  7]
+         ↑i      ↑j
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Step 4: i=3, j=4
+        width = 4 - 3 - 1 = 0
+        height[3]=3, height[4]=7
+        3 < 7 → area = 0 × 3 = 0
+        res = max(10, 0) = 10
+        Move i → i=4
+
+[2,  5,  4,  3,  7]
+             ↑i  ↑j
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+i=4 == j=4 → STOP
+
+Final Result: 10 ✅
+```
+
+---
+
+## 🔍 Example 2 Dry Run
+
+```
+height[] = [1, 3, 4]
+Indices:    [0, 1, 2]
+
+Initial: i=0, j=2, res=0
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Step 1: i=0, j=2
+        width = 2 - 0 - 1 = 1
+        height[0]=1, height[2]=4
+        1 < 4 → area = 1 × 1 = 1
+        res = max(0, 1) = 1
+        Move i → i=1
+
+[1,  3,  4]
+ ↑i      ↑j
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Step 2: i=1, j=2
+        width = 2 - 1 - 1 = 0
+        height[1]=3, height[2]=4
+        3 < 4 → area = 0 × 3 = 0
+        res = max(1, 0) = 1
+        Move i → i=2
+
+[1,  3,  4]
+     ↑i  ↑j
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+i=2 == j=2 → STOP
+
+Final Result: 1 ✅
+```
+
+---
+
+## 📊 Complexity Comparison
+
+| Approach | Time | Space | Notes |
+|----------|------|-------|-------|
+| **Brute Force** | O(n²) | O(1) | Check all pairs |
+| **Two Pointer** | O(n) | O(1) | Optimal |
+
+---
+
+## 💡 Why Two Pointer Works?
+
+```
+Key Insight:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+• We start with maximum possible width
+• Area = min(h[i], h[j]) × width
+• If we move the LARGER bar inward:
+  - Width decreases
+  - Height can only be ≤ smaller bar
+  - So area definitely decreases
+• Therefore: Always move the SMALLER bar
+  - Width decreases BUT height might increase
+  - This gives chance for better area
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
