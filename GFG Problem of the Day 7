@@ -1,0 +1,503 @@
+# GFG POTD: Maximum Number of People Defeated
+
+## 1. Problem Understanding
+
+The strength of people is:
+
+```
+1², 2², 3², 4², 5², ...
+= 1, 4, 9, 16, 25, ...
+```
+
+To defeat the first `k` people, required strength is:
+
+[
+1^2 + 2^2 + 3^2 + ... + k^2
+]
+
+Using the formula:
+
+[
+S(k)=\frac{k(k+1)(2k+1)}{6}
+]
+
+We need the **maximum k** such that:
+
+[
+S(k)\le p
+]
+
+This is a classic **Binary Search on Answer** problem.
+
+---
+
+# 2. Brute Force Approach
+
+### Idea
+
+Keep defeating people one by one until strength is insufficient.
+
+```python
+def maxPeopleDefeated(p):
+    cnt = 0
+    i = 1
+
+    while i * i <= p:
+        p -= i * i
+        cnt += 1
+        i += 1
+
+    return cnt
+```
+
+---
+
+## Dry Run (p = 14)
+
+### Initially
+
+```
+p = 14
+cnt = 0
+i = 1
+```
+
+### Iteration 1
+
+```
+1² = 1
+
+14 >= 1
+
+p = 14 - 1 = 13
+cnt = 1
+i = 2
+```
+
+### Iteration 2
+
+```
+2² = 4
+
+13 >= 4
+
+p = 13 - 4 = 9
+cnt = 2
+i = 3
+```
+
+### Iteration 3
+
+```
+3² = 9
+
+9 >= 9
+
+p = 9 - 9 = 0
+cnt = 3
+i = 4
+```
+
+### Iteration 4
+
+```
+4² = 16
+
+0 < 16
+
+Stop
+```
+
+### Answer
+
+```
+3
+```
+
+---
+
+## Complexity
+
+### Time
+
+Let answer be k.
+
+```
+1² + 2² + ... + k² ≤ p
+k ≈ p^(1/3)
+```
+
+Time:
+
+```
+O(k)
+≈ O(p^(1/3))
+```
+
+### Space
+
+```
+O(1)
+```
+
+---
+
+# 3. Optimal Approach (Binary Search)
+
+---
+
+## Key Observation
+
+We need largest `k` satisfying:
+
+[
+\frac{k(k+1)(2k+1)}6 \le p
+]
+
+The sum increases monotonically:
+
+```
+k = 1 → 1
+k = 2 → 5
+k = 3 → 14
+k = 4 → 30
+k = 5 → 55
+```
+
+Since it is sorted/increasing, Binary Search can be used.
+
+---
+
+# Sum of Squares Formula
+
+```python
+def sumSquares(k):
+    return k * (k + 1) * (2 * k + 1) // 6
+```
+
+Example:
+
+```
+k = 3
+
+3 × 4 × 7 / 6
+
+= 84/6
+
+= 14
+```
+
+Indeed:
+
+```
+1² + 2² + 3²
+
+= 1 + 4 + 9
+
+= 14
+```
+
+---
+
+# Binary Search Logic
+
+Search for maximum valid `k`.
+
+```python
+low = 0
+high = 1000
+ans = 0
+
+while low <= high:
+
+    mid = (low + high)//2
+
+    if sumSquares(mid) <= p:
+        ans = mid
+        low = mid + 1
+
+    else:
+        high = mid - 1
+```
+
+---
+
+# Why High = 1000?
+
+Constraint:
+
+```
+p ≤ 3 × 10^8
+```
+
+Let's check:
+
+```
+sum(1000)
+
+= 1000×1001×2001/6
+
+≈ 333,833,500
+```
+
+which is greater than:
+
+```
+3×10^8
+```
+
+So answer can never exceed 1000.
+
+Hence:
+
+```python
+high = 1000
+```
+
+is sufficient.
+
+---
+
+# Complete Optimal Code
+
+```python
+class Solution:
+
+    def sum(self, h):
+        return h * (h + 1) * (2 * h + 1) // 6
+
+    def maxPeopleDefeated(self, p):
+
+        low = 0
+        high = 1000
+        ans = 0
+
+        while low <= high:
+
+            mid = low + (high - low) // 2
+
+            if self.sum(mid) <= p:
+                ans = mid
+                low = mid + 1
+            else:
+                high = mid - 1
+
+        return ans
+```
+
+---
+
+# Detailed Dry Run
+
+Input:
+
+```python
+p = 14
+```
+
+### Initial
+
+```
+low = 0
+high = 1000
+ans = 0
+```
+
+---
+
+### Iteration 1
+
+```
+mid = 500
+
+sum(500)
+= 41,791,750
+
+> 14
+```
+
+Move left:
+
+```
+high = 499
+```
+
+---
+
+### Iteration 2
+
+```
+mid = 249
+
+sum(249)
+>> 14
+```
+
+Move left.
+
+---
+
+After several iterations:
+
+```
+low = 0
+high = 6
+```
+
+---
+
+### Iteration
+
+```
+mid = 3
+
+sum(3)
+
+= 1+4+9
+
+=14
+```
+
+Valid.
+
+```
+ans = 3
+low = 4
+```
+
+---
+
+### Next
+
+```
+mid = 5
+
+sum(5)
+
+=55
+
+>14
+```
+
+Move left.
+
+```
+high = 4
+```
+
+---
+
+### Next
+
+```
+mid = 4
+
+sum(4)
+
+=30
+
+>14
+```
+
+Move left.
+
+```
+high = 3
+```
+
+Now:
+
+```
+low = 4
+high = 3
+```
+
+Stop.
+
+### Answer
+
+```
+ans = 3
+```
+
+---
+
+# Interview Explanation
+
+### Question
+
+Why Binary Search?
+
+### Answer
+
+Because:
+
+```
+f(k) = 1² + 2² + ... + k²
+```
+
+is strictly increasing.
+
+If:
+
+```
+f(k) ≤ p
+```
+
+then all smaller values are also valid.
+
+If:
+
+```
+f(k) > p
+```
+
+then all larger values are invalid.
+
+This creates a monotonic search space, making Binary Search applicable.
+
+---
+
+# GitHub Notes Template
+
+```markdown
+# Maximum Number of People Defeated (GFG)
+
+## Approach
+We need the maximum k such that:
+
+1² + 2² + ... + k² ≤ p
+
+Using:
+
+S(k) = k(k+1)(2k+1)/6
+
+Since S(k) is monotonically increasing, Binary Search is used to find the largest valid k.
+
+## Algorithm
+1. Use sum of squares formula.
+2. Binary search on k.
+3. If S(mid) ≤ p:
+      answer = mid
+      search right half
+4. Else:
+      search left half
+5. Return answer.
+
+## Time Complexity
+O(log 1000)
+
+≈ O(1)
+
+## Space Complexity
+O(1)
+```
+
+### Complexity
+
+| Approach      | Time               | Space |
+| ------------- | ------------------ | ----- |
+| Brute Force   | O(p^(1/3))         | O(1)  |
+| Binary Search | O(log 1000) ≈ O(1) | O(1)  |
+
+This is the expected GFG optimal solution using **Mathematical Formula + Binary Search on Answer**.
