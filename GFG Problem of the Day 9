@@ -1,0 +1,589 @@
+# 📌 GFG POTD - N-Digit Numbers with Increasing Digits
+
+> **Difficulty:** Medium  
+> **Platform:** GeeksforGeeks  
+> **Topic:** Backtracking, Recursion, Combinatorics
+
+---
+
+## Problem Statement
+
+Given an integer `n`, return all the `n`-digit numbers in increasing order such that their digits are **strictly increasing from left to right**.
+
+A number is valid if every next digit is greater than the previous digit.
+
+### Example 1
+
+```text
+Input:
+n = 1
+
+Output:
+[0,1,2,3,4,5,6,7,8,9]
+```
+
+### Example 2
+
+```text
+Input:
+n = 2
+
+Output:
+[12,13,14,15,16,17,18,19,23,...,89]
+```
+
+### Example 3
+
+```text
+Input:
+n = 15
+
+Output:
+[]
+```
+
+---
+
+# Observation
+
+- Digits cannot repeat.
+- Digits must be strictly increasing.
+- Maximum distinct digits = **10 (0-9)**.
+
+Therefore,
+
+```
+If n > 10
+No answer exists.
+```
+
+---
+
+# Approach 1 : Brute Force
+
+## Intuition
+
+Generate every n-digit number.
+
+For every number,
+
+- Convert into digits.
+- Check whether every digit is smaller than the next digit.
+- If yes, store the number.
+
+Most generated numbers are invalid.
+
+---
+
+## Algorithm
+
+1. If `n > 10`, return `[]`.
+2. Find starting number.
+3. Generate every n-digit number.
+4. Check whether digits are strictly increasing.
+5. Store valid numbers.
+
+---
+
+## Dry Run
+
+### n = 2
+
+Generate
+
+```
+10
+```
+
+Digits
+
+```
+1 0
+```
+
+Check
+
+```
+1 < 0
+
+False
+```
+
+Reject
+
+---
+
+Generate
+
+```
+12
+```
+
+Digits
+
+```
+1 2
+```
+
+Check
+
+```
+1 < 2
+
+True
+```
+
+Answer
+
+```
+[12]
+```
+
+---
+
+Generate
+
+```
+13
+```
+
+Valid
+
+```
+Answer
+
+[12,13]
+```
+
+---
+
+Generate
+
+```
+22
+```
+
+Digits
+
+```
+2 2
+```
+
+Check
+
+```
+2 < 2
+
+False
+```
+
+Reject
+
+Continue until
+
+```
+99
+```
+
+---
+
+## Brute Force Code (Python)
+
+```python
+class Solution:
+    def increasingNumbers(self, n):
+        if n > 10:
+            return []
+
+        ans = []
+
+        if n == 1:
+            start = 0
+        else:
+            start = 10 ** (n - 1)
+
+        end = 10 ** n
+
+        for num in range(start, end):
+
+            s = str(num)
+            valid = True
+
+            for i in range(len(s) - 1):
+                if s[i] >= s[i + 1]:
+                    valid = False
+                    break
+
+            if valid:
+                ans.append(num)
+
+        return ans
+```
+
+---
+
+## Time Complexity
+
+There are approximately
+
+```
+9 × 10^(n-1)
+```
+
+numbers.
+
+Checking one number takes
+
+```
+O(n)
+```
+
+Overall
+
+```
+O(10^n × n)
+```
+
+---
+
+## Space Complexity
+
+Ignoring output,
+
+```
+O(1)
+```
+
+---
+
+# Why Brute Force is Inefficient?
+
+Example
+
+```
+n = 8
+```
+
+Generated numbers
+
+```
+90,000,000
+```
+
+Valid numbers
+
+Very few.
+
+Most work is wasted.
+
+---
+
+# Approach 2 : Optimal (Backtracking)
+
+## Intuition
+
+Instead of generating every number,
+
+Generate **only valid increasing numbers**.
+
+For example
+
+```
+123
+124
+125
+126
+127
+```
+
+Never generate
+
+```
+221
+543
+332
+```
+
+Thus,
+
+No unnecessary computation.
+
+---
+
+## Key Observation
+
+If current digit is
+
+```
+5
+```
+
+Next digit can only be
+
+```
+6,7,8,9
+```
+
+Never
+
+```
+0
+1
+2
+3
+4
+5
+```
+
+This naturally leads to Backtracking.
+
+---
+
+# Algorithm
+
+1. If `n > 10`, return `[]`.
+2. Start recursion with digits `1` to `9`.
+3. Add only larger digits.
+4. Once length becomes `n`,
+   store the number.
+5. Backtrack.
+
+---
+
+# Recursion Tree (n = 2)
+
+```
+                []
+         / / / / | \
+        1 2 3 4 ...9
+
+       /|\
+
+     12 13 14...
+
+     Store
+
+```
+
+Notice
+
+We never create
+
+```
+21
+32
+55
+```
+
+---
+
+# Dry Run
+
+### n = 2
+
+Start
+
+```
+1
+```
+
+Current
+
+```
+1
+```
+
+Possible digits
+
+```
+2 3 4 5 6 7 8 9
+```
+
+Choose
+
+```
+2
+```
+
+Current
+
+```
+12
+```
+
+Length = 2
+
+Store
+
+```
+Answer
+
+[12]
+```
+
+Backtrack
+
+Try
+
+```
+3
+```
+
+Store
+
+```
+13
+```
+
+Backtrack
+
+Continue
+
+```
+14
+15
+16
+...
+19
+```
+
+Return
+
+Start
+
+```
+2
+```
+
+Generate
+
+```
+23
+24
+25
+...
+29
+```
+
+Eventually
+
+```
+78
+79
+89
+```
+
+Finished.
+
+---
+
+# Optimal Code (Python)
+
+```python
+class Solution:
+    def increasingNumbers(self, n):
+
+        if n > 10:
+            return []
+
+        if n == 1:
+            return list(range(10))
+
+        ans = []
+
+        def dfs(num, last_digit, length):
+
+            if length == n:
+                ans.append(num)
+                return
+
+            for digit in range(last_digit + 1, 10):
+                dfs(num * 10 + digit, digit, length + 1)
+
+        for start in range(1, 10):
+            dfs(start, start, 1)
+
+        return ans
+```
+
+---
+
+# Time Complexity
+
+The algorithm generates only valid numbers.
+
+Number of valid numbers
+
+```
+C(9,n)
+```
+
+Building each number
+
+```
+O(n)
+```
+
+Overall
+
+```
+O(C(9,n) × n)
+```
+
+Since there are only 10 digits, the total number of valid outputs is bounded by a small constant (at most 1023 across all lengths), making this effectively constant-time for practical purposes.
+
+---
+
+# Space Complexity
+
+Recursion depth
+
+```
+O(n)
+```
+
+Output array
+
+```
+O(C(9,n))
+```
+
+Ignoring output
+
+```
+O(n)
+```
+
+---
+
+# Comparison
+
+| Feature | Brute Force | Optimal |
+|----------|------------|----------|
+| Generate all numbers | ✅ | ❌ |
+| Generate only valid numbers | ❌ | ✅ |
+| Extra Checking | High | None |
+| Time Complexity | O(10^n × n) | O(C(9,n) × n) |
+| Space Complexity | O(1) | O(n) |
+| Efficient | ❌ | ✅ |
+
+---
+
+# Key Takeaways
+
+- Brute Force generates every possible n-digit number and checks validity.
+- Backtracking generates only valid increasing numbers.
+- Digits never repeat.
+- Digits are chosen in increasing order.
+- If `n > 10`, the answer is always empty because only 10 distinct digits exist.
+
+---
+
+# Tags
+
+- Backtracking
+- Recursion
+- Combinatorics
+- DFS
+- GeeksforGeeks POTD
+- Medium
