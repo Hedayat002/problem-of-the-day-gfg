@@ -1,0 +1,182 @@
+# Rat Maze With Multiple Jumps
+
+Welcome to the comprehensive guide to solving the **Rat Maze With Multiple Jumps** problem. Below you will find a complete breakdown of the problem, a comparison of the Brute Force vs. Optimal approach, dry runs, and complexity analyses structured like a clean GitHub repository documentation.
+
+> **A Quick Note on Your Thought Process:** > You mentioned using an "upper bound and lower bounds approach." While upper/lower bounds are fantastic for binary search or Branch and Bound optimization problems, the most optimal way to handle *this* particular problem is **State Pruning (Backtracking + Memoization)**. By modifying the matrix to mark dead ends, you effectively prune paths and prevent the algorithm from recalculating failed paths!
+
+---
+
+## 💻 Problem Overview
+
+Given an `n × n` matrix `mat[][]`, a rat starts at `(0, 0)` and wants to reach `(n-1, n-1)`.
+
+* `mat[i][j]` represents the **maximum** number of steps the rat can jump either **Forward (Right)** or **Downward** from that cell.
+* `0` represents a blocked cell.
+* **Preferences:** Shortest jumps first (1 to max_jump). For the same jump length, **Right** is preferred over **Down**.
+
+---
+
+## 🟥 Approach 1: Brute Force (Standard Backtracking)
+
+### Idea
+
+The standard backtracking approach explores every single possible jump size from 1 to `max_jump`, trying to move Right first, then Down. If a path fails, it unmarks the cell (`ans[i][j] = 0`) and backtracks to try another branch.
+
+### Implementation
+
+```python
+class SolutionBruteForce:
+    def ShortestDistance(self, mat):
+        n = len(mat)
+        ans = [[0] * n for _ in range(n)]
+
+        def backtrack(i, j):
+            # Base Case: Destination reached
+            if i == n - 1 and j == n - 1:
+                ans[i][j] = 1
+                return True
+            
+            # Out of bounds or blocked cell
+            if i >= n or j >= n or mat[i][j] == 0:
+                return False
+            
+            ans[i][j] = 1
+            max_jump = mat[i][j]
+            
+            # Explore choices: Shortest jumps first
+            for k in range(1, max_jump + 1):
+                # 1. Try moving Forward (Right)
+                if j + k < n and backtrack(i, j + k):
+                    return True
+                # 2. Try moving Downward
+                if i + k < n and backtrack(i + k, j):
+                    return True
+            
+            # Backtrack without marking the original matrix
+            ans[i][j] = 0
+            return False
+
+        if backtrack(0, 0):
+            return ans
+        return [[-1]]
+
+```
+
+### Dry Run (Brute Force)
+
+Let’s take a look at a small failing matrix to see why Brute Force wastes time:
+`mat = [[2, 1], [1, 0]]`
+
+1. Start at `(0,0)` value is `2`. `ans[0][0] = 1`.
+2. Try jump size `k = 1` Right $\rightarrow$ Reaches `(0,1)` value `1`. `ans[0][1] = 1`.
+3. From `(0,1)`, try jump size `k = 1` Down $\rightarrow$ Reaches `(1,1)` which is `0` (blocked). Returns `False`.
+4. `(0,1)` has no more options. Backtracks: `ans[0][1] = 0`. Returns `False`.
+5. Back at `(0,0)`. Try jump size `k = 2` Right $\rightarrow$ Out of bounds.
+6. Now try jump size `k = 1` Down $\rightarrow$ Reaches `(1,0)` value `1`. `ans[1][0] = 1`.
+7. From `(1,0)`, try jump size `k = 1` Right $\rightarrow$ Reaches `(1,1)` which is `0` (blocked). Returns `False`.
+8. *Notice:* If this was a larger matrix, we would repeatedly re-evaluate cells we already know cannot reach the end.
+
+### Complexity Analysis
+
+* **Time Complexity:** $O((2 \times \text{max\_jump})^{n^2})$ in the worst-case scenario because the algorithm revisits the same coordinates multiple times through different paths.
+* **Auxiliary Space:** $O(n^2)$ to store the recursion call stack and the solution matrix `ans`.
+
+---
+
+## 🟩 Approach 2: Optimal Solution (Backtracking with Pruning)
+
+### Idea
+
+This is the approach you provided! The core optimization relies on **mutating the input matrix**. If a cell `(i, j)` fails to find a valid path to the destination after checking all jump sizes, we set `mat[i][j] = 0`.
+
+Since a value of `0` means blocked/dead-end, any future path that lands on this cell will instantly return `False` at the beginning check (`mat[i][j] == 0`), skipping redundant calculations entirely.
+
+### Implementation
+
+```python
+class Solution:
+    def ShortestDistance(self, mat):
+        n = len(mat)
+        # Initialize the solution matrix with 0s
+        ans = [[0] * n for _ in range(n)]
+
+        def backtrack(i, j):
+            # Base Case: Reached the destination
+            if i == n - 1 and j == n - 1:
+                ans[i][j] = 1
+                return True
+            
+            # If out of bounds or the cell is marked as blocked/dead-end
+            if i >= n or j >= n or mat[i][j] == 0:
+                return False
+            
+            # Include current cell in the path
+            ans[i][j] = 1
+            max_jump = mat[i][j]
+            
+            # Explore choices: Shortest jumps first (from 1 to max_jump)
+            for k in range(1, max_jump + 1):
+                # 1. Try moving Forward (Right) first
+                if j + k < n:
+                    if backtrack(i, j + k):
+                        return True
+                
+                # 2. Try moving Downward second
+                if i + k < n:
+                    if backtrack(i + k, j):
+                        return True
+            
+            # BACKTRACK & PRUNE: 
+            # If no choices worked, remove from current path AND
+            # permanently mark it as 0 in mat so future paths skip it entirely.
+            ans[i][j] = 0
+            mat[i][j] = 0 
+            return False
+
+        # Start backtracking from the top-left corner
+        if backtrack(0, 0):
+            return ans
+        else:
+            return [[-1]]
+
+```
+
+### Dry Run (Optimal Solution)
+
+Using Example 1:
+
+```text
+mat = [
+  [2, 1, 0, 0],
+  [3, 0, 0, 1],
+  [0, 1, 0, 1],
+  [0, 0, 0, 1]
+]
+
+```
+
+| Step | Current Position `(i, j)` | Value | Action / Decision | Path Matrix Status (`ans`) |
+| --- | --- | --- | --- | --- |
+| 1 | `(0, 0)` | `2` | Mark `ans[0][0]=1`. Try Jump `k=1` Right $\rightarrow$ `(0, 1)` | `(0,0)=1` |
+| 2 | `(0, 1)` | `1` | Mark `ans[0][1]=1`. Try Jump `k=1` Right $\rightarrow$ `(0, 2)` | `(0,0)=1`, `(0,1)=1` |
+| 3 | `(0, 2)` | `0` | Blocked! Returns `False`. | `(0,0)=1`, `(0,1)=1` |
+| 4 | `(0, 1)` | `1` | Right failed. Try Jump `k=1` Down $\rightarrow$ `(1, 1)` | `(0,0)=1`, `(0,1)=1` |
+| 5 | `(1, 1)` | `0` | Blocked! Returns `False`. | `(0,0)=1`, `(0,1)=1` |
+| 6 | `(0, 1)` | `1` | All choices failed. Unmark `ans[0][1]=0`. Set `mat[0][1]=0` (Pruned). Return `False`. | `(0,0)=1` |
+| 7 | `(0, 0)` | `2` | Jump `k=1` Right failed. Try Jump `k=2` Right $\rightarrow$ `(0, 2)` | `(0,0)=1` |
+| 8 | `(0, 2)` | `0` | Blocked! Returns `False`. | `(0,0)=1` |
+| 9 | `(0, 0)` | `2` | All Right jumps failed. Try Jump `k=1` Down $\rightarrow$ `(1, 0)` | `(0,0)=1`, `(1,0)=1` |
+| 10 | `(1, 0)` | `3` | Mark `ans[1][0]=1`. Try Jump `k=1` Right $\rightarrow$ `(1, 1)` | `(0,0)=1`, `(1,0)=1` |
+| 11 | `(1, 1)` | `0` | Blocked! Returns `False`. | `(0,0)=1`, `(1,0)=1` |
+| 12 | `(1, 0)` | `3` | Try Jump `k=2` Right $\rightarrow$ `(1, 2)` | `(0,0)=1`, `(1,0)=1` |
+| 13 | `(1, 2)` | `0` | Blocked! Returns `False`. | `(0,0)=1`, `(1,0)=1` |
+| 14 | `(1, 0)` | `3` | Try Jump `k=3` Right $\rightarrow$ `(1, 3)` | `(0,0)=1`, `(1,0)=1`, `(1,3)=1` |
+| 15 | `(1, 3)` | `1` | Mark `ans[1][3]=1`. Try Jump `k=1` Right $\rightarrow$ Out of bounds. Try `k=1` Down $\rightarrow$ `(2, 3)` | `...`, `(1,3)=1`, `(2,3)=1` |
+| 16 | `(2, 3)` | `1` | Mark `ans[2][3]=1`. Try Jump `k=1` Down $\rightarrow$ `(3, 3)` | `...`, `(2,3)=1`, `(3,3)=1` |
+| 17 | `(3, 3)` | Target | Reached destination! Returns `True` all the way up. | **Success!** |
+
+### Complexity Analysis
+
+* **Time Complexity:** $O(n \times n \times \text{max\_element})$
+Because we instantly prune any cell that returns a dead-end by setting `mat[i][j] = 0`, each cell in the $n \times n$ matrix is evaluated fully exactly **once**. For each cell, we check up to `max_jump` options.
+* **Auxiliary Space:** $O(1)$ if we ignore the output matrix and recursion stack space, as we are reusing the given `mat` matrix to store visited dead-ends. System stack space will take at most $O(n)$ depth.
