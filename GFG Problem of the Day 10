@@ -1,0 +1,339 @@
+# Count Matching Subsequences (GitHub README Template)
+
+---
+
+# Count Matching Subsequences
+
+## Problem Statement
+
+Given two strings `s1` and `s2`, count the number of subsequences of `s1` that are equal to `s2`.
+
+Return the answer modulo **10^9 + 7**.
+
+---
+
+### Example 1
+
+```text
+Input:
+s1 = "geeksforgeeks"
+s2 = "gks"
+
+Output:
+4
+```
+
+**Explanation**
+
+Possible subsequences are formed using indices:
+
+```
+[0,3,4]
+[0,3,12]
+[0,11,12]
+[8,11,12]
+```
+
+Hence answer = **4**
+
+---
+
+### Example 2
+
+```text
+Input:
+s1 = "problemoftheday"
+s2 = "geek"
+
+Output:
+0
+```
+
+---
+
+# Approach 1 : Brute Force (Recursion)
+
+## Intuition
+
+At every character of `s1`, we have two choices:
+
+* Pick it (if it matches current character of `s2`)
+* Skip it
+
+Explore all possible subsequences recursively.
+
+---
+
+## Algorithm
+
+1. Start from indices `(i, j)`.
+2. If entire `s2` is matched, return `1`.
+3. If `s1` finishes before `s2`, return `0`.
+4. Skip current character.
+5. If characters match, also pick it.
+6. Return sum of both choices.
+
+---
+
+## Code
+
+```python
+class Solution:
+    MOD = 10**9 + 7
+
+    def solve(self, i, j, s1, s2):
+        if j == len(s2):
+            return 1
+
+        if i == len(s1):
+            return 0
+
+        ans = self.solve(i + 1, j, s1, s2)
+
+        if s1[i] == s2[j]:
+            ans += self.solve(i + 1, j + 1, s1, s2)
+
+        return ans % self.MOD
+
+    def countWays(self, s1, s2):
+        return self.solve(0, 0, s1, s2)
+```
+
+---
+
+## Dry Run
+
+```
+s1 = "abc"
+s2 = "ac"
+
+solve(0,0)
+
+a matches a
+
+          (0,0)
+         /     \
+    skip       take
+    (1,0)      (1,1)
+                 |
+                 c matches
+                 |
+               answer = 1
+```
+
+---
+
+## Complexity Analysis
+
+**Time Complexity**
+
+```
+O(2^n)
+```
+
+Every character has two choices.
+
+**Space Complexity**
+
+```
+O(n)
+```
+
+Recursive stack depth.
+
+---
+
+# Approach 2 : Dynamic Programming (Optimal)
+
+## Intuition
+
+The recursive solution repeats many states.
+
+Define
+
+```
+dp[j]
+```
+
+= Number of ways to form first `j` characters of `s2`.
+
+Process characters of `s1` one by one.
+
+Whenever characters match, update the DP array from right to left.
+
+---
+
+## Algorithm
+
+1. Initialize
+
+```
+dp[0] = 1
+```
+
+2. Traverse every character of `s1`.
+
+3. Traverse `s2` from right to left.
+
+4. If characters match
+
+```
+dp[j+1] += dp[j]
+```
+
+5. Return
+
+```
+dp[m]
+```
+
+---
+
+## Code (Optimal)
+
+```python
+class Solution:
+    def countWays(self, s1, s2):
+        MOD = 10**9 + 7
+
+        n = len(s1)
+        m = len(s2)
+
+        dp = [0] * (m + 1)
+        dp[0] = 1
+
+        for i in range(n):
+            for j in range(m - 1, -1, -1):
+                if s1[i] == s2[j]:
+                    dp[j + 1] = (dp[j + 1] + dp[j]) % MOD
+
+        return dp[m]
+```
+
+---
+
+# Dry Run
+
+```
+s1 = "babgbag"
+s2 = "bag"
+
+Initially
+
+dp = [1,0,0,0]
+
+Meaning
+
+""  b  ba bag
+```
+
+### After processing 'b'
+
+```
+dp = [1,1,0,0]
+```
+
+---
+
+### After processing 'a'
+
+```
+dp = [1,1,1,0]
+```
+
+---
+
+### After processing second 'b'
+
+```
+dp = [1,2,1,0]
+```
+
+---
+
+### After processing 'g'
+
+```
+dp = [1,2,1,1]
+```
+
+---
+
+### Continue processing remaining characters
+
+Final DP
+
+```
+dp = [1,3,4,5]
+```
+
+Answer
+
+```
+5
+```
+
+---
+
+# Why Iterate Backwards?
+
+Suppose
+
+```
+s1 = "aaa"
+s2 = "aa"
+```
+
+If we iterate left to right,
+
+```
+dp[j]
+```
+
+gets updated before being used again in the same iteration, leading to overcounting.
+
+Updating from **right → left** ensures each update uses values from the previous iteration only.
+
+---
+
+# Complexity Analysis
+
+### Time Complexity
+
+```
+O(n × m)
+```
+
+where
+
+* `n = len(s1)`
+* `m = len(s2)`
+
+---
+
+### Space Complexity
+
+```
+O(m)
+```
+
+Only one DP array of size `m + 1` is used.
+
+---
+
+# Comparison
+
+| Approach                       | Time         | Space    |
+| ------------------------------ | ------------ | -------- |
+| Brute Force (Recursion)        | O(2ⁿ)        | O(n)     |
+| DP (2D Memoization/Tabulation) | O(n × m)     | O(n × m) |
+| DP (1D Space Optimized)        | **O(n × m)** | **O(m)** |
+
+---
+
+## Key Takeaways
+
+* Brute force explores every subsequence.
+* DP removes overlapping subproblems.
+* Reverse iteration is necessary in the 1D DP solution.
+* The space-optimized DP (`O(m)`) is the preferred interview and production solution.
