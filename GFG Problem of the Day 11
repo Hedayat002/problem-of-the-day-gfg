@@ -1,0 +1,467 @@
+Yes. Below is a **GitHub-ready interview/revision template** that you can use for this problem and for similar DP recursion problems.
+
+---
+
+# 🧩 Tiling Problem (Count Ways to Tile an n × m Floor)
+
+## Problem Statement
+
+Given an `n × m` floor and tiles of size `1 × m`, count the number of ways to tile the floor.
+
+A tile can be placed in two ways:
+
+* **Horizontally**
+* **Vertically**
+
+---
+
+# 💡 Intuition
+
+At every step, we only have **two choices** for the first placement.
+
+### Choice 1: Place Horizontally
+
+```
+====
+```
+
+* Covers **1 row**
+* Remaining floor = `(n-1) × m`
+
+Recurrence:
+
+```
+countWays(n-1, m)
+```
+
+---
+
+### Choice 2: Place Vertically
+
+```
+|
+|
+|
+|
+```
+
+To cover the full width of the floor, we must place **m vertical tiles together**.
+
+Example (`m = 4`)
+
+```
+||||
+||||
+||||
+||||
+```
+
+* Covers **m rows**
+* Remaining floor = `(n-m) × m`
+
+Recurrence:
+
+```
+countWays(n-m, m)
+```
+
+---
+
+Therefore,
+
+```
+countWays(n,m)
+=
+countWays(n-1,m)
++
+countWays(n-m,m)
+```
+
+---
+
+# 🔴 Brute Force (Pure Recursion)
+
+## Algorithm
+
+1. If `n < m`, only horizontal placement is possible.
+2. If `n == m`, two possibilities exist.
+3. Otherwise
+
+   * Place horizontally.
+   * Place vertically.
+4. Add both answers.
+
+---
+
+## Code (Python)
+
+```python
+class Solution:
+    def countWays(self, n, m):
+
+        if n < m:
+            return 1
+
+        if n == m:
+            return 2
+
+        horizontal = self.countWays(n - 1, m)
+        vertical = self.countWays(n - m, m)
+
+        return horizontal + vertical
+```
+
+---
+
+# 🟢 Optimal Approach (Dynamic Programming)
+
+### Observation
+
+The recursive solution computes the same states repeatedly.
+
+Example
+
+```
+countWays(7)
+
+calls
+
+countWays(6)
+
+countWays(5)
+
+countWays(4)
+
+Again countWays(5)
+
+Again countWays(4)
+```
+
+Many repeated calculations.
+
+Store answers once.
+
+---
+
+## DP State
+
+```
+dp[i]
+
+=
+
+Number of ways to tile i × m floor
+```
+
+---
+
+## Transition
+
+```
+dp[i]
+=
+dp[i-1]
++
+dp[i-m]
+```
+
+---
+
+## Base Cases
+
+```
+i < m
+
+dp[i]=1
+```
+
+```
+i==m
+
+dp[i]=2
+```
+
+---
+
+## Code
+
+```python
+class Solution:
+    def countWays(self, n, m):
+
+        dp = [0] * (n + 1)
+
+        for i in range(n + 1):
+
+            if i < m:
+                dp[i] = 1
+
+            elif i == m:
+                dp[i] = 2
+
+            else:
+                dp[i] = dp[i - 1] + dp[i - m]
+
+        return dp[n]
+```
+
+---
+
+# ✅ Dry Run
+
+Input
+
+```
+n = 7
+m = 4
+```
+
+Initially
+
+```
+dp=[0,0,0,0,0,0,0,0]
+```
+
+---
+
+### i = 0
+
+```
+0<4
+
+dp[0]=1
+```
+
+```
+[1,0,0,0,0,0,0,0]
+```
+
+---
+
+### i = 1
+
+```
+1<4
+
+dp[1]=1
+```
+
+```
+[1,1,0,0,0,0,0,0]
+```
+
+---
+
+### i = 2
+
+```
+2<4
+
+dp[2]=1
+```
+
+```
+[1,1,1,0,0,0,0,0]
+```
+
+---
+
+### i = 3
+
+```
+3<4
+
+dp[3]=1
+```
+
+```
+[1,1,1,1,0,0,0,0]
+```
+
+---
+
+### i = 4
+
+```
+4==4
+
+dp[4]=2
+```
+
+```
+[1,1,1,1,2,0,0,0]
+```
+
+---
+
+### i = 5
+
+```
+dp[5]
+
+=
+dp[4]
++
+dp[1]
+
+=
+2+1
+
+=3
+```
+
+```
+[1,1,1,1,2,3,0,0]
+```
+
+---
+
+### i = 6
+
+```
+dp[6]
+
+=
+dp[5]
++
+dp[2]
+
+=
+3+1
+
+=4
+```
+
+```
+[1,1,1,1,2,3,4,0]
+```
+
+---
+
+### i = 7
+
+```
+dp[7]
+
+=
+dp[6]
++
+dp[3]
+
+=
+4+1
+
+=5
+```
+
+Final DP
+
+```
+[1,1,1,1,2,3,4,5]
+```
+
+Answer
+
+```
+5
+```
+
+---
+
+# 🌳 Recursion Tree
+
+```
+countWays(7)
+│
+├── countWays(6)
+│   │
+│   ├── countWays(5)
+│   │   │
+│   │   ├── countWays(4)=2
+│   │   │
+│   │   └── countWays(1)=1
+│   │
+│   └── countWays(2)=1
+│
+└── countWays(3)=1
+
+Answer
+
+5
+```
+
+---
+
+# 📊 Complexity Analysis
+
+## Brute Force (Recursion)
+
+### Time Complexity
+
+```
+O(2^n)
+```
+
+Reason:
+
+* Every state branches into two recursive calls.
+* Many overlapping subproblems are recomputed.
+
+### Space Complexity
+
+```
+O(n)
+```
+
+Reason:
+
+* Maximum recursion depth is `n`.
+
+---
+
+## Optimal (Dynamic Programming)
+
+### Time Complexity
+
+```
+O(n)
+```
+
+Reason:
+
+* Each state from `0` to `n` is computed exactly once.
+
+### Space Complexity
+
+```
+O(n)
+```
+
+Reason:
+
+* DP array of size `n + 1`.
+
+---
+
+# 🎯 Interview Explanation (30 Seconds)
+
+> At every step, the first tile can only be placed in two ways: horizontally or vertically. If placed horizontally, one row is completed, leaving a subproblem of size `(n-1) × m`. If placed vertically, we must place `m` vertical tiles to fill the width, completing `m` rows and leaving a subproblem of size `(n-m) × m`. This gives the recurrence `f(n) = f(n-1) + f(n-m)`. Since the recursive solution recomputes many states, we optimize it using Dynamic Programming, reducing the time complexity from **O(2ⁿ)** to **O(n)**.
+
+---
+
+# 🔑 Key Takeaways
+
+* Recognize **choices** → Horizontal or Vertical.
+* Form the **recurrence relation**:
+
+  ```
+  f(n) = f(n-1) + f(n-m)
+  ```
+* Identify **overlapping subproblems**.
+* Apply **memoization** or **tabulation**.
+* Final complexity:
+
+  * **Brute Force:** `O(2^n)` time, `O(n)` space.
+  * **DP:** `O(n)` time, `O(n)` space.
+
+This template is suitable for storing in your GitHub DSA repository and for quick interview revision.
