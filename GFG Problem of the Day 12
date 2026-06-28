@@ -1,0 +1,745 @@
+# Problem Name: k Times Appearing Adjacent Two 1's
+
+---
+
+# 1. Problem Statement
+
+Given two integers `n` and `k`, count the number of binary strings of length `n` such that the substring `"11"` appears exactly `k` times.
+
+Two adjacent `1`s contribute **one** occurrence.
+
+Return the answer modulo **10⁹ + 7**.
+
+---
+
+## Example
+
+```
+Input:
+n = 3
+k = 2
+
+Output:
+1
+
+Explanation:
+111
+
+Adjacent pairs:
+(1,2) = 11
+(2,3) = 11
+
+Total = 2
+```
+
+---
+
+```
+Input:
+n = 5
+k = 2
+
+Output:
+6
+```
+
+Possible strings
+
+```
+00111
+10111
+01110
+11100
+11101
+11011
+```
+
+---
+
+# 2. Examples
+
+### Example 1
+
+```
+Input:
+n = 3
+k = 2
+
+Output:
+1
+```
+
+---
+
+### Example 2
+
+```
+Input:
+n = 5
+k = 2
+
+Output:
+6
+```
+
+---
+
+### Example 3
+
+```
+Input:
+n = 4
+k = 0
+
+Output:
+8
+```
+
+Strings containing no adjacent ones.
+
+---
+
+# 3. Constraints
+
+```
+1 ≤ n ≤ 1000
+
+1 ≤ k ≤ 1000
+```
+
+---
+
+# 4. Intuition
+
+Whenever we place a new bit,
+
+placing `0` never creates a new adjacent pair.
+
+```
+...0
+...1
+
+↓
+
+...00
+...10
+```
+
+No new "11".
+
+---
+
+Placing `1`
+
+```
+Previous = 0
+
+01
+```
+
+No new pair.
+
+---
+
+```
+Previous = 1
+
+11
+```
+
+One new adjacent pair.
+
+Therefore, while constructing the string, we only need to know
+
+* current position
+* number of adjacent pairs already formed
+* previous bit
+
+This naturally leads to Dynamic Programming.
+
+---
+
+# 5. Brute Force Approach
+
+## Idea
+
+Generate every binary string.
+
+For each string,
+
+count adjacent `"11"` pairs.
+
+If count equals `k`, increase answer.
+
+---
+
+## Algorithm
+
+```
+Generate all binary strings.
+
+For every string
+
+Count adjacent pairs.
+
+If count == k
+
+answer++
+```
+
+---
+
+## Code
+
+```python
+class Solution:
+    MOD = 1000000007
+
+    def countStrings(self, n, k):
+
+        ans = 0
+
+        def generate(pos, s):
+
+            nonlocal ans
+
+            if pos == n:
+
+                pairs = 0
+
+                for i in range(n - 1):
+                    if s[i] == '1' and s[i + 1] == '1':
+                        pairs += 1
+
+                if pairs == k:
+                    ans += 1
+
+                return
+
+            generate(pos + 1, s + '0')
+            generate(pos + 1, s + '1')
+
+        generate(0, "")
+
+        return ans % self.MOD
+```
+
+---
+
+## Dry Run
+
+```
+n = 3
+
+Generated strings
+
+000
+
+001
+
+010
+
+011 -> 1
+
+100
+
+101
+
+110 -> 1
+
+111 -> 2
+```
+
+Only
+
+```
+111
+```
+
+has exactly 2 adjacent pairs.
+
+Answer = 1
+
+---
+
+## Time Complexity
+
+```
+O(2ⁿ × n)
+```
+
+---
+
+## Space Complexity
+
+```
+O(n)
+```
+
+---
+
+# 6. Better Approach (Top-Down DP / Memoization)
+
+## Idea
+
+Instead of generating the same suffix repeatedly,
+
+store the answer for
+
+```
+(position,
+pairs,
+previous bit)
+```
+
+---
+
+State
+
+```
+dp[pos][pairs][prev]
+```
+
+---
+
+## Algorithm
+
+```
+If pairs > k
+
+return 0
+
+If reached end
+
+return pairs == k
+
+Try placing 0
+
+Try placing 1
+
+Store answer
+```
+
+---
+
+## Code
+
+```python
+class Solution:
+    MOD = 1000000007
+
+    def countStrings(self, n, k):
+
+        dp = [[[-1] * 2 for _ in range(k + 1)] for _ in range(n + 1)]
+
+        def solve(pos, pairs, prev):
+
+            if pairs > k:
+                return 0
+
+            if pos == n:
+                return 1 if pairs == k else 0
+
+            if dp[pos][pairs][prev] != -1:
+                return dp[pos][pairs][prev]
+
+            ways = solve(pos + 1, pairs, 0)
+
+            if prev:
+                ways += solve(pos + 1, pairs + 1, 1)
+            else:
+                ways += solve(pos + 1, pairs, 1)
+
+            dp[pos][pairs][prev] = ways % self.MOD
+
+            return dp[pos][pairs][prev]
+
+        return solve(0, 0, 0)
+```
+
+---
+
+## Time Complexity
+
+```
+O(n × k)
+```
+
+---
+
+## Space Complexity
+
+```
+O(n × k)
+```
+
+---
+
+# 7. Optimal Approach (Bottom-Up + Space Optimized)
+
+## Intuition
+
+Current position only depends on the previous position.
+
+Therefore,
+
+instead of storing DP for all positions,
+
+store only
+
+```
+current row
+
+next row
+```
+
+Space becomes
+
+```
+O(k)
+```
+
+instead of
+
+```
+O(nk)
+```
+
+---
+
+## Algorithm
+
+Initialize
+
+```
+dp[0][0]=1
+```
+
+For every position
+
+```
+new DP
+
+Place 0
+
+Place 1
+
+Update DP
+```
+
+Return
+
+```
+dp[k][0]+dp[k][1]
+```
+
+---
+
+## Code
+
+```python
+class Solution:
+    MOD = 1000000007
+
+    def countStrings(self, n, k):
+
+        dp = [[0] * 2 for _ in range(k + 1)]
+        dp[0][0] = 1
+
+        for _ in range(n):
+
+            new = [[0] * 2 for _ in range(k + 1)]
+
+            for pairs in range(k + 1):
+
+                if dp[pairs][0]:
+
+                    new[pairs][0] = (new[pairs][0] + dp[pairs][0]) % self.MOD
+                    new[pairs][1] = (new[pairs][1] + dp[pairs][0]) % self.MOD
+
+                if dp[pairs][1]:
+
+                    new[pairs][0] = (new[pairs][0] + dp[pairs][1]) % self.MOD
+
+                    if pairs < k:
+                        new[pairs + 1][1] = (
+                            new[pairs + 1][1] + dp[pairs][1]
+                        ) % self.MOD
+
+            dp = new
+
+        return (dp[k][0] + dp[k][1]) % self.MOD
+```
+
+---
+
+## Dry Run
+
+```
+n = 3
+
+Initially
+
+pairs
+
+0 : [1,0]
+```
+
+---
+
+After first position
+
+```
+0
+
+1
+```
+
+```
+pairs
+
+0 : [1,1]
+```
+
+---
+
+After second position
+
+```
+00
+
+01
+
+10
+
+11
+```
+
+```
+pairs
+
+0 : [2,1]
+
+1 : [0,1]
+```
+
+---
+
+After third position
+
+```
+111
+```
+
+creates second adjacent pair.
+
+Answer
+
+```
+1
+```
+
+---
+
+## Time Complexity
+
+```
+O(n × k)
+```
+
+---
+
+## Space Complexity
+
+```
+O(k)
+```
+
+---
+
+# 8. DP Table
+
+State
+
+```
+dp[pairs][prev]
+```
+
+Meaning
+
+```
+Number of ways
+
+having
+
+pairs adjacent "11"
+
+ending with
+
+prev
+```
+
+Example
+
+```
+pairs
+
+0 : [count ending in 0,
+     count ending in 1]
+
+1 : [...]
+
+2 : [...]
+```
+
+---
+
+# 9. Why This Works
+
+Every new bit depends only on the previous bit.
+
+If
+
+```
+previous=1
+
+new=1
+```
+
+then adjacent count increases.
+
+Otherwise,
+
+count remains unchanged.
+
+Thus,
+
+keeping
+
+```
+position
+
+pairs
+
+previous bit
+```
+
+is sufficient.
+
+Dynamic Programming avoids recalculating identical states.
+
+---
+
+# 10. Edge Cases
+
+### k = 0
+
+No adjacent ones allowed.
+
+---
+
+### n = 1
+
+```
+0
+
+1
+```
+
+Both valid for
+
+```
+k=0
+```
+
+---
+
+### k > n-1
+
+Impossible.
+
+Return
+
+```
+0
+```
+
+---
+
+### All ones
+
+```
+11111
+```
+
+Adjacent pairs
+
+```
+4
+```
+
+---
+
+# 11. Interview Explanation (30–60 sec)
+
+> "The key observation is that a new adjacent `'11'` pair is created only when I place a `1` immediately after another `1`. Therefore, my DP state keeps three pieces of information: the current position, how many adjacent pairs have been formed so far, and the previous bit. The memoized solution runs in `O(n × k)` time. Since each position only depends on the previous position, I can optimize the space to `O(k)` using a rolling DP array while keeping the same time complexity."
+
+---
+
+# 12. Key Takeaways
+
+* Binary string DP
+* Previous character DP
+* Rolling Array Optimization
+* State Compression
+* Memoization → Tabulation
+* Space Optimization
+
+---
+
+# 13. Common Mistakes
+
+❌ Counting every `1` instead of adjacent `"11"` pairs.
+
+---
+
+❌ Forgetting to increase the pair count only when
+
+```
+previous = 1
+
+current = 1
+```
+
+---
+
+❌ Not taking modulo after additions.
+
+---
+
+❌ Using recursion for `n = 1000` without considering Python's recursion depth.
+
+---
+
+❌ Returning only `dp[k][1]` instead of
+
+```
+dp[k][0] + dp[k][1]
+```
+
+because valid strings may end in either `0` or `1`.
+
+---
+
+# 14. Related Problems
+
+1. Binary Strings Without Consecutive 1s
+2. Count Binary Strings
+3. Decode Ways
+4. Distinct Subsequences
+5. Count Vowel Permutation
+6. Number of Ways to Form a Target String
+7. Domino and Tromino Tiling
+8. House Robber (state transition DP)
+9. Fibonacci DP (rolling array optimization)
+10. Digit DP problems involving previous digit states
