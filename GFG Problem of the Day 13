@@ -1,0 +1,610 @@
+# Max Dot Product with 0 Insertions
+
+---
+
+# 1. Problem Statement
+
+Given two arrays `a[]` and `b[]`, where `len(a) >= len(b)`.
+
+You are allowed to insert **0s** anywhere in array `b` so that its length becomes equal to `a`.
+
+Find the **maximum possible dot product**.
+
+The order of elements in both arrays must remain unchanged.
+
+---
+
+## Example
+
+```
+Input:
+a = [2, 3, 1]
+b = [4, 5]
+
+Possible insertions
+
+[4,5,0]
+Dot Product = 2×4 + 3×5 + 1×0 = 23
+
+[4,0,5]
+Dot Product = 2×4 + 3×0 + 1×5 = 13
+
+[0,4,5]
+Dot Product = 2×0 + 3×4 + 1×5 = 17
+
+Answer = 23
+```
+
+---
+
+# 2. Examples
+
+### Example 1
+
+```
+Input
+
+a = [2,3,1]
+b = [4,5]
+
+Output
+
+23
+```
+
+Explanation
+
+```
+Insert one zero at the end.
+
+[4,5,0]
+
+2×4 + 3×5 + 1×0
+
+=8+15
+
+=23
+```
+
+---
+
+### Example 2
+
+```
+Input
+
+a=[1,2,3]
+b=[4]
+```
+
+Possible
+
+```
+[4,0,0] →4
+
+[0,4,0] →8
+
+[0,0,4] →12
+```
+
+Answer
+
+```
+12
+```
+
+---
+
+# 3. Constraints
+
+```
+1 ≤ m ≤ n
+
+n = len(a)
+
+m = len(b)
+```
+
+---
+
+# 4. Intuition
+
+Since zeros can be inserted into `b`, we don't actually need to build the new array.
+
+Instead,
+
+Think like this:
+
+> Which elements of `a` should be matched with the elements of `b`?
+
+Every element of `b` **must** be matched.
+
+Every element of `a` has two choices:
+
+* Skip it (match with zero)
+* Take it (pair with current element of `b`)
+
+This naturally becomes a Dynamic Programming problem.
+
+---
+
+# 5. Brute Force Approach
+
+## Idea
+
+Generate every possible placement of zeros inside `b`.
+
+For every arrangement,
+
+Compute the dot product.
+
+Return maximum.
+
+---
+
+## Algorithm
+
+```
+Generate every possible insertion of zeros
+
+For each arrangement
+
+Compute dot product
+
+Return maximum
+```
+
+---
+
+## Code (Concept)
+
+```
+Generate all combinations
+
+For every combination
+
+Compute answer
+```
+
+(Not practical.)
+
+---
+
+## Dry Run
+
+```
+a=[2,3,1]
+
+b=[4,5]
+
+Possible
+
+[4,5,0]
+
+[4,0,5]
+
+[0,4,5]
+
+Maximum=23
+```
+
+---
+
+## Time Complexity
+
+Very large
+
+```
+O(C(n,m))
+```
+
+Exponential.
+
+---
+
+## Space Complexity
+
+```
+O(n)
+```
+
+---
+
+# 6. Better Approach
+
+There isn't a significantly better intermediate solution. We move directly to Dynamic Programming.
+
+---
+
+# 7. Optimal Approach (Recursion + Memoization)
+
+## Intuition
+
+At every element of `a`, we have only **two choices**.
+
+### Choice 1
+
+Skip current element.
+
+It will match with zero.
+
+```
+solve(i+1,j)
+```
+
+---
+
+### Choice 2
+
+Take current element.
+
+Pair
+
+```
+a[i]
+
+with
+
+b[j]
+```
+
+Then move both pointers.
+
+```
+a[i]*b[j]
+
++
+
+solve(i+1,j+1)
+```
+
+Take maximum.
+
+---
+
+## State Definition
+
+```
+solve(i,j)
+
+Maximum answer
+
+using
+
+a[i:]
+
+and
+
+b[j:]
+```
+
+---
+
+## Base Cases
+
+### Case 1
+
+```
+j==m
+```
+
+All elements of `b` are matched.
+
+Return
+
+```
+0
+```
+
+---
+
+### Case 2
+
+```
+i==n
+```
+
+Array `a` finishes before matching all of `b`.
+
+Impossible.
+
+Return
+
+```
+-∞
+```
+
+---
+
+## Algorithm
+
+```
+solve(i,j)
+
+If all elements of b matched
+
+return 0
+
+If a finished
+
+return -∞
+
+If answer already computed
+
+return it
+
+Skip
+
+solve(i+1,j)
+
+Take
+
+solve(i+1,j+1)+a[i]*b[j]
+
+Return maximum
+```
+
+---
+
+## Python Code
+
+```python
+class Solution:
+    def maxDotProduct(self, a, b):
+        n = len(a)
+        m = len(b)
+
+        dp = [[None] * m for _ in range(n)]
+
+        def solve(i, j):
+
+            if j == m:
+                return 0
+
+            if i == n:
+                return float("-inf")
+
+            if dp[i][j] is not None:
+                return dp[i][j]
+
+            skip = solve(i + 1, j)
+
+            take = float("-inf")
+            nxt = solve(i + 1, j + 1)
+
+            if nxt != float("-inf"):
+                take = nxt + a[i] * b[j]
+
+            dp[i][j] = max(skip, take)
+
+            return dp[i][j]
+
+        return solve(0, 0)
+```
+
+---
+
+## Dry Run
+
+Example
+
+```
+a=[2,3,1]
+
+b=[4,5]
+```
+
+Start
+
+```
+solve(0,0)
+```
+
+Skip
+
+```
+solve(1,0)=17
+```
+
+Take
+
+```
+2×4
+
++
+
+solve(1,1)
+
+=8+15
+
+=23
+```
+
+Maximum
+
+```
+23
+```
+
+Answer
+
+```
+23
+```
+
+---
+
+## Time Complexity
+
+There are
+
+```
+n × m
+```
+
+states.
+
+Each state is solved once.
+
+```
+O(n×m)
+```
+
+---
+
+## Space Complexity
+
+DP Table
+
+```
+O(n×m)
+```
+
+Recursion
+
+```
+O(n)
+```
+
+Total
+
+```
+O(n×m)
+```
+
+---
+
+# 8. Recursion Tree / DP Table
+
+### Recursion Tree
+
+```
+                               solve(0,0)
+                            /               \
+                      Skip                   Take
+                  solve(1,0)          solve(1,1)+8
+                 /        \             /       \
+          solve(2,0)   solve(2,1)+12  solve(2,1) solve(2,2)+15
+             /   \        /     \          |            |
+           -∞   -∞      -∞      5         5            0
+```
+
+---
+
+### DP Table
+
+| i | j | Value |
+| - | - | ----: |
+| 0 | 0 |    23 |
+| 1 | 0 |    17 |
+| 1 | 1 |    15 |
+| 2 | 0 |    -∞ |
+| 2 | 1 |     5 |
+
+---
+
+# 9. Why This Works
+
+At every index of `a`, exactly one of the following must happen:
+
+* It is skipped (equivalent to inserting a `0` in `b`).
+* It is paired with the current element of `b`.
+
+These two choices cover every valid alignment while preserving the order of elements. Since each state `(i, j)` is solved only once, the DP explores all possibilities efficiently and guarantees the optimal answer.
+
+---
+
+# 10. Edge Cases
+
+### Only one element in `b`
+
+```
+a=[1,2,3]
+
+b=[5]
+
+Answer
+
+15
+```
+
+---
+
+### Equal length
+
+```
+a=[1,2]
+
+b=[3,4]
+
+No skipping possible.
+
+Answer
+
+11
+```
+
+---
+
+### Negative numbers
+
+```
+a=[-2,-3]
+
+b=[-4]
+
+Answer
+
+12
+```
+
+---
+
+### All zeros
+
+```
+a=[0,0]
+
+b=[0]
+
+Answer
+
+0
+```
+
+---
+
+# 11. Interview Explanation (30–60 sec)
+
+> "I define `solve(i, j)` as the maximum dot product using the suffixes `a[i:]` and `b[j:]`. At each position in `a`, I either skip the current element (meaning it is matched with an inserted zero) or pair it with the current element of `b`. If all elements of `b` are matched, I return `0`. If `a` finishes before `b`, I return negative infinity because the state is invalid. I memoize every `(i, j)` state, so each state is computed only once. The overall complexity is `O(n × m)`."
+
+---
+
+# 12. Key Takeaways
+
+* Model zero insertion as **skipping elements in `a`**.
+* Define DP state as `solve(i, j)`.
+* Two choices at each state: **Skip** or **Take**.
+* Use `-∞` for impossible states.
+* Memoization reduces exponential recursion to `O(n × m)`.
+
+---
+
+# 13. Common Mistakes
+
+1. Returning `0` when `i == n` instead of `-∞`, which incorrectly allows incomplete matches.
+2. Forgetting to check whether `nxt` is valid before adding `a[i] * b[j]`.
+3. Using `0` instead of `-∞` for invalid paths.
+4. Not memoizing results, leading to exponential time.
+5. Confusing "skipping an element in `a`" with "skipping an element in `b`". Only `a` can be skipped because skipping `a[i]` is equivalent to inserting a `0` into `b`.
+
+---
+
+# 14. Related Problems
+
+* Maximum Dot Product of Two Subsequences (LeetCode 1458)
+* Longest Common Subsequence (LCS)
+* Edit Distance
+* Distinct Subsequences
+* Uncrossed Lines
+* Sequence Alignment Dynamic Programming
