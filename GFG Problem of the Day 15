@@ -1,0 +1,677 @@
+Problem Name: Max Subarray Sum by Removing At Most One
+
+
+---
+
+1. Problem Statement
+
+Given an integer array arr[], find the maximum sum of a non-empty contiguous subarray.
+
+You are allowed to remove (skip) at most one element from the chosen subarray.
+
+> Note: After removing one element, the remaining subarray must still be non-empty.
+
+
+
+Return the maximum possible subarray sum.
+
+
+---
+
+2. Examples
+
+Example 1
+
+Input:
+arr = [1, 2, 3, -4, 5]
+
+Output:
+11
+
+Explanation
+
+Without deletion
+
+1+2+3-4+5 = 7
+
+Delete -4
+
+1+2+3+5 = 11
+
+
+---
+
+Example 2
+
+Input:
+arr = [-1,-2,-3]
+
+Output
+
+-1
+
+Explanation
+
+Cannot remove all elements.
+
+Maximum subarray is
+
+[-1]
+
+
+---
+
+Example 3
+
+Input:
+arr = [1,-2,0,3]
+
+Output
+
+4
+
+Explanation
+
+Delete
+
+-2
+
+Result
+
+1+0+3=4
+
+
+---
+
+3. Constraints
+
+1 ≤ n ≤ 10^5
+
+-10^6 ≤ arr[i] ≤ 10^6
+
+Need an O(n) solution.
+
+
+---
+
+4. Intuition
+
+Without deletion,
+
+this is simply Kadane's Algorithm.
+
+Now we have one extra option.
+
+At every element,
+
+either
+
+Keep it
+
+Delete it (only once)
+
+
+So for every index we maintain
+
+Best sum without deleting anything.
+
+Best sum after deleting one element.
+
+
+
+---
+
+5. Brute Force Approach
+
+Idea
+
+Try deleting every possible element.
+
+Also consider deleting nothing.
+
+For each case,
+
+run Kadane's Algorithm.
+
+Take maximum answer.
+
+
+---
+
+Algorithm
+
+For every index
+
+Delete arr[i]
+
+Run Kadane
+
+Update answer
+
+Also
+
+Run Kadane without deletion
+
+
+---
+
+Code
+
+class Solution:
+    def maxSumSubarray(self, arr):
+        n = len(arr)
+
+        def kadane(nums):
+            best = nums[0]
+            curr = nums[0]
+
+            for i in range(1, len(nums)):
+                curr = max(nums[i], curr + nums[i])
+                best = max(best, curr)
+
+            return best
+
+        ans = kadane(arr)
+
+        for i in range(n):
+            temp = arr[:i] + arr[i + 1:]
+
+            if temp:
+                ans = max(ans, kadane(temp))
+
+        return ans
+
+
+---
+
+Dry Run
+
+1 2 3 -4 5
+
+Delete
+
+1
+
+Remaining
+
+2 3 -4 5
+
+Kadane
+
+6
+
+Delete
+
+-4
+
+Remaining
+
+1 2 3 5
+
+Kadane
+
+11
+
+Delete
+
+5
+
+Kadane
+
+6
+
+Answer
+
+11
+
+
+---
+
+Time Complexity
+
+Deleting each element
+
+O(n)
+
+Kadane
+
+O(n)
+
+Overall
+
+O(n²)
+
+
+---
+
+Space Complexity
+
+O(n)
+
+because of copied arrays.
+
+
+---
+
+6. Better Approach
+
+Idea
+
+Instead of copying arrays,
+
+compute
+
+Left Maximum Sum
+
+Right Maximum Sum
+
+For every deleted element,
+
+combine
+
+left[i-1]
+
++
+
+right[i+1]
+
+
+---
+
+Algorithm
+
+Build
+
+forward[]
+
+backward[]
+
+Then
+
+For every position
+
+Delete arr[i]
+
+answer=max(answer,
+
+forward[i-1]+backward[i+1])
+
+
+---
+
+Code
+
+class Solution:
+    def maxSumSubarray(self, arr):
+        n = len(arr)
+
+        forward = [0] * n
+        backward = [0] * n
+
+        forward[0] = arr[0]
+
+        for i in range(1, n):
+            forward[i] = max(arr[i], forward[i - 1] + arr[i])
+
+        backward[n - 1] = arr[n - 1]
+
+        for i in range(n - 2, -1, -1):
+            backward[i] = max(arr[i], backward[i + 1] + arr[i])
+
+        ans = max(forward)
+
+        for i in range(1, n - 1):
+            ans = max(ans, forward[i - 1] + backward[i + 1])
+
+        return ans
+
+
+---
+
+Time Complexity
+
+O(n)
+
+
+---
+
+Space Complexity
+
+O(n)
+
+
+---
+
+7. Optimal Approach
+
+Intuition
+
+Maintain two DP states while traversing once.
+
+Let
+
+keep
+
+=
+
+maximum subarray sum
+
+ending here
+
+without deletion
+
+and
+
+delete
+
+=
+
+maximum subarray sum
+
+ending here
+
+after deleting one element
+
+At every index,
+
+either
+
+continue previous subarray
+
+or
+
+start a new one.
+
+
+---
+
+DP States
+
+keep
+
+Exactly Kadane
+
+keep
+
+=
+
+max(
+
+arr[i],
+
+keep+arr[i]
+)
+
+
+---
+
+delete
+
+Two choices
+
+Delete current element
+
+keep(previous)
+
+or
+
+Already deleted before
+
+delete+arr[i]
+
+Therefore
+
+delete
+
+=
+
+max(
+
+keep(previous),
+
+delete+arr[i]
+
+)
+
+
+---
+
+Algorithm
+
+Initialize
+
+keep=arr[0]
+
+delete=0
+
+answer=arr[0]
+
+Traverse array.
+
+Update
+
+newDelete
+
+=
+
+max(
+
+keep,
+
+delete+arr[i]
+
+)
+
+Update
+
+newKeep
+
+=
+
+max(
+
+arr[i],
+
+keep+arr[i]
+
+)
+
+Take maximum.
+
+
+---
+
+Code
+
+class Solution:
+    def maxSumSubarray(self, arr):
+        n = len(arr)
+
+        keep = arr[0]
+        delete = float("-inf")
+
+        ans = arr[0]
+
+        for i in range(1, n):
+            new_delete = max(keep, delete + arr[i])
+            new_keep = max(arr[i], keep + arr[i])
+
+            keep = new_keep
+            delete = new_delete
+
+            ans = max(ans, keep, delete)
+
+        return ans
+
+
+---
+
+Dry Run
+
+Array
+
+1 2 3 -4 5
+
+Index	Value	keep	delete	Answer
+
+0	1	1	-∞	1
+1	2	3	1	3
+2	3	6	4	6
+3	-4	2	6	6
+4	5	7	11	11
+
+
+Answer
+
+11
+
+
+---
+
+Time Complexity
+
+Single traversal
+
+O(n)
+
+
+---
+
+Space Complexity
+
+O(1)
+
+
+---
+
+8. Recursion Tree / DP Table / Diagram
+
+No recursion.
+
+DP Table Concept
+
+Index
+
+0   1   2   3   4
+
+Array
+
+1   2   3  -4   5
+
+keep
+
+1   3   6   2   7
+
+delete
+
+-∞  1   4   6  11
+
+Final Answer
+
+11
+
+
+---
+
+9. Why This Works
+
+keep stores the best subarray ending at the current index without any deletion.
+
+delete stores the best subarray ending at the current index after using exactly one deletion.
+
+When computing delete, there are only two possibilities:
+
+1. Delete the current element and keep the previous valid subarray (keep(previous)).
+
+
+2. The deletion was already used earlier, so extend the deleted-state subarray (delete + arr[i]).
+
+
+
+These transitions consider every valid subarray exactly once, so the algorithm is correct.
+
+
+
+---
+
+10. Edge Cases
+
+Single element array.
+
+All elements negative.
+
+Delete the first element.
+
+Delete the last element.
+
+No deletion gives the best answer.
+
+Deleting a positive element is never beneficial.
+
+Maximum answer comes after removing one large negative value.
+
+
+
+---
+
+11. Interview Explanation (30–60 sec)
+
+> "This is an extension of Kadane's Algorithm. I maintain two DP states while scanning the array once. keep represents the maximum subarray sum ending at the current index without any deletion. delete represents the maximum subarray sum ending here after one deletion has already been used. For each element, keep follows the normal Kadane transition, while delete either deletes the current element or extends a previously deleted subarray. The answer is the maximum value seen in either state. This gives an O(n) time and O(1) space solution."
+
+
+
+
+---
+
+12. Key Takeaways
+
+Extension of Kadane's Algorithm.
+
+Two DP states are sufficient.
+
+No recursion required.
+
+Constant extra space.
+
+Classic example of state transition DP.
+
+
+
+---
+
+13. Common Mistakes
+
+Initializing delete to 0 instead of negative infinity.
+
+Forgetting that the remaining subarray must be non-empty.
+
+Updating keep before computing delete (you need the previous keep value).
+
+Returning only keep instead of the maximum of keep and delete.
+
+Mishandling arrays containing all negative numbers.
+
+
+
+---
+
+14. Related Problems
+
+1. LeetCode 53 – Maximum Subarray
+
+
+2. LeetCode 918 – Maximum Sum Circular Subarray
+
+
+3. LeetCode 152 – Maximum Product Subarray
+
+
+4. LeetCode 1186 – Maximum Subarray Sum with One Deletion
+
+
+5. LeetCode 1749 – Maximum Absolute Sum of Any Subarray
+
+
+6. Kadane's Algorithm (Classic)
+
+
