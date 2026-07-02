@@ -1,0 +1,747 @@
+Problem Name: Check Subset Sum Divisible by K
+
+
+---
+
+1. Problem Statement
+
+Given an array arr[] of positive integers and an integer k, determine whether there exists at least one non-empty subset whose sum is divisible by k.
+
+Return:
+
+True if such a subset exists.
+
+False otherwise.
+
+
+A subset can contain any number of elements, but it must not be empty.
+
+
+---
+
+2. Examples
+
+Example 1
+
+Input:
+arr = [3, 1, 7, 5]
+k = 6
+
+Output:
+True
+
+Explanation
+
+Subset = {7, 5}
+
+Sum = 7 + 5 = 12
+
+12 % 6 = 0
+
+Answer = True
+
+
+---
+
+Example 2
+
+Input:
+arr = [1, 2, 6]
+k = 5
+
+Output:
+False
+
+Explanation
+
+Possible subset sums:
+
+1
+2
+6
+3
+7
+8
+9
+
+None are divisible by 5.
+
+
+---
+
+3. Constraints
+
+1 ≤ n ≤ 1000
+1 ≤ k ≤ 1000
+1 ≤ arr[i] ≤ 1000
+
+
+---
+
+4. Intuition
+
+The question asks whether any subset sum is divisible by k.
+
+The first idea is simple:
+
+Generate every possible subset.
+
+Calculate its sum.
+
+Check whether the sum is divisible by k.
+
+
+This works but becomes extremely slow because there are 2ⁿ subsets.
+
+The important observation is:
+
+We don't care about the exact sum.
+
+We only care about
+
+sum % k
+
+because
+
+sum % k == 0
+
+means the subset satisfies the condition.
+
+There are only k possible remainders (0 to k−1).
+
+Instead of storing every possible sum, we only store which remainders are achievable.
+
+This reduces the complexity from exponential to polynomial.
+
+
+---
+
+5. Brute Force Approach
+
+Idea
+
+Generate every subset using recursion.
+
+For every non-empty subset:
+
+Calculate its sum.
+
+Check if
+
+
+sum % k == 0
+
+If yes, return True.
+
+Otherwise continue.
+
+
+---
+
+Algorithm
+
+Generate all subsets recursively.
+
+For every subset
+
+    if subset is not empty
+
+        calculate its sum
+
+        if sum % k == 0
+
+            return True
+
+Return False
+
+
+---
+
+Code (Python)
+
+class Solution:
+    def subsetSumDivisible(self, arr, k):
+        n = len(arr)
+
+        def dfs(index, subset):
+            if index == n:
+                if subset:
+                    return sum(subset) % k == 0
+                return False
+
+            subset.append(arr[index])
+            if dfs(index + 1, subset):
+                return True
+            subset.pop()
+
+            return dfs(index + 1, subset)
+
+        return dfs(0, [])
+
+
+---
+
+Dry Run
+
+arr = [1,2,6]
+
+Subsets
+
+{}
+
+{1}
+sum=1
+
+{2}
+sum=2
+
+{6}
+sum=6
+
+{1,2}
+sum=3
+
+{1,6}
+sum=7
+
+{2,6}
+sum=8
+
+{1,2,6}
+sum=9
+
+None are divisible by 5.
+
+Answer = False
+
+
+---
+
+Time Complexity
+
+Number of subsets = 2ⁿ
+
+Each subset sum = O(n)
+
+Total = O(n × 2ⁿ)
+
+
+---
+
+Space Complexity
+
+O(n)
+
+(recursion stack)
+
+
+---
+
+6. Better Approach (Incremental Recursion)
+
+Idea
+
+Instead of storing every subset and calculating its sum repeatedly, keep a running sum while making recursive calls.
+
+Each recursive call decides:
+
+Take current element.
+
+Skip current element.
+
+
+This avoids recalculating subset sums.
+
+
+---
+
+Algorithm
+
+Function(index, currentSum, taken)
+
+If index == n
+
+    return taken AND currentSum % k == 0
+
+Take current element
+
+Don't take current element
+
+Return OR of both answers
+
+
+---
+
+Code (Python)
+
+class Solution:
+    def subsetSumDivisible(self, arr, k):
+        n = len(arr)
+
+        def dfs(index, curr_sum, taken):
+            if index == n:
+                return taken and curr_sum % k == 0
+
+            if dfs(index + 1, curr_sum + arr[index], True):
+                return True
+
+            return dfs(index + 1, curr_sum, taken)
+
+        return dfs(0, 0, False)
+
+
+---
+
+Time Complexity
+
+O(2ⁿ)
+
+
+---
+
+Space Complexity
+
+O(n)
+
+
+---
+
+7. Optimal Approach (Dynamic Programming)
+
+Intuition
+
+Instead of remembering all subset sums, remember only their remainder after division by k.
+
+Suppose
+
+k = 5
+
+Possible remainders are only
+
+0
+1
+2
+3
+4
+
+Create
+
+dp[r]
+
+meaning
+
+> Is there any non-empty subset whose sum leaves remainder r?
+
+
+
+Initially
+
+dp =
+
+F F F F F
+
+When processing a new number
+
+Suppose
+
+num = 7
+
+7 % 5 = 2
+
+Then
+
+dp[2] = True
+
+If some subset already has remainder
+
+3
+
+adding 7 gives
+
+(3 + 7) % 5
+
+=10 %5
+
+=0
+
+So
+
+dp[0]=True
+
+Answer found.
+
+
+---
+
+Algorithm
+
+Create dp[k] initialized to False.
+
+For every number
+
+    Create copy of dp.
+
+    Mark current number alone.
+
+    For every previous remainder
+
+        if remainder exists
+
+            create new remainder
+
+    Replace dp
+
+If dp[0] becomes True
+
+    return True
+
+Return False
+
+
+---
+
+Code (Python)
+
+class Solution:
+    def subsetSumDivisible(self, arr, k):
+        dp = [False] * k
+
+        for num in arr:
+            new_dp = dp[:]
+
+            new_dp[num % k] = True
+
+            for rem in range(k):
+                if dp[rem]:
+                    new_dp[(rem + num) % k] = True
+
+            dp = new_dp
+
+            if dp[0]:
+                return True
+
+        return False
+
+
+---
+
+Dry Run
+
+arr = [3,1,7,5]
+
+k = 6
+
+Initially
+
+dp
+
+F F F F F F
+
+
+---
+
+Number = 3
+
+3 % 6 = 3
+
+dp
+
+F F F T F F
+
+
+---
+
+Number = 1
+
+Current remainder
+
+1
+
+dp
+
+F T F T F F
+
+Old remainder
+
+3
+
+(3+1)%6
+
+=4
+
+dp
+
+F T F T T F
+
+
+---
+
+Number = 7
+
+7%6=1
+
+Old remainder
+
+4
+
+(4+7)%6
+
+=11%6
+
+=5
+
+dp
+
+F T F T T T
+
+Old remainder
+
+1
+
+(1+7)%6
+
+=2
+
+dp
+
+F T T T T T
+
+
+---
+
+Number = 5
+
+Old remainder
+
+1
+
+1+5=6
+
+6%6=0
+
+dp
+
+T T T T T T
+
+Answer
+
+True
+
+
+---
+
+Time Complexity
+
+There are n elements.
+
+For every element
+
+we iterate through k remainders.
+
+Total
+
+O(n × k)
+
+
+---
+
+Space Complexity
+
+O(k)
+
+
+---
+
+8. DP Table / Diagram
+
+Example
+
+arr = [3,1,7]
+
+k = 6
+
+Initially
+
+Remainder
+
+0 1 2 3 4 5
+
+F F F F F F
+
+After 3
+
+F F F T F F
+
+After 1
+
+F T F T T F
+
+After 7
+
+F T T T T T
+
+Each index represents a remainder that is achievable using some subset.
+
+
+---
+
+9. Why This Works
+
+Suppose a subset has sum
+
+S
+
+Only
+
+S % k
+
+matters.
+
+Whenever we add a new number
+
+num
+
+new remainder becomes
+
+(S % k + num % k) % k
+
+which is equivalent to
+
+(S + num) % k
+
+Thus, by tracking only remainders, we correctly represent all possible subset sums without storing the actual sums.
+
+
+---
+
+10. Edge Cases
+
+Single element divisible by k
+
+arr=[12]
+
+k=6
+
+Answer=True
+
+
+---
+
+Single element not divisible
+
+arr=[7]
+
+k=5
+
+Answer=False
+
+
+---
+
+Entire array required
+
+arr=[1,2,3]
+
+k=6
+
+Subset={1,2,3}
+
+Answer=True
+
+
+---
+
+No valid subset
+
+arr=[1,2,6]
+
+k=5
+
+Answer=False
+
+
+---
+
+k = 1
+
+Every positive integer is divisible by 1.
+
+Always True
+
+
+---
+
+11. Interview Explanation (30–60 sec)
+
+> A brute-force solution generates all subsets and checks their sums, which takes . The optimization is that we only care about the subset sum modulo k, not the exact sum. Since there are only k possible remainders, we maintain a DP array where dp[r] indicates whether some non-empty subset has remainder r. For each number, we update the reachable remainders using (oldRemainder + num) % k. If remainder 0 becomes reachable, we have found a valid subset. This reduces the complexity to O(n × k) with O(k) extra space.
+
+
+
+
+---
+
+12. Key Takeaways
+
+Brute force explores every subset.
+
+Only the remainder modulo k matters.
+
+DP state represents reachable remainders.
+
+Always update using a copy (new_dp) to avoid reusing the same element multiple times.
+
+Time complexity improves from exponential to polynomial.
+
+
+
+---
+
+13. Common Mistakes
+
+❌ Forgetting that the subset must be non-empty.
+
+❌ Updating dp directly instead of using new_dp, which allows the same element to be counted multiple times.
+
+❌ Storing complete sums instead of modulo values, increasing memory and time unnecessarily.
+
+❌ Forgetting to mark the current element alone:
+
+new_dp[num % k] = True
+
+❌ Returning False before processing all elements.
+
+
+---
+
+14. Related Problems
+
+1. Subset Sum Problem
+
+
+2. Partition Equal Subset Sum
+
+
+3. Target Sum
+
+
+4. Count of Subsets with Given Sum
+
+
+5. Perfect Sum Problem
+
+
+6. Minimum Subset Sum Difference
+
+
+7. Equal Partition Problem
+
+
+8. Coin Change
+
+
+9. 0/1 Knapsack
+
+
+10. Continuous Subarray Sum (LeetCode 523)
+
+
