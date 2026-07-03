@@ -1,0 +1,729 @@
+Problem Name: Ways to Increase LCS by One
+
+
+---
+
+1. Problem Statement
+
+Given two strings s1 and s2 consisting of lowercase English letters, find the number of ways to insert exactly one character into s1 such that the Longest Common Subsequence (LCS) of s1 and s2 increases by exactly 1.
+
+The inserted character can be placed at any position in s1 (including the beginning and the end).
+
+
+---
+
+2. Examples
+
+Example 1
+
+Input
+
+s1 = "abab"
+s2 = "abc"
+
+Output
+
+3
+
+Explanation
+
+Original LCS = 2
+
+Valid insertions:
+
+abcab
+abacb
+ababc
+
+Each gives LCS = 3.
+
+
+---
+
+Example 2
+
+Input
+
+s1 = "abcabc"
+s2 = "abcd"
+
+Output
+
+4
+
+Explanation
+
+Original LCS = 3
+
+Valid insertions:
+
+abcdabc
+abcadcb
+abcabdc
+abcabcd
+
+Each gives LCS = 4.
+
+
+---
+
+3. Constraints
+
+1 ≤ n1, n2 ≤ 100
+
+Only lowercase English letters.
+
+Exactly one insertion is allowed.
+
+
+
+---
+
+4. Intuition
+
+A brute-force solution tries every possible insertion and recomputes the LCS each time, but this repeats the same computations many times.
+
+Instead, we precompute:
+
+Prefix LCS (pre)
+
+Suffix LCS (suf)
+
+
+If inserting a character divides s1 into:
+
+Left + Inserted Character + Right
+
+then
+
+LCS(left)
++
+1
++
+LCS(right)
+
+must equal
+
+Original LCS + 1
+
+This observation allows us to answer each insertion in constant time after preprocessing.
+
+
+---
+
+5. Brute Force Approach
+
+Idea
+
+Try every:
+
+insertion position
+
+lowercase character ('a'–'z')
+
+
+For every newly formed string:
+
+Compute LCS.
+
+If LCS becomes exactly one larger, count it.
+
+
+
+---
+
+Algorithm
+
+1. Compute original LCS.
+
+
+2. For every insertion position:
+
+For every lowercase character:
+
+Insert character.
+
+Compute LCS.
+
+If new LCS = original + 1:
+
+Increment answer.
+
+
+
+
+
+3. Return answer.
+
+
+
+
+---
+
+Code (Python)
+
+class Solution:
+    def lcs(self, a, b):
+        n, m = len(a), len(b)
+
+        dp = [[0]*(m+1) for _ in range(n+1)]
+
+        for i in range(1, n+1):
+            for j in range(1, m+1):
+                if a[i-1] == b[j-1]:
+                    dp[i][j] = dp[i-1][j-1] + 1
+                else:
+                    dp[i][j] = max(dp[i-1][j], dp[i][j-1])
+
+        return dp[n][m]
+
+    def waysToIncreaseLCSByOne(self, s1, s2):
+        original = self.lcs(s1, s2)
+
+        ans = 0
+
+        for pos in range(len(s1)+1):
+            for ch in "abcdefghijklmnopqrstuvwxyz":
+                ns = s1[:pos] + ch + s1[pos:]
+
+                if self.lcs(ns, s2) == original + 1:
+                    ans += 1
+
+        return ans
+
+
+---
+
+Dry Run
+
+s1 = abab
+s2 = abc
+
+Original LCS = 2
+
+Insert 'c' at position 2
+
+abab
+  ↑
+
+↓
+
+abcab
+
+New LCS = 3
+
+Count++
+
+Repeat for all positions and characters.
+
+
+---
+
+Time Complexity
+
+O(26 × (n1+1) × n1 × n2)
+
+≈ O(n1² × n2)
+
+
+---
+
+Space Complexity
+
+O(n1 × n2)
+
+
+---
+
+6. Better Approach (DP Precomputation)
+
+Idea
+
+Instead of recomputing LCS repeatedly:
+
+Build Prefix LCS table.
+
+Build Suffix LCS table.
+
+
+Now every insertion can be checked in O(1).
+
+
+---
+
+Algorithm
+
+1. Compute Prefix DP.
+
+
+2. Compute Suffix DP.
+
+
+3. Original LCS = pre[n][m].
+
+
+4. For every insertion position:
+
+Check every character of s2.
+
+If
+
+
+
+
+pre[pos][j] + 1 + suf[pos][j+1]
+=
+LCS + 1
+
+then that character is valid.
+
+
+---
+
+Code
+
+Same as the optimal approach below.
+
+
+---
+
+Time Complexity
+
+O(n1 × n2)
+
+
+---
+
+Space Complexity
+
+O(n1 × n2)
+
+
+---
+
+7. Optimal Approach
+
+Intuition
+
+Suppose we insert a character before position pos.
+
+The new subsequence becomes
+
+Left
++
+Inserted Character
++
+Right
+
+The left part contributes
+
+pre[pos][j]
+
+The inserted character contributes
+
+1
+
+The remaining suffix contributes
+
+suf[pos][j+1]
+
+If
+
+pre[pos][j]
++
+1
++
+suf[pos][j+1]
+
+=
+
+Original LCS + 1
+
+then this insertion increases LCS by exactly one.
+
+To avoid counting the same character multiple times at one position (because it may appear several times in s2), use a set.
+
+
+---
+
+Algorithm
+
+Step 1
+
+Compute Prefix DP
+
+pre[i][j]
+
+=
+
+LCS(
+s1[0...i-1],
+s2[0...j-1]
+)
+
+
+---
+
+Step 2
+
+Compute Suffix DP
+
+suf[i][j]
+
+=
+
+LCS(
+s1[i...],
+s2[j...]
+)
+
+
+---
+
+Step 3
+
+For every insertion position
+
+0...n
+
+Create an empty set.
+
+
+---
+
+Step 4
+
+For every character position in s2
+
+Check
+
+pre[pos][j]
+
++
+
+1
+
++
+
+suf[pos][j+1]
+
+==
+
+Original LCS + 1
+
+If true,
+
+add
+
+s2[j]
+
+to the set.
+
+
+---
+
+Step 5
+
+Answer += size of set.
+
+
+---
+
+Code (Python)
+
+class Solution:
+    def waysToIncreaseLCSByOne(self, s1, s2):
+        n = len(s1)
+        m = len(s2)
+
+        pre = [[0]*(m+1) for _ in range(n+1)]
+
+        for i in range(1, n+1):
+            for j in range(1, m+1):
+                if s1[i-1] == s2[j-1]:
+                    pre[i][j] = pre[i-1][j-1] + 1
+                else:
+                    pre[i][j] = max(pre[i-1][j], pre[i][j-1])
+
+        suf = [[0]*(m+1) for _ in range(n+1)]
+
+        for i in range(n-1, -1, -1):
+            for j in range(m-1, -1, -1):
+                if s1[i] == s2[j]:
+                    suf[i][j] = 1 + suf[i+1][j+1]
+                else:
+                    suf[i][j] = max(suf[i+1][j], suf[i][j+1])
+
+        lcs = pre[n][m]
+        ans = 0
+
+        for pos in range(n+1):
+            used = set()
+
+            for j in range(m):
+                if pre[pos][j] + 1 + suf[pos][j+1] == lcs + 1:
+                    used.add(s2[j])
+
+            ans += len(used)
+
+        return ans
+
+
+---
+
+Dry Run
+
+s1 = abab
+s2 = abc
+
+Original LCS = 2
+
+Position = 2
+
+pre = 2
+
+Check
+
+'a'
+
+0+1+1 = 2
+
+No
+
+'b'
+
+1+1+1 = 3
+
+Yes
+
+'c'
+
+2+1+0 = 3
+
+Yes
+
+Valid
+
+{b,c}
+
+Eventually
+
+Answer = 3
+
+
+---
+
+Time Complexity
+
+Prefix DP  = O(n1×n2)
+
+Suffix DP  = O(n1×n2)
+
+Checking   = O(n1×n2)
+
+Overall
+
+O(n1×n2)
+
+
+---
+
+Space Complexity
+
+O(n1×n2)
+
+
+---
+
+8. Recursion Tree / DP Table / Diagram
+
+Prefix DP
+
+pre[i][j]
+
+      j →
+
+      0 1 2 3
+
+i 0   0 0 0 0
+
+↓1    0
+
+2
+
+3
+
+Meaning
+
+pre[i][j]
+
+=
+
+LCS
+
+s1 prefix
+
+vs
+
+s2 prefix
+
+
+---
+
+Suffix DP
+
+suf[i][j]
+
+computed
+
+from
+
+bottom-right
+
+←
+↑
+
+Meaning
+
+LCS
+
+remaining suffixes
+
+
+---
+
+Insertion
+
+Before insertion
+
+abc|def
+
+After insertion
+
+abc X def
+
+Left
+
++
+
+1
+
++
+
+Right
+
+Formula
+
+pre[pos][j]
+
++
+
+1
+
++
+
+suf[pos][j+1]
+
+
+---
+
+9. Why This Works
+
+The inserted character divides the optimal subsequence into:
+
+matched characters before insertion,
+
+the inserted character itself,
+
+matched characters after insertion.
+
+
+Since pre and suf already contain the best possible LCS values for the left and right parts, checking
+
+pre + 1 + suf
+
+exactly determines whether the insertion increases the LCS by one. Using a set ensures duplicate characters from s2 are counted only once per insertion position.
+
+
+---
+
+10. Edge Cases
+
+Minimum length strings.
+
+LCS already equals min(n1, n2).
+
+Repeated characters in s2.
+
+All characters different.
+
+Insert at beginning.
+
+Insert at end.
+
+Empty prefix or suffix after insertion.
+
+
+
+---
+
+11. Interview Explanation (30–60 sec)
+
+> A brute-force solution tries all insertion positions and all 26 letters, recomputing the LCS every time, which is expensive. The optimized solution precomputes two DP tables: a prefix LCS table and a suffix LCS table. For each insertion position and each character occurrence in s2, we check whether pre[pos][j] + 1 + suf[pos][j+1] equals the original LCS plus one. If it does, that character can be inserted at that position. A set prevents duplicate counting for repeated characters. This reduces the overall complexity to O(n1 × n2).
+
+
+
+
+---
+
+12. Key Takeaways
+
+Classic application of Prefix + Suffix DP.
+
+Avoid repeated LCS computation.
+
+Use two DP tables.
+
+Remove duplicates using a set.
+
+Final complexity is O(n1 × n2).
+
+
+
+---
+
+13. Common Mistakes
+
+Recomputing LCS after every insertion.
+
+Forgetting insertion at the beginning or end.
+
+Counting duplicate characters multiple times.
+
+Building the suffix DP in the wrong direction.
+
+Using pre[pos][j+1] instead of pre[pos][j].
+
+Forgetting the inserted character contributes exactly 1.
+
+
+
+---
+
+14. Related Problems
+
+Longest Common Subsequence (LCS)
+
+Print Longest Common Subsequence
+
+Shortest Common Supersequence
+
+Edit Distance
+
+Distinct Subsequences
+
+Delete Operation for Two Strings
+
+Longest Palindromic Subsequence
+
+Minimum Insertions to Make a String Palindrome
