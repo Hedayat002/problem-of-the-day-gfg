@@ -1,0 +1,734 @@
+Problem Name: Substrings with More 1's Than 0's
+
+
+---
+
+1. Problem Statement
+
+Given a binary string s consisting only of '0' and '1', count the number of substrings that contain strictly more 1s than 0s.
+
+A substring is a contiguous sequence of characters.
+
+Return the total number of such substrings.
+
+
+---
+
+2. Examples
+
+Example 1
+
+Input
+
+s = "011"
+
+Output
+
+4
+
+Explanation
+
+Valid substrings are:
+
+"011"
+"1"
+"11"
+"1"
+
+Hence the answer is 4.
+
+
+---
+
+Example 2
+
+Input
+
+s = "0000"
+
+Output
+
+0
+
+Explanation
+
+Every substring contains only 0's.
+
+No substring has more 1's than 0's.
+
+
+---
+
+Example 3
+
+Input
+
+s = "111"
+
+Output
+
+6
+
+Explanation
+
+All substrings are valid.
+
+
+---
+
+3. Constraints
+
+2 ≤ |s| < 6 × 10^4
+
+
+---
+
+4. Intuition
+
+Instead of counting ones and zeros separately, convert the string into numbers.
+
+'1' → +1
+'0' → -1
+
+Now,
+
+ones > zeros
+
+becomes
+
+substring sum > 0
+
+The problem is now:
+
+> Count the number of subarrays having positive sum.
+
+
+
+Using prefix sums,
+
+sum(l...r)
+
+= prefix[r+1] - prefix[l]
+
+We need
+
+prefix[r+1] > prefix[l]
+
+So for every prefix sum, count how many previous prefix sums are smaller.
+
+This can be efficiently done using a Fenwick Tree (Binary Indexed Tree) after coordinate compression.
+
+
+---
+
+5. Brute Force Approach
+
+Idea
+
+Generate every substring.
+
+Count the number of ones and zeros.
+
+If
+
+ones > zeros
+
+increase the answer.
+
+
+---
+
+Algorithm
+
+answer = 0
+
+for every starting index i
+
+      ones = 0
+      zeros = 0
+
+      for every ending index j
+
+            if s[j]=='1'
+                    ones++
+            else
+                    zeros++
+
+            if ones > zeros
+                    answer++
+
+
+---
+
+Code (Python)
+
+class Solution:
+    def countSubstring(self, s):
+        n = len(s)
+        ans = 0
+
+        for i in range(n):
+
+            ones = 0
+            zeros = 0
+
+            for j in range(i, n):
+
+                if s[j] == '1':
+                    ones += 1
+                else:
+                    zeros += 1
+
+                if ones > zeros:
+                    ans += 1
+
+        return ans
+
+
+---
+
+Dry Run
+
+s = "011"
+
+Start = 0
+
+0
+ones=0 zeros=1
+
+Invalid
+
+01
+
+ones=1 zeros=1
+
+Invalid
+
+011
+
+ones=2 zeros=1
+
+Valid
+
+Answer=1
+
+----------------
+
+Start=1
+
+1
+
+Valid
+
+Answer=2
+
+11
+
+Valid
+
+Answer=3
+
+----------------
+
+Start=2
+
+1
+
+Valid
+
+Answer=4
+
+Final Answer
+
+4
+
+
+---
+
+Time Complexity
+
+O(n²)
+
+
+---
+
+Space Complexity
+
+O(1)
+
+
+---
+
+6. Better Approach (Prefix Sum)
+
+Idea
+
+Instead of counting ones and zeros repeatedly,
+
+compute prefix sums.
+
+Convert
+
+1 → +1
+0 → -1
+
+For every substring
+
+sum = prefix[j+1] - prefix[i]
+
+Check whether it is positive.
+
+This removes repeated counting.
+
+
+---
+
+Algorithm
+
+Create prefix sum array.
+
+For every pair (i,j)
+
+        sum = prefix[j+1]-prefix[i]
+
+        if sum > 0
+
+              answer++
+
+
+---
+
+Code
+
+class Solution:
+    def countSubstring(self, s):
+
+        n = len(s)
+
+        prefix = [0] * (n + 1)
+
+        for i in range(n):
+
+            val = 1 if s[i] == '1' else -1
+
+            prefix[i + 1] = prefix[i] + val
+
+        ans = 0
+
+        for i in range(n):
+            for j in range(i, n):
+
+                if prefix[j + 1] - prefix[i] > 0:
+                    ans += 1
+
+        return ans
+
+
+---
+
+Time Complexity
+
+O(n²)
+
+
+---
+
+Space Complexity
+
+O(n)
+
+
+---
+
+7. Optimal Approach
+
+Intuition
+
+Convert the string into
+
+1 → +1
+0 → -1
+
+Build prefix sums.
+
+Suppose
+
+prefix[i]
+
+is the sum of the first i characters.
+
+Substring
+
+l...r
+
+has positive sum when
+
+prefix[r+1] > prefix[l]
+
+So for every current prefix,
+
+we simply need to know
+
+> How many previous prefix sums are smaller?
+
+
+
+Since prefix sums range from
+
+[-n, n]
+
+compress them into indices and maintain their frequencies using a Fenwick Tree (BIT).
+
+
+---
+
+Algorithm
+
+Convert
+
+1 → +1
+0 → -1
+
+Build prefix sums.
+
+Coordinate compress all prefix sums.
+
+Create Fenwick Tree.
+
+answer = 0
+
+For each prefix
+
+      answer += number of previous prefix sums
+                smaller than current
+
+      Insert current prefix into BIT.
+
+Return answer.
+
+
+---
+
+Code
+
+class Fenwick:
+    def __init__(self, n):
+        self.bit = [0] * (n + 1)
+
+    def update(self, i, val):
+        while i < len(self.bit):
+            self.bit[i] += val
+            i += i & -i
+
+    def query(self, i):
+        ans = 0
+        while i > 0:
+            ans += self.bit[i]
+            i -= i & -i
+        return ans
+
+
+class Solution:
+    def countSubstring(self, s):
+
+        prefix = [0]
+        cur = 0
+
+        for ch in s:
+
+            if ch == '1':
+                cur += 1
+            else:
+                cur -= 1
+
+            prefix.append(cur)
+
+        vals = sorted(set(prefix))
+
+        rank = {}
+
+        for i, x in enumerate(vals):
+            rank[x] = i + 1
+
+        bit = Fenwick(len(vals))
+
+        ans = 0
+
+        for x in prefix:
+
+            idx = rank[x]
+
+            ans += bit.query(idx - 1)
+
+            bit.update(idx, 1)
+
+        return ans
+
+
+---
+
+Dry Run
+
+s = "011"
+
+Converted
+
+-1 +1 +1
+
+Prefix
+
+0
+-1
+0
+1
+
+Process prefixes
+
+Current Prefix	Previous Smaller	Answer
+
+0	0	0
+-1	0	0
+0	-1	1
+1	0,-1,0	4
+
+
+Final Answer
+
+4
+
+
+---
+
+Time Complexity
+
+Prefix Sum → O(n)
+
+Coordinate Compression → O(n log n)
+
+BIT Operations → O(n log n)
+
+
+Overall
+
+O(n log n)
+
+
+---
+
+Space Complexity
+
+O(n)
+
+
+---
+
+8. Recursion Tree / DP Table / Diagram
+
+There is no recursion and no dynamic programming.
+
+Diagram
+
+String
+
+0 1 1
+
+↓
+
+Convert
+
+-1 +1 +1
+
+↓
+
+Prefix Sum
+
+Index
+
+0   1   2   3
+
+0  -1   0   1
+
+↓
+
+For every prefix
+
+Count previous prefixes
+
+that are smaller.
+
+↓
+
+Fenwick Tree
+
+↓
+
+Answer
+
+
+---
+
+9. Why This Works
+
+For every substring
+
+sum(l,r)
+
+=
+
+prefix[r+1]
+
+-
+
+prefix[l]
+
+We need
+
+sum > 0
+
+which means
+
+prefix[r+1]
+
+>
+
+prefix[l]
+
+So every previous prefix smaller than the current prefix forms one valid substring ending at the current position.
+
+Fenwick Tree efficiently counts these previous smaller prefix sums.
+
+
+---
+
+10. Edge Cases
+
+Empty positive substring
+
+Not allowed.
+
+
+---
+
+All zeros
+
+Input
+
+0000
+
+Output
+
+0
+
+
+---
+
+All ones
+
+Input
+
+111
+
+Output
+
+6
+
+
+---
+
+Alternating
+
+101010
+
+Works correctly.
+
+
+---
+
+Minimum length
+
+10
+
+Output
+
+1
+
+
+---
+
+11. Interview Explanation (30–60 sec)
+
+> "I first convert every 1 into +1 and every 0 into -1. Then the problem becomes counting subarrays with positive sum. Using prefix sums, a substring is valid if prefix[r+1] > prefix[l]. Therefore, for each prefix sum, I count how many previous prefix sums are smaller. Since prefix sums can be negative, I perform coordinate compression and use a Fenwick Tree to maintain frequencies of prefix sums. Each query and update takes O(log n), giving an overall complexity of O(n log n)."
+
+
+
+
+---
+
+12. Key Takeaways
+
+Convert binary values into +1 and -1.
+
+The problem becomes counting positive-sum subarrays.
+
+Prefix sums convert subarray sums into prefix differences.
+
+Condition becomes prefix[j] > prefix[i].
+
+Fenwick Tree efficiently counts previous smaller prefix sums.
+
+Coordinate compression handles negative prefix values.
+
+Overall complexity: O(n log n).
+
+
+
+---
+
+13. Common Mistakes
+
+Using >= instead of > when comparing prefix sums.
+
+Forgetting to include the initial prefix sum 0.
+
+Not coordinate-compressing negative prefix sums.
+
+Querying the BIT after updating it, which incorrectly counts the current prefix.
+
+Using raw prefix sums as Fenwick Tree indices.
+
+
+
+---
+
+14. Related Problems
+
+1. Count of Range Sum
+
+
+2. Count Subarrays With Sum K
+
+
+3. Count Number of Nice Subarrays
+
+
+4. Count Inversions in an Array
+
+
+5. Reverse Pairs
+
+
+6. Continuous Subarray Sum
+
+
+7. Binary Subarrays With Sum
+
+
+8. Range Sum Query (Fenwick Tree)
+
+
+9. Count Smaller Numbers After Self
+
+
+10. Maximum Size Subarray Sum Equals K
+
+
