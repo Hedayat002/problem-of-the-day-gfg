@@ -1,0 +1,480 @@
+# Problem Name: Max Gap Between Two Same Characters
+
+---
+
+# 1. Problem Statement
+
+Given a string `s` consisting of lowercase English letters, find the **maximum number of characters between two occurrences of the same character**.
+
+Return the maximum gap. If no character appears more than once, return **-1**.
+
+---
+
+# 2. Examples
+
+### Example 1
+
+**Input**
+
+```text
+s = "abca"
+```
+
+**Output**
+
+```text
+2
+```
+
+**Explanation**
+
+Characters between the two `'a'` are `"bc"`.
+
+---
+
+### Example 2
+
+**Input**
+
+```text
+s = "aa"
+```
+
+**Output**
+
+```text
+0
+```
+
+---
+
+### Example 3
+
+**Input**
+
+```text
+s = "abcdef"
+```
+
+**Output**
+
+```text
+-1
+```
+
+---
+
+### Example 4
+
+**Input**
+
+```text
+s = "abacada"
+```
+
+**Output**
+
+```text
+5
+```
+
+---
+
+# 3. Constraints
+
+* `1 ≤ len(s) ≤ 10^5`
+* `s` contains only lowercase English letters.
+
+---
+
+# 4. Intuition
+
+For every character, we only need to know where it appeared **first**.
+
+Whenever we encounter the same character again:
+
+* Compute the gap
+* Update the maximum answer
+
+Since there are only 26 lowercase letters, storing the first occurrence is enough.
+
+---
+
+# 5. Brute Force Approach
+
+## Idea
+
+For every character:
+
+* Search all future occurrences.
+* Compute the distance between them.
+* Keep the maximum.
+
+This repeatedly compares many pairs.
+
+---
+
+## Algorithm
+
+1. Traverse every index `i`.
+2. Traverse every index `j > i`.
+3. If `s[i] == s[j]`
+
+   * Calculate
+
+     ```
+     gap = j - i - 1
+     ```
+4. Update maximum answer.
+5. Return answer.
+
+---
+
+## Code
+
+```python
+class Solution:
+    def maxCharGap(self, s):
+        n = len(s)
+        ans = -1
+
+        for i in range(n):
+            for j in range(i + 1, n):
+                if s[i] == s[j]:
+                    ans = max(ans, j - i - 1)
+
+        return ans
+```
+
+---
+
+## Dry Run
+
+```
+s = "abca"
+
+i=0 (a)
+
+j=1 -> b
+j=2 -> c
+j=3 -> a
+
+gap = 3-0-1 = 2
+
+Answer = 2
+```
+
+---
+
+## Time Complexity
+
+```
+O(n²)
+```
+
+---
+
+## Space Complexity
+
+```
+O(1)
+```
+
+---
+
+# 6. Better Approach (Using HashMap)
+
+## Idea
+
+Store the **first occurrence** of every character in a dictionary.
+
+Whenever the character appears again:
+
+* Compute gap
+* Update answer
+
+---
+
+## Algorithm
+
+1. Create dictionary.
+2. Traverse string.
+3. If character not present:
+
+   * Store index.
+4. Otherwise:
+
+   * Compute gap.
+5. Return maximum.
+
+---
+
+## Code
+
+```python
+class Solution:
+    def maxCharGap(self, s):
+        first = {}
+        ans = -1
+
+        for i, ch in enumerate(s):
+            if ch not in first:
+                first[ch] = i
+            else:
+                ans = max(ans, i - first[ch] - 1)
+
+        return ans
+```
+
+---
+
+## Time Complexity
+
+```
+O(n)
+```
+
+---
+
+## Space Complexity
+
+```
+O(26) ≈ O(1)
+```
+
+---
+
+# 7. Optimal Approach
+
+## Intuition
+
+Since the string contains only lowercase English letters, we don't need a dictionary.
+
+Instead:
+
+* Create an array of size **26**
+* Store the first occurrence of each character.
+* Every repeated occurrence directly gives a possible answer.
+
+This is faster than using a hashmap because array indexing is constant-time with minimal overhead.
+
+---
+
+## Algorithm
+
+1. Create an array `first[26]` initialized with `-1`.
+2. Traverse the string.
+3. Convert character to index:
+
+   ```
+   idx = ord(ch) - ord('a')
+   ```
+4. If first occurrence:
+
+   * Store index.
+5. Else:
+
+   * Calculate
+
+     ```
+     gap = currentIndex - first[idx] - 1
+     ```
+6. Update maximum.
+7. Return answer.
+
+---
+
+## Code
+
+```python
+class Solution:
+
+    def maxCharGap(self, s: str) -> int:
+        first = [-1] * 26
+        res = -1
+
+        for i in range(len(s)):
+            ch = ord(s[i]) - ord('a')
+
+            if first[ch] == -1:
+                first[ch] = i
+            else:
+                res = max(res, i - first[ch] - 1)
+
+        return res
+```
+
+---
+
+## Dry Run
+
+```
+s = "abacada"
+
+first = [-1...]
+answer = -1
+
+i=0
+a
+first[a]=0
+
+i=1
+b
+first[b]=1
+
+i=2
+a
+gap=2-0-1=1
+answer=1
+
+i=3
+c
+first[c]=3
+
+i=4
+a
+gap=4-0-1=3
+answer=3
+
+i=5
+d
+first[d]=5
+
+i=6
+a
+gap=6-0-1=5
+answer=5
+
+Return 5
+```
+
+---
+
+## Time Complexity
+
+```
+O(n)
+```
+
+---
+
+## Space Complexity
+
+```
+O(26) = O(1)
+```
+
+---
+
+# 8. Recursion Tree / DP Table / Diagram
+
+No recursion or dynamic programming is involved.
+
+### Diagram
+
+```
+String
+
+a  b  a  c  a  d  a
+0  1  2  3  4  5  6
+
+First occurrence of a = 0
+
+Second a
+Gap = 2-0-1 = 1
+
+Third a
+Gap = 4-0-1 = 3
+
+Fourth a
+Gap = 6-0-1 = 5
+
+Maximum Gap = 5
+```
+
+---
+
+# 9. Why This Works
+
+* Every character stores only its first occurrence.
+* The largest gap for a character is always obtained using its earliest occurrence and a later occurrence.
+* Thus, checking every repeated occurrence against the first occurrence guarantees the maximum gap for that character.
+* Processing all characters once ensures the overall maximum is found.
+
+---
+
+# 10. Edge Cases
+
+* Single-character string
+
+  ```
+  "a"
+  Answer = -1
+  ```
+
+* No repeated characters
+
+  ```
+  "abcd"
+  Answer = -1
+  ```
+
+* Adjacent repeated characters
+
+  ```
+  "aa"
+  Answer = 0
+  ```
+
+* All characters same
+
+  ```
+  "aaaaa"
+
+  Maximum gap = 3
+  ```
+
+* Multiple repeated characters
+
+  ```
+  "abacada"
+
+  Answer = 5
+  ```
+
+---
+
+# 11. Interview Explanation (30–60 sec)
+
+"I store the first occurrence of every lowercase character in a fixed-size array of 26 elements. While traversing the string, if a character appears again, I calculate the number of characters between its first occurrence and the current position using `currentIndex - firstIndex - 1`, and update the maximum answer. Since each character is processed exactly once and the array size is constant, the solution runs in **O(n)** time with **O(1)** extra space."
+
+---
+
+# 12. Key Takeaways
+
+* Store only the first occurrence of each character.
+* Use an array instead of a hashmap for lowercase letters.
+* One pass through the string is sufficient.
+* Constant extra space.
+* Optimal solution is **O(n)** time and **O(1)** space.
+
+---
+
+# 13. Common Mistakes
+
+* Forgetting to subtract `1` when computing the gap.
+* Updating the stored first occurrence after seeing the character again (which can reduce the maximum gap).
+* Returning `0` instead of `-1` when no character repeats.
+* Using a hashmap unnecessarily when only lowercase English letters are present.
+
+---
+
+# 14. Related Problems
+
+* **LeetCode 1624 – Largest Substring Between Two Equal Characters**
+* First Non-Repeating Character
+* Longest Substring Without Repeating Characters
+* Find First Repeated Character
+* Character Frequency Counting
+* Longest Repeating Character Replacement
+
