@@ -1,0 +1,544 @@
+# Problem Name: Max Sum Path in Two Arrays
+
+---
+
+# 1. Problem Statement
+
+You are given two **sorted arrays** containing distinct or repeated integers.
+
+You start from the beginning of either array and move only forward.
+
+Whenever both arrays contain the **same value**, you are allowed to switch from one array to the other.
+
+Find the **maximum possible sum** that can be collected while traversing the arrays.
+
+---
+
+# 2. Examples
+
+### Example 1
+
+```text
+Input:
+A = [2,3,7,10,12]
+B = [1,5,7,8]
+
+Output:
+35
+
+Explanation:
+
+Before 7:
+A sum = 2+3 = 5
+B sum = 1+5 = 6
+Take 6
+
+Add common value 7
+
+Remaining:
+A = 10+12 = 22
+B = 8 = 8
+
+Take 22
+
+Total = 6 + 7 + 22 = 35
+```
+
+---
+
+### Example 2
+
+```text
+Input:
+A = [1,2,3]
+B = [3,4,5]
+
+Output:
+15
+```
+
+---
+
+### Example 3
+
+```text
+Input:
+A = [1,4,5,6,8]
+B = [2,3,4,6,9]
+
+Output:
+29
+```
+
+---
+
+# 3. Constraints
+
+* (1 \le n,m \le 10^5)
+* Arrays are sorted.
+* Elements may repeat depending on the variation.
+* Expected Complexity: **O(n+m)**
+
+---
+
+# 4. Intuition
+
+Since arrays are sorted,
+
+* Between two common elements there are **two possible paths**.
+* We simply choose whichever path gives larger sum.
+* At every common element, add:
+
+  * maximum(prefix sums)
+  * common element
+
+Then continue.
+
+This greedy decision is always optimal because once a common element is reached, previous choices cannot affect future segments.
+
+---
+
+# 5. Brute Force Approach
+
+## Idea
+
+Generate every possible switching combination.
+
+At each common element:
+
+* Stay
+* Switch
+
+Compute every possible path sum.
+
+Take maximum.
+
+---
+
+## Algorithm
+
+1. Find every common element.
+2. Recursively try
+
+   * continue
+   * switch
+3. Compute path sums.
+4. Return maximum.
+
+---
+
+## Code (Python)
+
+```python
+# Exponential recursive idea
+
+def solve(i, j):
+    pass
+```
+
+(Not practical.)
+
+---
+
+## Dry Run
+
+```text
+A = [2,3,7]
+B = [1,5,7]
+
+At 7
+
+Choice 1:
+Stay
+
+Choice 2:
+Switch
+
+Explore both.
+```
+
+---
+
+## Time Complexity
+
+[
+O(2^k)
+]
+
+where
+
+k = number of common elements.
+
+---
+
+## Space Complexity
+
+[
+O(k)
+]
+
+---
+
+# 6. Better Approach (Prefix Sums)
+
+## Idea
+
+Precompute prefix sums.
+
+Whenever common element appears,
+
+calculate segment sums quickly using prefix arrays.
+
+Still needs searching common elements.
+
+---
+
+## Algorithm
+
+1. Compute prefix sums.
+2. Detect common values.
+3. Segment sum using prefix arrays.
+4. Add larger segment.
+
+---
+
+## Code
+
+```python
+def maxPathSum(arr1, arr2):
+    pre1 = [0]
+    pre2 = [0]
+
+    for x in arr1:
+        pre1.append(pre1[-1] + x)
+
+    for x in arr2:
+        pre2.append(pre2[-1] + x)
+
+    # Remaining implementation omitted
+```
+
+---
+
+## Time Complexity
+
+Finding common elements:
+
+[
+O(n+m)
+]
+
+Prefix:
+
+[
+O(n+m)
+]
+
+Overall:
+
+[
+O(n+m)
+]
+
+---
+
+## Space Complexity
+
+[
+O(n+m)
+]
+
+---
+
+# 7. Optimal Approach (Two Pointer)
+
+## Intuition
+
+Maintain
+
+* sum1 = path sum in array1
+* sum2 = path sum in array2
+
+Until a common element,
+
+keep accumulating.
+
+Whenever common element arrives:
+
+```text
+answer += max(sum1,sum2)
+answer += common value
+reset sums
+```
+
+Finally,
+
+add larger remaining suffix.
+
+---
+
+## Algorithm
+
+1. Initialize
+
+```text
+i = 0
+j = 0
+sum1 = 0
+sum2 = 0
+answer = 0
+```
+
+2. While both arrays remain
+
+If
+
+```text
+A[i] < B[j]
+```
+
+add into sum1.
+
+Else if
+
+```text
+A[i] > B[j]
+```
+
+add into sum2.
+
+Else
+
+```text
+answer += max(sum1,sum2)
+answer += A[i]
+
+sum1 = 0
+sum2 = 0
+
+move both pointers
+```
+
+3. Add remaining elements.
+
+4. Add
+
+```text
+max(sum1,sum2)
+```
+
+Return answer.
+
+---
+
+## Code (Python)
+
+```python
+def maxPathSum(arr1, arr2):
+    i = j = 0
+    sum1 = sum2 = 0
+    ans = 0
+
+    while i < len(arr1) and j < len(arr2):
+
+        if arr1[i] < arr2[j]:
+            sum1 += arr1[i]
+            i += 1
+
+        elif arr1[i] > arr2[j]:
+            sum2 += arr2[j]
+            j += 1
+
+        else:
+            ans += max(sum1, sum2)
+            ans += arr1[i]
+
+            sum1 = 0
+            sum2 = 0
+
+            i += 1
+            j += 1
+
+    while i < len(arr1):
+        sum1 += arr1[i]
+        i += 1
+
+    while j < len(arr2):
+        sum2 += arr2[j]
+        j += 1
+
+    ans += max(sum1, sum2)
+
+    return ans
+```
+
+---
+
+## Dry Run
+
+```text
+A = [2,3,7,10,12]
+B = [1,5,7,8]
+
+Initially
+
+sum1=0
+sum2=0
+
+2
+sum1=2
+
+3
+sum1=5
+
+1
+sum2=1
+
+5
+sum2=6
+
+Reach 7
+
+answer += max(5,6)=6
+
+answer +=7
+
+answer=13
+
+reset sums
+
+10
+sum1=10
+
+12
+sum1=22
+
+8
+sum2=8
+
+End
+
+answer +=22
+
+Total
+
+35
+```
+
+---
+
+## Time Complexity
+
+[
+O(n+m)
+]
+
+Each element is visited once.
+
+---
+
+## Space Complexity
+
+[
+O(1)
+]
+
+Only constant extra space.
+
+---
+
+# 8. Diagram
+
+```text
+Array1
+
+2 ---- 3 ---- 7 ----10----12
+              |
+              |
+Array2
+1 ---- 5 ---- 7 ---- 8
+
+Segment before 7
+
+A sum = 5
+B sum = 6
+
+Take 6
+
+↓
+
+Add 7
+
+↓
+
+Segment after 7
+
+A sum = 22
+B sum = 8
+
+Take 22
+```
+
+---
+
+# 9. Why This Works
+
+Between any two common elements:
+
+* You cannot switch except at the common value.
+* Therefore there are exactly two candidate path sums.
+* Choosing the larger one cannot reduce any future answer because future decisions begin after the common element.
+
+Thus, making the locally optimal choice at every common element leads to the globally optimal result.
+
+---
+
+# 10. Edge Cases
+
+* One array is empty.
+* No common elements.
+* All elements are common.
+* Common element at the beginning.
+* Common element at the end.
+* Arrays with negative numbers (if allowed).
+* Duplicate common values (handle carefully if the problem permits duplicates).
+
+---
+
+# 11. Interview Explanation (30–60 sec)
+
+"The arrays are sorted, so I use two pointers to traverse them simultaneously. I accumulate separate running sums for both arrays until I encounter a common element. At each common element, I add the larger of the two accumulated sums plus the common value to the answer, then reset both sums. After finishing the traversal, I add the larger remaining suffix sum. Since each element is processed once, the algorithm runs in **O(n + m)** time and **O(1)** extra space."
+
+---
+
+# 12. Key Takeaways
+
+* Sorted arrays enable the two-pointer technique.
+* A common element is the only valid switching point.
+* Compare segment sums between consecutive common elements.
+* Greedy choice is optimal.
+* Constant extra space.
+* Linear time complexity.
+
+---
+
+# 13. Common Mistakes
+
+* Forgetting to add the larger remaining suffix after the main loop.
+* Not resetting `sum1` and `sum2` after a common element.
+* Adding both segment sums instead of the maximum.
+* Mishandling duplicate common values if present.
+* Incorrect pointer movement when elements are equal.
+
+---
+
+# 14. Related Problems
+
+* Maximum Sum Path Across Two Sorted Arrays (GeeksforGeeks)
+* Merge Two Sorted Arrays
+* Intersection of Two Sorted Arrays
+* Two Pointer Technique
+* Merge Step of Merge Sort
+* Prefix Sum Problems
+* Maximum Path Sum in a Matrix (different concept)
+* Minimum Path Sum in a Grid
