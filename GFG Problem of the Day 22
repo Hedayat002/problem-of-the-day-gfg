@@ -1,0 +1,638 @@
+## Problem Name
+
+**Towers Reaching Both Stations**
+
+---
+
+# Problem Statement
+
+You are given an `n × m` matrix `mat`, where each cell represents the signal strength of a communication tower.
+
+There are two control stations:
+
+* **Station P** is connected to the **top row** and **left column**.
+* **Station Q** is connected to the **bottom row** and **right column**.
+
+A signal can move from one tower to one of its **4 adjacent towers** (up, down, left, right) **only if the next tower's signal strength is less than or equal to the current tower's strength.**
+
+Your task is to find **how many towers can send their signal to both Station P and Station Q**.
+
+A tower already lying on a station's boundary can directly reach that station.
+
+---
+
+# Examples
+
+### Example 1
+
+```text
+Input:
+
+1 2 2 3 5
+3 2 3 4 4
+2 4 5 3 1
+6 7 1 4 5
+5 1 1 2 4
+
+Output:
+7
+```
+
+Explanation:
+
+The following towers can reach both stations:
+
+```
+(0,4)
+(1,3)
+(1,4)
+(2,2)
+(3,0)
+(3,1)
+(4,0)
+```
+
+Total = **7**
+
+---
+
+### Example 2
+
+```text
+Input:
+
+2 2
+2 2
+
+Output:
+4
+```
+
+Every tower can reach both stations.
+
+---
+
+# Constraints
+
+```
+1 ≤ n,m ≤ 1000
+
+1 ≤ mat[i][j] ≤ 1000
+```
+
+---
+
+# Intuition
+
+The problem asks:
+
+> From which towers can a signal reach both stations?
+
+The straightforward idea is:
+
+For every cell,
+
+* perform DFS/BFS
+* check whether it reaches Station P
+* check whether it reaches Station Q
+
+Although correct, this repeats the same work many times.
+
+Instead, reverse the thinking.
+
+Instead of asking
+
+> Can this tower reach Station P?
+
+ask
+
+> Which towers can eventually send a signal to Station P?
+
+Now start BFS from Station P boundaries and move **in reverse direction**.
+
+Original signal:
+
+```
+Higher → Lower
+```
+
+Reverse BFS:
+
+```
+Lower → Higher
+```
+
+Do the same for Station Q.
+
+Finally,
+
+```
+Reachable from P
+AND
+Reachable from Q
+```
+
+gives the answer.
+
+---
+
+# Brute Force Approach
+
+## Idea
+
+Start DFS/BFS from every cell.
+
+Check whether the current tower reaches
+
+* Station P
+* Station Q
+
+Count it if both are reachable.
+
+---
+
+## Algorithm
+
+1. Iterate through every cell.
+2. Run DFS/BFS.
+3. Follow original movement rule
+
+```
+next <= current
+```
+
+4. Check whether Station P is reached.
+5. Check whether Station Q is reached.
+6. Count if both are reachable.
+
+---
+
+## Code
+
+Not recommended because it exceeds time limits.
+
+---
+
+## Dry Run
+
+Suppose
+
+```
+3 2
+4 1
+```
+
+Start from
+
+```
+4
+```
+
+Path
+
+```
+4 → 3
+```
+
+Station P reached.
+
+Another path
+
+```
+4 → 1
+```
+
+Station Q reached.
+
+Count it.
+
+Repeat for every cell.
+
+---
+
+## Time Complexity
+
+```
+O((N×M)²)
+```
+
+Worst case:
+
+```
+Every BFS visits entire matrix.
+```
+
+---
+
+## Space Complexity
+
+```
+O(N×M)
+```
+
+---
+
+# Better Approach
+
+No significantly better intermediate solution exists.
+
+The optimal reverse BFS/DFS directly solves the problem in linear time.
+
+---
+
+# Optimal Approach
+
+## Intuition
+
+Instead of starting from every tower,
+
+start from the stations.
+
+Reverse the movement rule.
+
+Original movement
+
+```
+Higher → Lower
+```
+
+Reverse BFS
+
+```
+Lower → Higher
+```
+
+If reverse BFS reaches a tower,
+
+that tower can send a signal back to the station.
+
+Perform this twice:
+
+* once for Station P
+* once for Station Q
+
+Then count common cells.
+
+---
+
+## Algorithm
+
+1. Create two visited matrices:
+
+```
+reachP
+reachQ
+```
+
+2. Push
+
+Top row + Left column
+
+into queue for Station P.
+
+3. Push
+
+Bottom row + Right column
+
+into queue for Station Q.
+
+4. Run BFS from Station P.
+
+Move only if
+
+```
+neighbor >= current
+```
+
+5. Run BFS from Station Q.
+
+6. Count cells where
+
+```
+reachP[i][j]
+AND
+reachQ[i][j]
+```
+
+are both True.
+
+---
+
+## Code
+
+```python
+from collections import deque
+
+class Solution:
+
+    dx = [0, 0, -1, 1]
+    dy = [1, -1, 0, 0]
+
+    def isValid(self, r, c, n, m):
+        return 0 <= r < n and 0 <= c < m
+
+    def bfs(self, mat, n, m, q, visited):
+
+        while q:
+
+            r, c = q.popleft()
+
+            for k in range(4):
+
+                nr = r + self.dx[k]
+                nc = c + self.dy[k]
+
+                if (self.isValid(nr, nc, n, m)
+                        and not visited[nr][nc]
+                        and mat[nr][nc] >= mat[r][c]):
+
+                    visited[nr][nc] = True
+                    q.append((nr, nc))
+
+    def countCoordinates(self, mat):
+
+        n = len(mat)
+        m = len(mat[0])
+
+        reachP = [[False] * m for _ in range(n)]
+        reachQ = [[False] * m for _ in range(n)]
+
+        p = deque()
+        q = deque()
+
+        for j in range(m):
+
+            p.append((0, j))
+            reachP[0][j] = True
+
+            q.append((n - 1, j))
+            reachQ[n - 1][j] = True
+
+        for i in range(n):
+
+            p.append((i, 0))
+            reachP[i][0] = True
+
+            q.append((i, m - 1))
+            reachQ[i][m - 1] = True
+
+        self.bfs(mat, n, m, p, reachP)
+        self.bfs(mat, n, m, q, reachQ)
+
+        ans = 0
+
+        for i in range(n):
+            for j in range(m):
+
+                if reachP[i][j] and reachQ[i][j]:
+                    ans += 1
+
+        return ans
+```
+
+---
+
+## Dry Run
+
+Matrix
+
+```
+1 2
+4 3
+```
+
+### BFS from Station P
+
+Queue
+
+```
+1
+2
+4
+```
+
+Reverse moves
+
+```
+1 → 2
+2 → 3
+```
+
+Visited
+
+```
+T T
+T T
+```
+
+---
+
+### BFS from Station Q
+
+Queue
+
+```
+3
+4
+```
+
+Reverse moves
+
+```
+3 → 4
+```
+
+Visited
+
+```
+F F
+T T
+```
+
+---
+
+Intersection
+
+```
+Only cells visited by both
+```
+
+Count them.
+
+---
+
+## Time Complexity
+
+Each cell is visited once in each BFS.
+
+```
+O(N×M)
+```
+
+---
+
+## Space Complexity
+
+Visited arrays
+
+```
+O(N×M)
+```
+
+Queue
+
+```
+O(N×M)
+```
+
+Overall
+
+```
+O(N×M)
+```
+
+---
+
+# Recursion Tree / DP Table / Diagram
+
+Reverse BFS concept
+
+```
+Original Signal
+
+7
+↓
+5
+↓
+3
+↓
+Station
+
+
+Reverse BFS
+
+Station
+↑
+3
+↑
+5
+↑
+7
+```
+
+Reverse BFS explores larger heights.
+
+---
+
+# Why This Works
+
+Suppose
+
+Original path
+
+```
+7 → 5 → 3 → Station
+```
+
+Reverse every edge
+
+```
+Station → 3 → 5 → 7
+```
+
+If reverse BFS reaches
+
+```
+7
+```
+
+then
+
+```
+7
+```
+
+can definitely send a signal to the station.
+
+This is exactly the graph transpose idea.
+
+---
+
+# Edge Cases
+
+### Single cell
+
+```
+5
+```
+
+Answer
+
+```
+1
+```
+
+because it lies on every boundary.
+
+---
+
+### All equal
+
+```
+2 2
+2 2
+```
+
+Every cell reaches both stations.
+
+---
+
+### Strictly increasing
+
+```
+1 2
+3 4
+```
+
+Very few cells reach both stations.
+
+---
+
+### Strictly decreasing
+
+```
+4 3
+2 1
+```
+
+Movement becomes easier toward lower values.
+
+---
+
+# Interview Explanation (30–60 sec)
+
+> The direct solution is to run BFS/DFS from every cell, but that is O((N×M)²). Instead, I reverse the traversal. Since signals normally flow from higher to lower towers, I start BFS from each station's boundary and move only to neighbours with greater or equal strength. This reverse traversal identifies every tower that could send a signal to that station. I run one BFS for Station P and another for Station Q, then count the cells marked reachable in both traversals. Each cell is processed at most once per BFS, giving O(N×M) time.
+
+---
+
+# Key Takeaways
+
+* Reverse graph traversal avoids repeated searches.
+* Original movement: **Higher → Lower**.
+* Reverse BFS movement: **Lower → Higher**.
+* Run two BFS traversals.
+* Intersect the two reachable sets.
+* Time complexity is **O(N×M)**.
+
+---
+
+# Common Mistakes
+
+* ❌ Using the original condition (`next <= current`) during reverse BFS instead of `next >= current`.
+* ❌ Starting a BFS/DFS from every cell, leading to time limit exceeded.
+* ❌ Forgetting to initialize all boundary cells for both stations.
+* ❌ Revisiting cells without a `visited` matrix.
+* ❌ Considering diagonal neighbours (only four directions are allowed).
+
+---
+
