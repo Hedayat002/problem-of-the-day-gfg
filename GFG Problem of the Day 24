@@ -1,0 +1,652 @@
+# Problem Name: Ways to Express as Sum of Consecutives
+
+---
+
+# Problem Statement
+
+Given a positive integer `n`, find the number of ways to represent it as the **sum of two or more consecutive positive integers**.
+
+---
+
+# Examples
+
+### Example 1
+
+```text
+Input:
+n = 15
+
+Output:
+3
+
+Explanation:
+15 = 1 + 2 + 3 + 4 + 5
+15 = 4 + 5 + 6
+15 = 7 + 8
+```
+
+### Example 2
+
+```text
+Input:
+n = 10
+
+Output:
+1
+
+Explanation:
+10 = 1 + 2 + 3 + 4
+```
+
+### Example 3
+
+```text
+Input:
+n = 8
+
+Output:
+0
+```
+
+---
+
+# Constraints
+
+* `1 ≤ n ≤ 10^9`
+
+---
+
+# Intuition
+
+Suppose a sequence has **k consecutive numbers** starting from `x`.
+
+```text
+x + (x+1) + (x+2) + ... + (x+k-1) = n
+```
+
+Using the sum formula,
+
+```text
+k*x + k(k-1)/2 = n
+```
+
+So,
+
+```text
+x = (n - k(k-1)/2) / k
+```
+
+For a valid sequence,
+
+* `x` must be an integer.
+* `x > 0`.
+
+We simply try every possible length `k`.
+
+---
+
+# Brute Force Approach
+
+## Idea
+
+Try every starting number.
+
+For every starting number,
+
+* Keep adding consecutive numbers.
+* Stop when the sum becomes ≥ n.
+
+Whenever sum becomes exactly `n`, increment answer.
+
+---
+
+## Algorithm
+
+1. Iterate start from `1` to `n`.
+2. Keep adding consecutive integers.
+3. If sum equals `n`, increment count.
+4. If sum exceeds `n`, stop that sequence.
+
+---
+
+## Code (Python)
+
+```python
+class Solution:
+    def getCount(self, n):
+        count = 0
+
+        for start in range(1, n):
+            total = 0
+            num = start
+
+            while total < n:
+                total += num
+                num += 1
+
+                if total == n and num - start >= 2:
+                    count += 1
+
+        return count
+```
+
+---
+
+## Dry Run
+
+For `n = 15`
+
+Start = 1
+
+```text
+1
+1+2
+1+2+3
+1+2+3+4
+1+2+3+4+5 =15 ✓
+```
+
+Start = 2
+
+```text
+2+3+4+5+6 =20
+```
+
+Stop.
+
+Continue similarly.
+
+Answer = 3
+
+---
+
+## Time Complexity
+
+```text
+O(n²)
+```
+
+---
+
+## Space Complexity
+
+```text
+O(1)
+```
+
+---
+
+# Better Approach (if any)
+
+## Idea
+
+Instead of checking every starting point,
+
+Try every possible sequence length `k`.
+
+The maximum length satisfies
+
+```text
+1+2+3+...+k ≤ n
+```
+
+which means
+
+```text
+k(k+1)/2 ≤ n
+```
+
+There are only about
+
+```text
+√(2n)
+```
+
+possible lengths.
+
+---
+
+## Algorithm
+
+1. Start with `k = 2`.
+2. Compute
+
+```text
+temp = n - k(k-1)/2
+```
+
+3. If
+
+```text
+temp % k == 0
+```
+
+then
+
+```text
+x = temp/k
+```
+
+is an integer.
+
+4. If `x > 0`, increment answer.
+
+5. Increase `k`.
+
+---
+
+## Code
+
+```python
+class Solution:
+    def getCount(self, n):
+        count = 0
+
+        k = 2
+
+        while (k * (k + 1)) // 2 <= n:
+
+            temp = n - (k * (k - 1)) // 2
+
+            if temp % k == 0:
+                x = temp // k
+
+                if x > 0:
+                    count += 1
+
+            k += 1
+
+        return count
+```
+
+---
+
+## Time Complexity
+
+```text
+O(√n)
+```
+
+---
+
+## Space Complexity
+
+```text
+O(1)
+```
+
+---
+
+# Optimal Approach
+
+## Intuition
+
+Suppose
+
+```text
+n = x + (x+1) + ... + (x+k-1)
+```
+
+Expanding,
+
+```text
+n = kx + k(k-1)/2
+```
+
+Rearranging,
+
+```text
+x = (n - k(k-1)/2)/k
+```
+
+So for every possible sequence length,
+
+we only need to verify whether
+
+* numerator is divisible by `k`
+* starting number is positive.
+
+This avoids constructing sequences entirely.
+
+---
+
+## Algorithm
+
+1. Initialize `count = 0`.
+2. Start `k = 2`.
+3. While
+
+```text
+k(k+1)/2 ≤ n
+```
+
+4. Compute
+
+```text
+temp = n - k(k-1)/2
+```
+
+5. If
+
+```text
+temp % k == 0
+```
+
+then
+
+```text
+x = temp/k
+```
+
+6. If `x > 0`, increment count.
+7. Return count.
+
+---
+
+## Code
+
+```python
+class Solution:
+    def getCount(self, n):
+        # code here
+        count = 0
+
+        k = 2
+        while (k * (k + 1)) // 2 <= n:
+            temp = n - (k * (k - 1)) // 2
+
+            if temp % k == 0:
+                x = temp // k
+                if x > 0:
+                    count += 1
+
+            k += 1
+
+        return count
+```
+
+---
+
+## Dry Run
+
+### Input
+
+```text
+n = 15
+```
+
+Initially
+
+```text
+count = 0
+```
+
+### k = 2
+
+```text
+temp = 15 - 1 = 14
+
+14 % 2 = 0
+
+x = 7
+
+Sequence:
+7 8
+
+count = 1
+```
+
+---
+
+### k = 3
+
+```text
+temp = 15 - 3 =12
+
+12 %3 =0
+
+x =4
+
+Sequence
+
+4 5 6
+
+count =2
+```
+
+---
+
+### k =4
+
+```text
+temp =15-6=9
+
+9%4!=0
+
+Not possible
+```
+
+---
+
+### k =5
+
+```text
+temp =15-10=5
+
+5%5=0
+
+x=1
+
+Sequence
+
+1 2 3 4 5
+
+count=3
+```
+
+---
+
+### k =6
+
+```text
+6×7/2 =21 >15
+
+Stop
+```
+
+Final Answer
+
+```text
+3
+```
+
+---
+
+## Time Complexity
+
+The loop runs while
+
+```text
+k(k+1)/2 ≤ n
+```
+
+So,
+
+```text
+k ≈ √(2n)
+```
+
+Hence,
+
+```text
+O(√n)
+```
+
+---
+
+## Space Complexity
+
+```text
+O(1)
+```
+
+---
+
+# Recursion Tree / DP Table / Diagram
+
+There is **no recursion** and **no DP** in this problem.
+
+Mathematical representation:
+
+```text
+Length = k
+
+x
+│
+├── x
+├── x+1
+├── x+2
+├── ...
+└── x+k-1
+
+Sum
+
+kx + k(k−1)/2 = n
+```
+
+---
+
+# Why This Works
+
+For every possible sequence length,
+
+```text
+n = kx + k(k−1)/2
+```
+
+If
+
+```text
+x = (n - k(k−1)/2)/k
+```
+
+is
+
+* an integer
+* positive
+
+then those consecutive numbers uniquely form one valid sequence.
+
+Since every valid sequence has exactly one length `k` and one starting value `x`, checking all feasible lengths counts every representation exactly once.
+
+---
+
+# Edge Cases
+
+### Case 1
+
+```text
+n = 1
+
+Output = 0
+```
+
+---
+
+### Case 2
+
+```text
+n = 2
+
+No two positive consecutive numbers
+
+Output = 0
+```
+
+---
+
+### Case 3
+
+```text
+n = 3
+
+1+2
+
+Output =1
+```
+
+---
+
+### Case 4
+
+```text
+Large prime number
+
+Works correctly because only √n lengths are checked.
+```
+
+---
+
+### Case 5
+
+```text
+Power of 2
+
+Example
+
+8
+
+No representation
+
+Output =0
+```
+
+---
+
+# Interview Explanation (30–60 sec)
+
+"I represent a sequence of length `k` starting from `x`. The sum of consecutive integers is `kx + k(k−1)/2`, which must equal `n`. Rearranging gives `x = (n − k(k−1)/2)/k`. I iterate over all feasible lengths `k` up to `√(2n)` because the smallest sequence of length `k` is `1 + 2 + ... + k`. Whenever `x` is a positive integer, I count one valid representation. This yields an `O(√n)` time and `O(1)` space solution."
+
+---
+
+# Key Takeaways
+
+* Convert the problem into an algebraic equation.
+* Iterate over **sequence lengths**, not starting values.
+* Use the arithmetic progression sum formula.
+* Maximum sequence length is about `√(2n)`.
+* Achieves `O(√n)` time with constant extra space.
+
+---
+
+# Common Mistakes
+
+1. Forgetting that the sequence must contain **at least two numbers** (`k` starts from `2`).
+
+2. Not checking `x > 0`.
+
+3. Iterating `k` all the way to `n` instead of stopping when:
+
+```text
+k(k+1)/2 > n
+```
+
+4. Using floating-point division instead of checking:
+
+```python
+temp % k == 0
+```
+
+5. Forgetting the arithmetic progression offset:
+
+```text
+k(k−1)/2
+```
+
+instead of
+
+```text
+k(k+1)/2
+```
+
+when computing the starting value.
