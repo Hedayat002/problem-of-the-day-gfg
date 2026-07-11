@@ -1,0 +1,1081 @@
+# Longest Possible Route in a Matrix with Hurdles
+
+---
+
+# 1. Problem Statement
+
+You are given a binary matrix `mat` of size `N × M`.
+
+* `1` represents a cell that can be visited.
+* `0` represents a hurdle (blocked cell).
+
+Given
+
+* Source `(xs, ys)`
+* Destination `(xd, yd)`
+
+find the **length of the longest possible path** from source to destination.
+
+Rules:
+
+* Move only in **Up, Down, Left, Right** directions.
+* A blocked cell cannot be visited.
+* A cell cannot be visited more than once in the same path.
+* If no valid path exists, return **-1**.
+
+---
+
+# 2. Examples
+
+### Example 1
+
+```
+Input
+
+mat =
+[
+ [1,1,1,1],
+ [1,0,0,1],
+ [1,1,1,1],
+ [1,1,0,1]
+]
+
+Source = (0,0)
+
+Destination = (3,3)
+```
+
+Output
+
+```
+10
+```
+
+Explanation
+
+There are many possible paths.
+
+We must return the **longest** valid path.
+
+---
+
+### Example 2
+
+```
+Input
+
+mat =
+[
+ [1,0],
+ [0,1]
+]
+
+Source = (0,0)
+
+Destination = (1,1)
+```
+
+Output
+
+```
+-1
+```
+
+Explanation
+
+No path exists.
+
+---
+
+### Example 3
+
+```
+Input
+
+[
+ [1]
+]
+
+Source=(0,0)
+
+Destination=(0,0)
+```
+
+Output
+
+```
+0
+```
+
+Because source itself is destination.
+
+---
+
+# 3. Constraints
+
+```
+1 ≤ N,M ≤ 10 (varies by platform)
+
+mat[i][j] ∈ {0,1}
+```
+
+Only four-direction movement is allowed.
+
+---
+
+# 4. Intuition
+
+Normally,
+
+* BFS gives the shortest path.
+* DFS can find a path.
+
+But here the question asks for the **LONGEST** path.
+
+That means we **cannot stop** after finding one path.
+
+Instead,
+
+we must explore **every possible simple path** between source and destination.
+
+Whenever we reach the destination,
+
+we calculate its length.
+
+Finally,
+
+return the maximum among all valid paths.
+
+Since a cell cannot be visited twice,
+
+we mark it as visited before exploring its neighbors.
+
+After returning from recursion,
+
+we restore the cell so that it can be used in another path.
+
+This process is called **Backtracking**.
+
+---
+
+# 5. Brute Force Approach (Accepted Solution)
+
+Although this section is called **Brute Force**, it is also the accepted solution because the problem itself is NP-Hard.
+
+There is no polynomial-time algorithm for the general case.
+
+---
+
+## 5.1 Idea
+
+Think of every cell as a node of a graph.
+
+From one cell,
+
+we can move to
+
+* Up
+* Down
+* Left
+* Right
+
+At every cell,
+
+try every possible move.
+
+Whenever destination is reached,
+
+return 0.
+
+Every previous recursive call adds **1** to the path length.
+
+Among all possible paths,
+
+keep only the maximum.
+
+To avoid revisiting a cell,
+
+temporarily mark it as blocked.
+
+After exploring all directions,
+
+restore it.
+
+This restoration step is called **Backtracking**.
+
+---
+
+## 5.2 Algorithm
+
+### Step 1
+
+If source or destination is blocked,
+
+return **-1**.
+
+---
+
+### Step 2
+
+Start DFS from source.
+
+---
+
+### Step 3
+
+If destination is reached,
+
+return **0**.
+
+---
+
+### Step 4
+
+If current cell
+
+* goes outside matrix
+* is blocked
+* already visited
+
+return **-1**.
+
+---
+
+### Step 5
+
+Mark current cell as visited.
+
+```
+mat[i][j]=0
+```
+
+---
+
+### Step 6
+
+Explore all four directions.
+
+```
+Up
+
+Down
+
+Left
+
+Right
+```
+
+---
+
+### Step 7
+
+For every valid path,
+
+compute
+
+```
+1 + pathLength
+```
+
+Store maximum.
+
+---
+
+### Step 8
+
+Restore cell
+
+```
+mat[i][j]=1
+```
+
+This is Backtracking.
+
+---
+
+### Step 9
+
+Return maximum path.
+
+---
+
+## 5.3 Code
+
+```python
+class Solution:
+    def dfs(self, mat, i, j, x, y):
+        m = len(mat)
+        n = len(mat[0])
+
+        # Destination reached
+        if i == x and j == y:
+            return 0
+
+        # Invalid cell
+        if i < 0 or i >= m or j < 0 or j >= n or mat[i][j] == 0:
+            return -1
+
+        # Mark visited
+        mat[i][j] = 0
+
+        maxPath = -1
+
+        row = [-1, 1, 0, 0]
+        col = [0, 0, -1, 1]
+
+        for k in range(4):
+            ni = i + row[k]
+            nj = j + col[k]
+
+            pathLength = self.dfs(mat, ni, nj, x, y)
+
+            if pathLength != -1:
+                maxPath = max(maxPath, 1 + pathLength)
+
+        # Backtracking
+        mat[i][j] = 1
+
+        return maxPath
+
+    def longestPath(self, mat, xs, ys, xd, yd):
+
+        if mat[xs][ys] == 0 or mat[xd][yd] == 0:
+            return -1
+
+        return self.dfs(mat, xs, ys, xd, yd)
+```
+
+---
+
+## 5.4 Dry Run
+
+Matrix
+
+```
+1 1 1
+1 0 1
+1 1 1
+```
+
+Source
+
+```
+(0,0)
+```
+
+Destination
+
+```
+(2,2)
+```
+
+---
+
+### Initial
+
+```
+S 1 1
+
+1 0 1
+
+1 1 D
+```
+
+---
+
+DFS starts from
+
+```
+(0,0)
+```
+
+Mark visited
+
+```
+0 1 1
+
+1 0 1
+
+1 1 1
+```
+
+---
+
+Explore
+
+```
+UP
+```
+
+Invalid.
+
+Return.
+
+---
+
+Explore
+
+```
+LEFT
+```
+
+Invalid.
+
+Return.
+
+---
+
+Explore
+
+```
+RIGHT
+```
+
+Move
+
+```
+(0,1)
+```
+
+Again mark visited.
+
+Continue recursively.
+
+Eventually destination reached.
+
+Suppose this path length becomes
+
+```
+6
+```
+
+Store
+
+```
+maxPath=6
+```
+
+---
+
+Backtrack.
+
+Restore
+
+```
+(0,1)
+```
+
+Explore another direction.
+
+Now another route gives
+
+```
+8
+```
+
+Update
+
+```
+maxPath=8
+```
+
+Continue until every possible path has been explored.
+
+Finally
+
+```
+Answer = 8
+```
+
+---
+
+## 5.5 Time Complexity
+
+Suppose
+
+```
+N = m × n
+```
+
+At every cell,
+
+DFS explores nearly
+
+```
+3 choices
+```
+
+because one direction is the parent.
+
+Hence,
+
+```
+Time Complexity
+
+O(3^(m×n))
+```
+
+A looser upper bound is
+
+```
+O(4^(m×n))
+```
+
+---
+
+### Why Exponential?
+
+Because we generate
+
+**every simple path**
+
+between source and destination.
+
+This problem is NP-Hard.
+
+No polynomial solution exists for the general case.
+
+---
+
+## 5.6 Space Complexity
+
+Recursion depth
+
+```
+O(m×n)
+```
+
+No extra visited array.
+
+Matrix itself stores visited information temporarily.
+
+Overall
+
+```
+Space Complexity
+
+O(m×n)
+```
+
+---
+
+# 6. Better Approach (If Any)
+
+## Idea
+
+There is **no asymptotically better algorithm** for the general version of this problem.
+
+The problem is equivalent to finding the **Longest Simple Path** in a graph, which is **NP-Hard**.
+
+Therefore:
+
+* Dynamic Programming cannot solve the general case because the state depends on the set of visited cells.
+* Greedy algorithms fail because a locally long move may prevent a longer overall path.
+* BFS is unsuitable because it finds the shortest path, not the longest.
+
+Hence, the DFS + Backtracking approach shown above is already the standard accepted solution for arbitrary matrices.
+
+---
+
+**Next Part (Part 2)** will cover:
+
+* **7. Optimal Approach**
+* Detailed intuition
+* Step-by-step algorithm
+* Full dry run with recursion stack
+* Recursion tree diagram
+* Why the algorithm works
+* Edge cases
+* Interview explanation (30–60 sec)
+* Key takeaways
+* Common mistakes
+
+These sections complete the GitHub-ready revision notes.
+
+
+
+# 7. Optimal Approach
+
+> **Important Note**
+>
+> For this problem, the **Optimal Approach** is **the same DFS + Backtracking algorithm**.
+>
+> **Reason:** Finding the **Longest Simple Path** in a graph is an **NP-Hard** problem. Since a matrix can be represented as a graph, there is **no known polynomial-time algorithm** for the general case.
+>
+> Therefore, the accepted DFS + Backtracking solution is also considered the **optimal solution**.
+
+---
+
+# 7.1 Intuition
+
+Suppose you are standing at the source cell.
+
+At every step, you have four possible directions:
+
+* Up
+* Down
+* Left
+* Right
+
+Unlike the shortest path problem, **we cannot stop after reaching the destination once**, because another route may be longer.
+
+So the idea is:
+
+* Explore **every possible path**.
+* Whenever the destination is reached, calculate the path length.
+* Return the **maximum** among all valid paths.
+
+To avoid cycles:
+
+* Mark the current cell as visited by changing it to `0`.
+* Explore all four directions.
+* Restore it back to `1` before returning.
+
+This restoring step is called **Backtracking**, allowing the same cell to be used in different paths.
+
+---
+
+# 7.2 Algorithm
+
+### Step 1
+
+If the source or destination cell is blocked (`0`), return **-1**.
+
+---
+
+### Step 2
+
+Start DFS from the source.
+
+---
+
+### Step 3
+
+If the current cell is the destination, return **0**.
+
+---
+
+### Step 4
+
+If the current cell is:
+
+* Outside the matrix
+* Blocked
+* Already visited (temporarily marked as `0`)
+
+return **-1**.
+
+---
+
+### Step 5
+
+Mark the current cell as visited.
+
+```python
+mat[i][j] = 0
+```
+
+---
+
+### Step 6
+
+Recursively explore all four directions:
+
+```text
+Up
+Down
+Left
+Right
+```
+
+---
+
+### Step 7
+
+For every valid recursive call,
+
+```python
+answer = max(answer, 1 + pathLength)
+```
+
+---
+
+### Step 8
+
+Restore the current cell.
+
+```python
+mat[i][j] = 1
+```
+
+This is **Backtracking**.
+
+---
+
+### Step 9
+
+Return the maximum path length.
+
+---
+
+# 7.3 Code
+
+```python
+class Solution:
+    def dfs(self, mat, i, j, x, y):
+        m = len(mat)
+        n = len(mat[0])
+
+        # Destination reached
+        if i == x and j == y:
+            return 0
+
+        # Invalid cell
+        if i < 0 or i >= m or j < 0 or j >= n or mat[i][j] == 0:
+            return -1
+
+        # Mark current cell as visited
+        mat[i][j] = 0
+
+        maxPath = -1
+
+        row = [-1, 1, 0, 0]
+        col = [0, 0, -1, 1]
+
+        for k in range(4):
+            ni = i + row[k]
+            nj = j + col[k]
+
+            pathLength = self.dfs(mat, ni, nj, x, y)
+
+            if pathLength != -1:
+                maxPath = max(maxPath, 1 + pathLength)
+
+        # Backtrack
+        mat[i][j] = 1
+
+        return maxPath
+
+    def longestPath(self, mat, xs, ys, xd, yd):
+
+        if mat[xs][ys] == 0 or mat[xd][yd] == 0:
+            return -1
+
+        return self.dfs(mat, xs, ys, xd, yd)
+```
+
+---
+
+# 7.4 Dry Run
+
+Consider the matrix:
+
+```text
+1 1 1
+1 0 1
+1 1 1
+```
+
+Source:
+
+```text
+(0,0)
+```
+
+Destination:
+
+```text
+(2,2)
+```
+
+---
+
+## Initial Matrix
+
+```text
+S 1 1
+1 0 1
+1 1 D
+```
+
+---
+
+### Call 1
+
+```
+dfs(0,0)
+```
+
+Mark `(0,0)` visited.
+
+```text
+0 1 1
+1 0 1
+1 1 1
+```
+
+---
+
+### Explore Up
+
+Outside matrix.
+
+Return **-1**.
+
+---
+
+### Explore Left
+
+Outside matrix.
+
+Return **-1**.
+
+---
+
+### Explore Right
+
+Move to `(0,1)`.
+
+```
+dfs(0,1)
+```
+
+Mark visited.
+
+```text
+0 0 1
+1 0 1
+1 1 1
+```
+
+---
+
+### Continue DFS
+
+Eventually,
+
+```
+(0,2)
+↓
+
+(1,2)
+↓
+
+(2,2)
+```
+
+Destination reached.
+
+Returns
+
+```text
+0
+```
+
+Previous call returns
+
+```text
+1
+```
+
+Previous returns
+
+```text
+2
+```
+
+Previous returns
+
+```text
+3
+```
+
+---
+
+Suppose another branch gives
+
+```text
+Length = 6
+```
+
+Current answer
+
+```text
+maxPath = 6
+```
+
+---
+
+Backtracking restores every visited cell.
+
+Now another route is explored.
+
+Suppose it gives
+
+```text
+Length = 8
+```
+
+Update
+
+```text
+maxPath = 8
+```
+
+After all branches finish,
+
+return
+
+```text
+8
+```
+
+---
+
+# 7.5 Time Complexity
+
+Let
+
+```text
+N = m × n
+```
+
+Each recursive call can generate nearly
+
+```text
+3
+```
+
+new recursive calls.
+
+Therefore,
+
+```text
+O(3^(m×n))
+```
+
+is the tight complexity.
+
+A looser upper bound is
+
+```text
+O(4^(m×n))
+```
+
+---
+
+# 7.6 Space Complexity
+
+Maximum recursion depth
+
+```text
+m × n
+```
+
+Therefore
+
+```text
+O(m×n)
+```
+
+No additional visited array is used.
+
+The matrix itself stores the visited state temporarily.
+
+---
+
+# 8. Recursion Tree
+
+Consider
+
+```text
+1 1
+
+1 1
+```
+
+Source
+
+```text
+(0,0)
+```
+
+Destination
+
+```text
+(1,1)
+```
+
+Recursion tree:
+
+```text
+                     (0,0)
+                /      |      \
+             Up      Right    Down
+             X        |         |
+                   (0,1)      (1,0)
+                    |            |
+                 (1,1)       (1,1)
+                    ✓            ✓
+```
+
+Each recursive call explores every possible direction.
+
+Whenever a branch finishes,
+
+Backtracking restores the previous state.
+
+---
+
+## Backtracking Illustration
+
+Before recursion
+
+```text
+1 1
+1 1
+```
+
+Visit `(0,0)`
+
+```text
+0 1
+1 1
+```
+
+Explore all directions.
+
+Return.
+
+Restore.
+
+```text
+1 1
+1 1
+```
+
+Now another branch can reuse `(0,0)`.
+
+---
+
+# 9. Why This Works
+
+The algorithm works because:
+
+* Every possible simple path is explored.
+* No cell is visited twice in the same path.
+* Every valid path reaching the destination is considered.
+* Among all valid paths, the maximum length is stored.
+* Backtracking restores the matrix so other paths are not affected.
+
+Since **all possible simple paths** are examined, the maximum path found is guaranteed to be the correct answer.
+
+---
+
+In **Part 3 (Final Part)**, we'll cover:
+
+* **10. Edge Cases**
+* **11. Interview Explanation (30–60 sec)**
+* **12. Key Takeaways**
+* **13. Common Mistakes**
+* Interview tips and GitHub notes that complete the document.
