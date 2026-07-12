@@ -1,0 +1,625 @@
+# Problem Name: Max Amount by Selling K Tickets
+
+## 1. Problem Statement
+
+You are given an array `arr[]`, where `arr[i]` represents the number of tickets available with the **i-th seller**.
+
+* The price of a ticket is equal to the seller's current remaining tickets.
+* After selling one ticket, the seller's ticket count decreases by `1`.
+* A total of **k tickets** can be sold.
+* Find the **maximum total amount** that can be earned.
+
+Return the answer modulo **10⁹ + 7**.
+
+---
+
+## 2. Examples
+
+### Example 1
+
+```text
+Input:
+arr = [4,3,6,2,4]
+k = 3
+
+Output:
+15
+
+Explanation:
+
+Seller with 6 tickets:
+Sell first ticket = 6
+Sell second ticket = 5
+
+Seller with 4 tickets:
+Sell one ticket = 4
+
+Total = 6 + 5 + 4 = 15
+```
+
+---
+
+### Example 2
+
+```text
+Input:
+arr = [5,3,5,2,4,4]
+k = 2
+
+Output:
+10
+
+Explanation:
+
+Sell one ticket from each seller having 5 tickets.
+
+5 + 5 = 10
+```
+
+---
+
+## 3. Constraints
+
+```text
+1 ≤ arr.size() ≤ 10^5
+1 ≤ arr[i], k ≤ 10^6
+```
+
+---
+
+# 4. Intuition
+
+To maximize money,
+
+> **Always sell the ticket having the highest current price.**
+
+After selling from a seller, its next ticket becomes cheaper by 1.
+
+There are three approaches.
+
+* Brute Force
+* Max Heap (Better)
+* Binary Search + Arithmetic Progression (Optimal)
+
+---
+
+# 5. Brute Force Approach
+
+## Idea
+
+Every time,
+
+* Find seller having maximum tickets.
+* Sell one ticket.
+* Decrease its value.
+* Repeat k times.
+
+---
+
+## Algorithm
+
+1. Repeat k times
+2. Find maximum element.
+3. Add it to answer.
+4. Decrease it by 1.
+5. Return answer.
+
+---
+
+## Code (Python)
+
+```python
+def maxAmount(arr, k):
+    MOD = 1000000007
+    answer = 0
+
+    while k > 0:
+        index = -1
+
+        # Find seller having maximum tickets
+        for i in range(len(arr)):
+            if arr[i] > 0 and (index == -1 or arr[i] > arr[index]):
+                index = i
+
+        # No tickets available
+        if index == -1:
+            break
+
+        answer = (answer + arr[index]) % MOD
+
+        arr[index] -= 1
+        k -= 1
+
+    return answer
+```
+
+---
+
+## Dry Run
+
+```text
+arr = [4,3,6,2,4]
+k = 3
+
+Maximum = 6
+answer = 6
+
+arr = [4,3,5,2,4]
+
+Maximum = 5
+answer = 11
+
+arr = [4,3,4,2,4]
+
+Maximum = 4
+answer = 15
+```
+
+Answer = **15**
+
+---
+
+## Time Complexity
+
+```text
+O(k × n)
+```
+
+---
+
+## Space Complexity
+
+```text
+O(1)
+```
+
+---
+
+# 6. Better Approach (Max Heap)
+
+## Idea
+
+Finding maximum every time costs O(n).
+
+Instead,
+
+Store all sellers in a **Max Heap**.
+
+Then
+
+* Remove maximum in O(log n)
+* Decrease by one
+* Push back
+
+---
+
+## Algorithm
+
+1. Build max heap.
+2. Repeat k times.
+3. Pop maximum.
+4. Add to answer.
+5. Decrease value.
+6. Push again if value > 0.
+
+---
+
+## Code
+
+```python
+import heapq
+
+def maxAmount(arr, k):
+    MOD = 1000000007
+
+    # Python has min heap, so insert negative values
+    max_heap = [-value for value in arr]
+    heapq.heapify(max_heap)
+
+    answer = 0
+
+    while k > 0 and max_heap:
+
+        current = -heapq.heappop(max_heap)
+
+        answer = (answer + current) % MOD
+
+        current -= 1
+        k -= 1
+
+        if current > 0:
+            heapq.heappush(max_heap, -current)
+
+    return answer
+```
+
+---
+
+## Dry Run
+
+```text
+Heap
+
+6 4 4 3 2
+
+Pop 6
+
+answer = 6
+
+Push 5
+
+Heap
+
+5 4 4 3 2
+
+Pop 5
+
+answer = 11
+
+Push 4
+
+Heap
+
+4 4 4 3 2
+
+Pop 4
+
+answer = 15
+```
+
+---
+
+## Time Complexity
+
+```text
+O(k log n)
+```
+
+---
+
+## Space Complexity
+
+```text
+O(n)
+```
+
+---
+
+# 7. Optimal Approach (Binary Search)
+
+## Observation
+
+Suppose we decide that
+
+> We will sell every ticket whose price is **greater than Level**.
+
+Example
+
+```text
+6
+
+Sell
+
+6
+5
+4
+
+Stop at 3
+
+Level = 3
+```
+
+Instead of selling ticket one by one,
+
+we sell an entire range together.
+
+The profit becomes an Arithmetic Progression.
+
+---
+
+## Why Binary Search?
+
+We need to find a level such that
+
+```text
+Total tickets above this level ≤ k
+```
+
+If level is small
+
+→ too many tickets sold
+
+If level is large
+
+→ fewer tickets sold
+
+This monotonic property allows Binary Search.
+
+---
+
+## Binary Search
+
+For every mid,
+
+count
+
+```text
+tickets above mid
+
+count += max(0, value - mid)
+```
+
+If
+
+```text
+count > k
+```
+
+Need higher level.
+
+Else
+
+Need lower level.
+
+---
+
+## Arithmetic Progression Formula
+
+Selling
+
+```text
+8
+
+↓
+
+7
+
+↓
+
+6
+
+↓
+
+5
+```
+
+Profit
+
+```text
+8 + 7 + 6
+```
+
+Formula
+
+```text
+(first + last) × number_of_terms / 2
+```
+
+which becomes
+
+```text
+(value + level + 1)
+× ticketsSold
+÷ 2
+```
+
+---
+
+# Optimal Algorithm
+
+1. Binary search level.
+2. Count sold tickets above level.
+3. Compute AP sum.
+4. Remaining tickets are sold at level price.
+5. Return answer.
+
+---
+
+# Optimal Code (Easy to Read)
+
+```python
+def maxAmount(arr, k):
+    MOD = 1_000_000_007
+
+    # Highest ticket count among all sellers
+    max_tickets = max(arr)
+
+    left = 0
+    right = max_tickets
+
+    # -------------------------------
+    # Binary Search for selling level
+    # -------------------------------
+    while left < right:
+
+        middle = (left + right) // 2
+
+        tickets_above_level = 0
+
+        for tickets in arr:
+            if tickets > middle:
+                tickets_above_level += tickets - middle
+
+        if tickets_above_level > k:
+            left = middle + 1
+        else:
+            right = middle
+
+    selling_level = left
+
+    total_profit = 0
+    sold_tickets = 0
+
+    # ---------------------------------
+    # Sell all tickets above the level
+    # ---------------------------------
+    for tickets in arr:
+
+        if tickets <= selling_level:
+            continue
+
+        sold_from_this_seller = tickets - selling_level
+        sold_tickets += sold_from_this_seller
+
+        # Sum of:
+        # tickets + (tickets-1) + ... + (selling_level+1)
+
+        profit = (
+            (tickets + selling_level + 1)
+            * sold_from_this_seller
+        ) // 2
+
+        total_profit = (total_profit + profit) % MOD
+
+    # ---------------------------------
+    # Remaining tickets sold exactly
+    # at selling_level price
+    # ---------------------------------
+
+    remaining = k - sold_tickets
+
+    total_profit = (
+        total_profit + remaining * selling_level
+    ) % MOD
+
+    return total_profit
+```
+
+---
+
+# Dry Run
+
+Input
+
+```text
+arr = [4,3,6,2,4]
+k = 3
+```
+
+---
+
+### Binary Search
+
+```text
+Level = 4
+```
+
+Tickets above level
+
+```text
+6
+
+↓
+
+5
+
+Only 2 tickets
+```
+
+Sold = 2
+
+Profit
+
+```text
+6 + 5 = 11
+```
+
+Remaining
+
+```text
+k = 3
+
+Remaining = 1
+```
+
+Sell one more ticket at level
+
+```text
+4
+```
+
+Final
+
+```text
+11 + 4
+
+= 15
+```
+
+---
+
+# Time Complexity
+
+Binary Search
+
+```text
+O(log(MaxValue))
+```
+
+Each check
+
+```text
+O(n)
+```
+
+Overall
+
+```text
+O(n log(MaxValue))
+```
+
+Since
+
+```text
+MaxValue ≤ 10^6
+```
+
+Binary Search runs about **20 iterations**.
+
+---
+
+# Space Complexity
+
+```text
+O(1)
+```
+
+---
+
+# Comparison of Approaches
+
+| Approach           | Time Complexity   | Space | Suitable For                |
+| ------------------ | ----------------- | ----- | --------------------------- |
+| Brute Force        | O(k × n)          | O(1)  | Small inputs                |
+| Max Heap           | O(k log n)        | O(n)  | Medium inputs               |
+| Binary Search + AP | O(n log MaxValue) | O(1)  | Large constraints (Optimal) |
+
+---
+
+# Key Interview Points
+
+* Greedy idea: always sell the highest-priced ticket first.
+* Brute force repeatedly searches for the maximum.
+* Max heap reduces maximum retrieval from **O(n)** to **O(log n)**.
+* The optimal solution avoids simulating each sale by:
+
+  * Binary searching the cutoff (selling) level.
+  * Using the arithmetic progression formula to compute profit in bulk.
+* This makes it efficient even when `k` is very large.
+
+## GitHub Repository Structure (Suggested)
+
+```text
+Max-Amount-by-Selling-K-Tickets/
+│
+├── README.md
+├── brute_force.py
+├── heap_solution.py
+├── optimal_binary_search.py
+├── dry_run.md
+├── complexity.md
+└── images/
+    └── explanation.png
+```
+
+This structure keeps each approach separate and makes the repository easy to navigate and maintain.
