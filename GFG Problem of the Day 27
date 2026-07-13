@@ -1,0 +1,857 @@
+This problem is a classic **Permutation + Cycles + LCM** problem.
+
+The main idea is not obvious at first, so let's build it step by step.
+
+---
+
+# Problem Name
+
+**Rearrange the Array**
+
+---
+
+# 1. Problem Statement
+
+We have
+
+* Initial array
+
+[
+a=[1,2,3,\dots,n]
+]
+
+and a permutation
+
+[
+b=[b_1,b_2,\dots,b_n]
+]
+
+where every number from **1 to n** appears exactly once.
+
+One operation means
+
+> Every element currently at index **i** moves to index **b[i]** simultaneously.
+
+We must perform **at least one operation**.
+
+Find the minimum number of operations after which the array becomes
+
+[
+[1,2,3,\dots,n]
+]
+
+again.
+
+Return answer modulo
+
+[
+10^9+7
+]
+
+---
+
+# Example 1
+
+```
+b = [1,2,3]
+```
+
+Initially
+
+```
+1 2 3
+```
+
+Everything stays in its own place after one operation.
+
+Answer
+
+```
+1
+```
+
+---
+
+# Example 2
+
+```
+b = [2,3,1,5,4]
+```
+
+After several operations
+
+```
+0 : 1 2 3 4 5
+1 : 3 1 2 5 4
+2 : 2 3 1 4 5
+3 : 1 2 3 5 4
+4 : 3 1 2 4 5
+5 : 2 3 1 5 4
+6 : 1 2 3 4 5
+```
+
+Answer
+
+```
+6
+```
+
+---
+
+# 2. Observation
+
+Each index tells where an element goes.
+
+Think of
+
+```
+1 → b[1]
+2 → b[2]
+3 → b[3]
+...
+```
+
+This forms a directed graph.
+
+Since **b is a permutation**
+
+* every node has one outgoing edge
+* every node has one incoming edge
+
+Therefore every connected component is a **cycle**.
+
+Example
+
+```
+b=[2,3,1,5,4]
+```
+
+Graph
+
+```
+1 → 2
+↑   ↓
+3 ←
+
+4 ↔ 5
+```
+
+Two cycles
+
+```
+(1 2 3)
+(4 5)
+```
+
+---
+
+# 3. Intuition
+
+Let's study one cycle.
+
+Suppose
+
+```
+1→2
+2→3
+3→1
+```
+
+Initially
+
+```
+Position
+
+1 : A
+2 : B
+3 : C
+```
+
+After one move
+
+```
+1 : C
+2 : A
+3 : B
+```
+
+Again
+
+```
+1 : B
+2 : C
+3 : A
+```
+
+Again
+
+```
+1 : A
+2 : B
+3 : C
+```
+
+Returned after
+
+```
+3 operations
+```
+
+A cycle of length
+
+```
+k
+```
+
+always returns after exactly
+
+```
+k operations
+```
+
+---
+
+Suppose another cycle
+
+```
+4 ↔ 5
+```
+
+returns after
+
+```
+2 operations
+```
+
+Now both cycles must become original **simultaneously**.
+
+Need
+
+```
+multiple of 3
+and
+multiple of 2
+```
+
+Minimum is
+
+```
+LCM(3,2)=6
+```
+
+This is the whole idea.
+
+---
+
+# 4. Brute Force Approach
+
+## Idea
+
+Actually simulate operations until original array appears.
+
+---
+
+## Algorithm
+
+```
+Create array
+
+a=[1...n]
+
+Repeat
+
+    perform one operation
+
+    count++
+
+Until array becomes original.
+```
+
+---
+
+## Code (Python)
+
+```python
+class Solution:
+    MOD = 10**9 + 7
+
+    def rearrangeArray(self, b):
+        n = len(b)
+
+        original = list(range(1, n + 1))
+        arr = original[:]
+
+        count = 0
+
+        while True:
+            temp = [0] * n
+
+            for i in range(n):
+                temp[b[i] - 1] = arr[i]
+
+            arr = temp
+            count += 1
+
+            if arr == original:
+                return count % self.MOD
+```
+
+---
+
+## Dry Run
+
+```
+b=[2,3,1]
+```
+
+Initial
+
+```
+1 2 3
+```
+
+Operation 1
+
+```
+3 1 2
+```
+
+Operation 2
+
+```
+2 3 1
+```
+
+Operation 3
+
+```
+1 2 3
+```
+
+Answer
+
+```
+3
+```
+
+---
+
+## Time Complexity
+
+Worst case
+
+```
+O(answer × n)
+```
+
+Very large.
+
+---
+
+## Space Complexity
+
+```
+O(n)
+```
+
+---
+
+# Why Brute Force Fails
+
+Cycle size may be
+
+```
+10000
+```
+
+LCM may become enormous.
+
+Simulation is impossible.
+
+---
+
+# 5. Better Approach (Find Cycles)
+
+Instead of simulating,
+
+find every cycle length.
+
+Example
+
+```
+3
+2
+5
+```
+
+Need
+
+```
+LCM(3,2,5)
+```
+
+---
+
+## Idea
+
+DFS or visited array.
+
+Every unvisited node starts one cycle.
+
+Measure cycle length.
+
+---
+
+## Algorithm
+
+```
+visited[]
+
+for every node
+
+    if not visited
+
+         keep moving
+
+         until visited
+
+         count cycle length
+
+Store all lengths.
+```
+
+---
+
+## Example
+
+```
+b
+
+2 3 1 5 4
+```
+
+Start
+
+```
+1
+
+1→2→3→1
+
+length=3
+```
+
+Next
+
+```
+4→5→4
+
+length=2
+```
+
+Cycle lengths
+
+```
+3
+2
+```
+
+---
+
+## Code
+
+```python
+from math import lcm
+
+class Solution:
+
+    MOD = 10**9 + 7
+
+    def rearrangeArray(self, b):
+
+        n = len(b)
+
+        visited = [False] * n
+
+        ans = 1
+
+        for i in range(n):
+
+            if visited[i]:
+                continue
+
+            cur = i
+            length = 0
+
+            while not visited[cur]:
+                visited[cur] = True
+                cur = b[cur] - 1
+                length += 1
+
+            ans = lcm(ans, length)
+
+        return ans % self.MOD
+```
+
+---
+
+## Time Complexity
+
+Cycle detection
+
+```
+O(n)
+```
+
+LCM calculation
+
+```
+O(log n)
+```
+
+Overall
+
+```
+O(n log n)
+```
+
+---
+
+## Space Complexity
+
+```
+O(n)
+```
+
+---
+
+# Problem
+
+Python's
+
+```
+math.lcm
+```
+
+creates gigantic integers.
+
+For large answers,
+
+it becomes slow.
+
+Need modular arithmetic.
+
+---
+
+# 6. Optimal Approach
+
+Instead of storing huge LCM,
+
+use
+
+[
+LCM(a,b)=\frac{a\times b}{GCD(a,b)}
+]
+
+But numbers are still huge.
+
+Better method:
+
+Prime factorization.
+
+---
+
+# Key Observation
+
+Suppose cycle lengths
+
+```
+6
+10
+15
+```
+
+Prime factors
+
+```
+6 = 2 × 3
+
+10 = 2 × 5
+
+15 = 3 × 5
+```
+
+LCM
+
+Take maximum power of every prime.
+
+```
+2¹
+
+3¹
+
+5¹
+```
+
+Result
+
+```
+30
+```
+
+---
+
+Example
+
+```
+12
+
+=2²×3
+```
+
+```
+18
+
+=2×3²
+```
+
+LCM
+
+```
+2²×3²
+```
+
+```
+36
+```
+
+---
+
+## Algorithm
+
+```
+Find cycle lengths.
+
+For every length
+
+Factorize it.
+
+Store maximum exponent of every prime.
+
+Finally
+
+Multiply
+
+prime^power
+
+mod MOD.
+```
+
+---
+
+## Code
+
+```python
+class Solution:
+    MOD = 10 ** 9 + 7
+
+    def rearrangeArray(self, b):
+        n = len(b)
+        visited = [False] * n
+
+        max_power = {}
+
+        for i in range(n):
+            if visited[i]:
+                continue
+
+            cur = i
+            length = 0
+
+            while not visited[cur]:
+                visited[cur] = True
+                cur = b[cur] - 1
+                length += 1
+
+            x = length
+            p = 2
+
+            while p * p <= x:
+                cnt = 0
+                while x % p == 0:
+                    cnt += 1
+                    x //= p
+
+                if cnt:
+                    max_power[p] = max(max_power.get(p, 0), cnt)
+
+                p += 1
+
+            if x > 1:
+                max_power[x] = max(max_power.get(x, 0), 1)
+
+        ans = 1
+
+        for prime, power in max_power.items():
+            ans = (ans * pow(prime, power, self.MOD)) % self.MOD
+
+        return ans
+```
+
+---
+
+# Complete Dry Run
+
+Input
+
+```
+b=[2,3,1,5,4]
+```
+
+---
+
+Visited
+
+```
+F F F F F
+```
+
+---
+
+Start
+
+```
+i=1
+```
+
+Travel
+
+```
+1→2→3→1
+```
+
+Length
+
+```
+3
+```
+
+Prime factor
+
+```
+3¹
+```
+
+Store
+
+```
+3 : 1
+```
+
+---
+
+Next
+
+```
+4→5→4
+```
+
+Length
+
+```
+2
+```
+
+Prime factor
+
+```
+2¹
+```
+
+Store
+
+```
+2 : 1
+
+3 : 1
+```
+
+---
+
+Now compute
+
+```
+2¹×3¹
+```
+
+```
+6
+```
+
+Answer
+
+```
+6
+```
+
+---
+
+# Why LCM?
+
+Suppose cycle lengths are
+
+```
+4
+
+6
+```
+
+Cycle 1 repeats every
+
+```
+4
+```
+
+Cycle 2 repeats every
+
+```
+6
+```
+
+Need first common time
+
+```
+4
+
+8
+
+12  ✓
+```
+
+```
+6
+
+12 ✓
+```
+
+Hence
+
+```
+LCM(4,6)=12
+```
+
+---
+
+# Complexity Comparison
+
+| Approach    | Idea                                                               | Time                                                                                                                                                                                       | Space |
+| ----------- | ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----- |
+| Brute Force | Simulate operations until original array returns                   | O(answer × n)                                                                                                                                                                              | O(n)  |
+| Better      | Detect cycle lengths and compute LCM incrementally                 | O(n log n)                                                                                                                                                                                 | O(n)  |
+| Optimal     | Detect cycles + prime factorization of cycle lengths + modular LCM | O(n√n) in the straightforward factorization shown (acceptable for (n \le 10^4)); with a smallest-prime-factor sieve it becomes (O(n \log \log n)) preprocessing + near (O(n \log n)) total | O(n)  |
+
+### Core takeaway
+
+* A permutation always decomposes into **disjoint cycles**.
+* A cycle of length **k** returns to its original state after exactly **k** operations.
+* All cycles must return **at the same time**, so the answer is the **Least Common Multiple (LCM)** of all cycle lengths.
+* The main challenge is computing that LCM efficiently without overflowing, which is why the prime-factorization approach is often used.
