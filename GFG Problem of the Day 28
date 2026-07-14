@@ -1,0 +1,707 @@
+# Smallest Non-Zero Number (GFG)
+
+## Problem Statement
+
+You are given an array `arr[]`.
+
+We need to find the **smallest positive number `x`** such that while processing every array element from left to right, `x` **never becomes negative**.
+
+For every element `arr[i]`:
+
+* If `x > arr[i]`
+
+  ```
+  x = x + (x - arr[i])
+    = 2*x - arr[i]
+  ```
+* Otherwise (`x <= arr[i]`)
+
+  ```
+  x = x - (arr[i] - x)
+    = 2*x - arr[i]
+  ```
+
+Notice something interesting...
+
+Both conditions produce the **same formula**.
+
+Therefore,
+
+> **After processing every element**
+>
+> `x = 2*x - arr[i]`
+
+So the problem simply becomes:
+
+Process
+
+```
+x = 2*x - arr[i]
+```
+
+for every element while ensuring
+
+```
+x >= 0
+```
+
+throughout the process.
+
+---
+
+# Example
+
+```
+arr = [3,4,3,2,4]
+```
+
+Need the smallest starting value.
+
+Try
+
+```
+x = 4
+```
+
+Process
+
+```
+3 → 5
+4 → 6
+3 → 9
+2 →16
+4 →28
+```
+
+Never negative.
+
+Answer = **4**
+
+---
+
+# Observation
+
+At every step
+
+```
+new_x = 2*x - arr[i]
+```
+
+If
+
+```
+2*x < arr[i]
+```
+
+then
+
+```
+new_x becomes negative.
+```
+
+We need the smallest starting value that avoids this.
+
+---
+
+# Approach 1 — Brute Force
+
+## Idea
+
+Simply try
+
+```
+x = 1
+x = 2
+x = 3
+...
+```
+
+For every candidate
+
+simulate the whole process.
+
+The first successful value is the answer.
+
+---
+
+## Algorithm
+
+For every candidate
+
+```
+candidate = 1...
+```
+
+Do
+
+```
+cur = candidate
+
+for every number
+
+cur = 2*cur - arr[i]
+
+if cur<0
+    fail
+```
+
+First successful candidate is answer.
+
+---
+
+## Complexity
+
+Suppose answer is K.
+
+Time
+
+```
+O(K × N)
+```
+
+Space
+
+```
+O(1)
+```
+
+Too slow.
+
+---
+
+# Brute Force Code (Python)
+
+```python
+class Solution:
+    def valid(self, arr, start):
+        x = start
+
+        for num in arr:
+            x = 2 * x - num
+
+            if x < 0:
+                return False
+
+        return True
+
+    def smallestNonZeroNum(self, arr):
+        x = 1
+
+        while True:
+            if self.valid(arr, x):
+                return x
+            x += 1
+```
+
+---
+
+# Code Explanation
+
+### valid()
+
+Checks whether one starting value works.
+
+```
+x = start
+```
+
+Current value.
+
+---
+
+For every number
+
+```
+x = 2*x - num
+```
+
+Update x.
+
+---
+
+If
+
+```
+x<0
+```
+
+Candidate fails.
+
+---
+
+Otherwise
+
+```
+return True
+```
+
+---
+
+Main function
+
+Start checking from
+
+```
+1
+2
+3
+...
+```
+
+Return first successful one.
+
+---
+
+# Dry Run
+
+```
+arr=[4,4]
+```
+
+Try
+
+```
+x=1
+
+4
+
+2*1-4=-2
+
+negative
+```
+
+Fail
+
+---
+
+Try
+
+```
+x=2
+
+4
+
+4-4=0
+
+next
+
+0
+
+0-4=-4
+```
+
+Fail
+
+---
+
+Try
+
+```
+x=3
+
+4
+
+6-4=2
+
+next
+
+4-4=0
+```
+
+Never negative.
+
+Answer
+
+```
+3
+```
+
+---
+
+# Approach 2 — Optimal (Reverse Thinking)
+
+## Main Idea
+
+Instead of guessing the starting value,
+
+work **backwards**.
+
+Suppose after processing all numbers we end with
+
+```
+x >= 0
+```
+
+The smallest possible ending value is
+
+```
+0
+```
+
+Now reverse every operation.
+
+---
+
+## Reverse Formula
+
+Forward
+
+```
+new = 2*old - arr[i]
+```
+
+Rearrange
+
+```
+old = (new + arr[i]) / 2
+```
+
+But
+
+`old` must be an integer.
+
+If division is not exact,
+
+take the ceiling.
+
+Formula
+
+```
+old = ceil((new + arr[i])/2)
+```
+
+Ceiling can be computed without floating point.
+
+```
+(a+b+1)//2
+```
+
+Therefore
+
+```
+old=(new+arr[i]+1)//2
+```
+
+Process from right to left.
+
+The obtained value is the minimum starting value.
+
+---
+
+## Why Ceiling?
+
+Example
+
+Need
+
+```
+old >= 3.5
+```
+
+Possible integers
+
+```
+3 ❌
+4 ✅
+```
+
+So
+
+```
+ceil(3.5)=4
+```
+
+---
+
+# Algorithm
+
+Initialize
+
+```
+ans=0
+```
+
+Traverse backwards
+
+```
+for every number from right
+
+ans=(ans+num+1)//2
+```
+
+Return
+
+```
+ans
+```
+
+---
+
+## Complexity
+
+Time
+
+```
+O(N)
+```
+
+Space
+
+```
+O(1)
+```
+
+Exactly as expected.
+
+---
+
+# Optimal Code (Python)
+
+```python
+class Solution:
+    def smallestNonZeroNum(self, arr):
+        ans = 0
+
+        for num in reversed(arr):
+            ans = (ans + num + 1) // 2
+
+        return ans
+```
+
+---
+
+# Code Explanation (Line by Line)
+
+```python
+ans = 0
+```
+
+Assume the final value after processing everything is the smallest valid value, `0`.
+
+---
+
+```python
+for num in reversed(arr):
+```
+
+Traverse from the last element to the first.
+
+---
+
+```python
+ans = (ans + num + 1) // 2
+```
+
+Reverse the forward transition:
+
+* Forward: `new = 2 * old - num`
+* Reverse: `old = ceil((new + num) / 2)`
+
+Using integer arithmetic:
+
+```python
+ceil((a + b) / 2) = (a + b + 1) // 2
+```
+
+Update the minimum required value before this element.
+
+---
+
+```python
+return ans
+```
+
+This is the smallest valid starting value.
+
+---
+
+# Complete Dry Run
+
+## Input
+
+```
+arr = [3,4,3,2,4]
+```
+
+Start
+
+```
+ans = 0
+```
+
+Process backwards.
+
+---
+
+### Step 1
+
+```
+num = 4
+
+ans=(0+4+1)//2
+
+=5//2
+
+=2
+```
+
+Need at least **2** before last element.
+
+---
+
+### Step 2
+
+```
+num=2
+
+ans=(2+2+1)//2
+
+=5//2
+
+=2
+```
+
+Need at least **2**.
+
+---
+
+### Step 3
+
+```
+num=3
+
+ans=(2+3+1)//2
+
+=6//2
+
+=3
+```
+
+Need at least **3**.
+
+---
+
+### Step 4
+
+```
+num=4
+
+ans=(3+4+1)//2
+
+=8//2
+
+=4
+```
+
+Need at least **4**.
+
+---
+
+### Step 5
+
+```
+num=3
+
+ans=(4+3+1)//2
+
+=8//2
+
+=4
+```
+
+Answer
+
+```
+4
+```
+
+---
+
+# Verification
+
+Start with
+
+```
+x=4
+```
+
+```
+3
+
+2*4-3
+
+=5
+```
+
+---
+
+```
+4
+
+2*5-4
+
+=6
+```
+
+---
+
+```
+3
+
+12-3
+
+=9
+```
+
+---
+
+```
+2
+
+18-2
+
+=16
+```
+
+---
+
+```
+4
+
+32-4
+
+=28
+```
+
+Never becomes negative.
+
+Final Answer
+
+```
+4
+```
+
+---
+
+# Comparison
+
+| Approach    | Idea                                          | Time          | Space    |
+| ----------- | --------------------------------------------- | ------------- | -------- |
+| Brute Force | Try every starting value and simulate         | O(answer × n) | O(1)     |
+| Optimal     | Reverse process using `ceil((ans + num) / 2)` | **O(n)**      | **O(1)** |
+
+## Key Pattern to Remember
+
+When a process has a linear forward transition such as:
+
+```
+new = 2 * old - value
+```
+
+and you're asked for the **minimum starting value**, think **backwards**:
+
+1. Assume the smallest valid ending value.
+2. Reverse the equation.
+3. Use **ceiling** if integer values are required.
+
+This reverse-simulation pattern appears in several greedy and mathematical array problems and often converts an expensive search into a single linear pass.
