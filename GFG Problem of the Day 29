@@ -1,0 +1,830 @@
+# Longest Bitonic Subarray (GFG)
+
+## Problem Statement
+
+Given an array `arr[]`, find the **length of the longest bitonic subarray**.
+
+A bitonic subarray first **monotonically increases** (duplicates allowed), then **monotonically decreases** (duplicates allowed).
+
+There exists an index `k` such that
+
+```
+arr[i] <= arr[i+1] <= ... <= arr[k]
+arr[k] >= arr[k+1] >= ... >= arr[j]
+```
+
+Notice:
+
+* Increasing only ✅ (valid)
+* Decreasing only ✅ (valid)
+* All equal elements ✅ (valid)
+
+---
+
+## Example
+
+```
+arr = [12, 4, 78, 90, 45, 23]
+
+Output = 5
+
+Bitonic Subarray
+
+4 → 78 → 90 → 45 → 23
+
+Increasing
+4 ≤ 78 ≤ 90
+
+Decreasing
+90 ≥ 45 ≥ 23
+```
+
+---
+
+# Pattern
+
+This problem belongs to
+
+> **Array Traversal + Peak Expansion**
+
+We try to find
+
+* increasing part
+* peak
+* decreasing part
+
+and calculate the maximum length.
+
+---
+
+# Approach 1 (Brute Force)
+
+## Idea
+
+Start every index as the beginning.
+
+For every starting point
+
+1. Move while array is increasing.
+2. Then move while array is decreasing.
+3. Compute length.
+4. Update answer.
+
+Repeat for every index.
+
+---
+
+## Logic
+
+Suppose
+
+```
+1 3 5 4 2
+^
+start
+```
+
+Move
+
+```
+1→3→5
+```
+
+Then
+
+```
+5→4→2
+```
+
+Length = 5
+
+Now start from next index.
+
+Repeat.
+
+---
+
+## Algorithm
+
+```
+answer = 1
+
+For every starting index
+
+      move while increasing
+
+      move while decreasing
+
+      calculate length
+
+Return maximum
+```
+
+---
+
+# Brute Force Code (Python)
+
+```python
+class Solution:
+    def maxLenBitonic(self, arr):
+        n = len(arr)
+
+        if n == 0:
+            return 0
+
+        ans = 1
+
+        for i in range(n):
+
+            j = i
+
+            # Increasing part
+            while j < n - 1 and arr[j] <= arr[j + 1]:
+                j += 1
+
+            # Decreasing part
+            while j < n - 1 and arr[j] >= arr[j + 1]:
+                j += 1
+
+            ans = max(ans, j - i + 1)
+
+        return ans
+```
+
+---
+
+## Code Explanation
+
+### Loop
+
+```
+for i in range(n):
+```
+
+Treat every index as a possible beginning.
+
+---
+
+### Increasing Part
+
+```
+while arr[j] <= arr[j+1]
+```
+
+Keep extending upward.
+
+---
+
+### Decreasing Part
+
+```
+while arr[j] >= arr[j+1]
+```
+
+Now extend downward.
+
+---
+
+### Length
+
+```
+j - i + 1
+```
+
+Update answer.
+
+---
+
+## Dry Run
+
+```
+arr = [12,4,78,90,45,23]
+```
+
+### i = 0
+
+```
+12
+
+Cannot increase
+
+Cannot decrease
+
+Length = 1
+```
+
+---
+
+### i = 1
+
+```
+4
+↑
+78
+↑
+90
+↓
+45
+↓
+23
+```
+
+Length
+
+```
+5
+```
+
+Answer
+
+```
+5
+```
+
+---
+
+### i = 2
+
+```
+78
+↑
+90
+↓
+45
+↓
+23
+```
+
+Length
+
+```
+4
+```
+
+Maximum remains
+
+```
+5
+```
+
+---
+
+Final Answer
+
+```
+5
+```
+
+---
+
+## Complexity
+
+Time
+
+```
+O(n²)
+```
+
+Space
+
+```
+O(1)
+```
+
+---
+
+# Approach 2 (Optimal)
+
+Expected
+
+```
+O(n)
+Time
+
+O(1)
+Space
+```
+
+---
+
+# Main Observation
+
+Instead of starting from every index,
+
+we can scan the array **only once**.
+
+During one scan
+
+* find increasing part
+* immediately find decreasing part
+* calculate answer
+* continue from correct next position
+
+No need to restart from every index.
+
+---
+
+# Visualization
+
+Example
+
+```
+12 4 78 90 45 23
+```
+
+Scan
+
+```
+12
+
+↓
+
+4
+
+↑
+78
+
+↑
+90
+
+↓
+
+45
+
+↓
+
+23
+```
+
+Entire bitonic subarray found in one pass.
+
+---
+
+# Important Variables
+
+```
+start
+```
+
+Current bitonic subarray begins here.
+
+---
+
+```
+j
+```
+
+Current pointer.
+
+---
+
+```
+next_start
+```
+
+Where the next possible bitonic subarray should begin.
+
+This is the trick that makes the solution O(n).
+
+---
+
+# Why next_start?
+
+Consider
+
+```
+1 3 5 4 2 6 8
+```
+
+Current bitonic
+
+```
+1 3 5 4 2
+```
+
+When we reach
+
+```
+4
+```
+
+We already know
+
+```
+2
+```
+
+cannot belong to next increasing sequence.
+
+So next subarray should begin from
+
+```
+2
+```
+
+Hence
+
+```
+next_start = j + 1
+```
+
+when descent starts.
+
+---
+
+# Algorithm
+
+```
+start = 0
+j = 0
+
+while j<n-1
+
+      increase
+
+      decrease
+
+      answer
+
+      start = next_start
+```
+
+---
+
+# Optimal Code (Python)
+
+```python
+class Solution:
+    def maxLenBitonic(self, arr):
+        n = len(arr)
+
+        if n == 0:
+            return 0
+
+        max_len = 1
+        start = 0
+        next_start = 0
+        j = 0
+
+        while j < n - 1:
+
+            # Find increasing part
+            while j < n - 1 and arr[j] <= arr[j + 1]:
+                j += 1
+
+            # Find decreasing part
+            while j < n - 1 and arr[j] >= arr[j + 1]:
+
+                # Actual descent starts
+                if arr[j] > arr[j + 1]:
+                    next_start = j + 1
+
+                j += 1
+
+            max_len = max(max_len, j - start + 1)
+
+            start = next_start
+
+        return max_len
+```
+
+---
+
+# Code Explanation
+
+## Initialization
+
+```python
+max_len = 1
+```
+
+Stores best answer.
+
+---
+
+```python
+start = 0
+```
+
+Beginning of current bitonic subarray.
+
+---
+
+```python
+next_start = 0
+```
+
+Stores where next bitonic search begins.
+
+---
+
+```python
+j = 0
+```
+
+Traversal pointer.
+
+---
+
+## Step 1 : Increasing Part
+
+```python
+while j < n-1 and arr[j] <= arr[j+1]:
+    j += 1
+```
+
+Move until increase ends.
+
+Example
+
+```
+4
+
+↓
+
+78
+
+↓
+
+90
+```
+
+Stops at
+
+```
+90
+```
+
+---
+
+## Step 2 : Decreasing Part
+
+```python
+while j<n-1 and arr[j]>=arr[j+1]:
+```
+
+Move downward.
+
+```
+90
+
+↓
+
+45
+
+↓
+
+23
+```
+
+---
+
+### Important
+
+```python
+if arr[j] > arr[j+1]:
+    next_start = j+1
+```
+
+Only when **strict descent** begins.
+
+Example
+
+```
+90
+
+↓
+
+45
+```
+
+Next search starts from
+
+```
+45
+```
+
+because
+
+```
+45
+```
+
+may become beginning of next increasing sequence.
+
+---
+
+## Step 3
+
+```python
+max_len=max(max_len,j-start+1)
+```
+
+Compute current bitonic length.
+
+---
+
+## Step 4
+
+```python
+start=next_start
+```
+
+Shift beginning for next scan.
+
+---
+
+# Complete Dry Run
+
+```
+arr =
+[12,4,78,90,45,23]
+```
+
+Initially
+
+```
+start = 0
+
+j = 0
+
+answer = 1
+```
+
+---
+
+### Iteration 1
+
+Increase?
+
+```
+12<=4
+
+No
+```
+
+Decrease?
+
+```
+12>=4
+
+Yes
+```
+
+```
+next_start=1
+
+j=1
+```
+
+Stop.
+
+Length
+
+```
+1-0+1=2
+
+answer=2
+```
+
+```
+start=1
+```
+
+---
+
+### Iteration 2
+
+Current
+
+```
+4
+```
+
+Increase
+
+```
+4<=78
+
+j=2
+
+78<=90
+
+j=3
+```
+
+Peak
+
+```
+90
+```
+
+Now decrease
+
+```
+90>=45
+
+next_start=4
+
+j=4
+```
+
+Continue
+
+```
+45>=23
+
+next_start=5
+
+j=5
+```
+
+Length
+
+```
+5-1+1=5
+```
+
+Answer
+
+```
+5
+```
+
+---
+
+Loop ends.
+
+Return
+
+```
+5
+```
+
+---
+
+# Dry Run (All Increasing)
+
+```
+10 20 30 40
+```
+
+Increase reaches end.
+
+Length
+
+```
+4
+```
+
+Answer
+
+```
+4
+```
+
+---
+
+# Dry Run (All Equal)
+
+```
+10 10 10 10
+```
+
+Equality is allowed.
+
+Increase continues until end.
+
+Length
+
+```
+4
+```
+
+Answer
+
+```
+4
+```
+
+---
+
+# Complexity Analysis
+
+### Brute Force
+
+* **Time:** `O(n²)`
+* **Space:** `O(1)`
+
+### Optimal
+
+* **Time:** `O(n)` (each element is visited at most a constant number of times)
+* **Space:** `O(1)`
+
+---
+
+# Key Interview Takeaways
+
+* This is **not** the classic Longest Bitonic Subsequence (LBS). It asks for a **contiguous subarray**.
+* The conditions use `<=` and `>=`, so equal adjacent elements are part of both the increasing and decreasing phases.
+* The `next_start` pointer is the key optimization: it prevents re-scanning elements, allowing a single linear pass with constant extra space.
