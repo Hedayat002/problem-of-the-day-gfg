@@ -1,0 +1,752 @@
+Let's solve this exactly in the interview style.
+
+---
+
+# 1. Understand the Problem
+
+We are given:
+
+* `n` = number of digits
+* `sum` = required sum of digits
+
+Need to count **all n-digit positive integers** whose digit sum equals `sum`.
+
+### Important Rules
+
+* First digit **cannot be 0**
+* Remaining digits can be 0–9.
+* If no such number exists, return **-1**.
+
+---
+
+### Example
+
+```
+n = 2
+sum = 2
+
+Possible numbers
+
+10 -> sum=1
+11 -> sum=2 ✅
+12 -> sum=3
+20 -> sum=2 ✅
+
+Answer = 2
+```
+
+---
+
+# Approach 1 — Brute Force
+
+## Brute Force Idea
+
+Generate every n-digit number.
+
+For every number
+
+* Calculate digit sum.
+* If digit sum equals required sum
+
+  * increase answer.
+
+Finally return answer.
+
+If answer==0 return -1.
+
+---
+
+## Brute Force Logic
+
+Suppose
+
+```
+n = 2
+```
+
+Smallest 2-digit number
+
+```
+10
+```
+
+Largest
+
+```
+99
+```
+
+Loop
+
+```
+10
+11
+12
+...
+99
+```
+
+For every number
+
+```
+digit_sum(number)
+```
+
+If
+
+```
+digit_sum==sum
+```
+
+count++
+
+---
+
+## Brute Force Algorithm
+
+```
+count=0
+
+start=10^(n-1)
+end=10^n-1
+
+for num from start to end
+
+    calculate digit sum
+
+    if digit sum==sum
+        count++
+
+if count==0
+    return -1
+
+return count
+```
+
+---
+
+# Brute Force Code (Python)
+
+```python
+class Solution:
+    def countWays(self, n, sum):
+        start = 10 ** (n - 1)
+        end = (10 ** n) - 1
+
+        count = 0
+
+        for num in range(start, end + 1):
+            x = num
+            digit_sum = 0
+
+            while x > 0:
+                digit_sum += x % 10
+                x //= 10
+
+            if digit_sum == sum:
+                count += 1
+
+        return count if count > 0 else -1
+```
+
+---
+
+# Code Explanation
+
+### Step 1
+
+Find smallest n-digit number
+
+```
+n=3
+
+100
+```
+
+```
+start=10^(n-1)
+```
+
+---
+
+### Step 2
+
+Find largest
+
+```
+999
+```
+
+```
+end=10^n-1
+```
+
+---
+
+### Step 3
+
+Visit every number
+
+```
+100
+
+101
+
+102
+
+...
+
+999
+```
+
+---
+
+### Step 4
+
+Calculate digit sum
+
+Example
+
+```
+352
+
+digit_sum
+
+2+5+3=10
+```
+
+---
+
+### Step 5
+
+If
+
+```
+digit_sum==required sum
+```
+
+increase count.
+
+---
+
+### Step 6
+
+If count remains zero
+
+return
+
+```
+-1
+```
+
+---
+
+# Complete Dry Run
+
+```
+n=2
+sum=2
+```
+
+Loop
+
+```
+10
+
+digit sum=1
+
+No
+```
+
+count=0
+
+---
+
+```
+11
+
+digit sum=2
+
+Yes
+
+count=1
+```
+
+---
+
+```
+12
+
+digit sum=3
+
+No
+```
+
+---
+
+...
+
+```
+20
+
+digit sum=2
+
+Yes
+
+count=2
+```
+
+---
+
+Remaining numbers
+
+No match.
+
+Answer
+
+```
+2
+```
+
+---
+
+# Why Brute Force is Bad?
+
+For
+
+```
+n=9
+```
+
+We check
+
+```
+900,000,000 numbers
+```
+
+Impossible.
+
+Need Dynamic Programming.
+
+---
+
+# Approach 2 — Optimal (Dynamic Programming)
+
+## Observation
+
+Instead of generating numbers,
+
+Ask
+
+> How many ways can we fill digits so that their sum becomes `sum`?
+
+This is a classic DP problem.
+
+---
+
+## DP State
+
+Let
+
+```
+dp[i][s]
+```
+
+denote
+
+**Number of ways to form first i digits having digit sum s.**
+
+---
+
+### Transition
+
+For every position
+
+Try every digit
+
+```
+0
+
+1
+
+2
+
+...
+
+9
+```
+
+If current digit is
+
+```
+d
+```
+
+then
+
+```
+dp[i][s] += dp[i-1][s-d]
+```
+
+---
+
+### But First Digit?
+
+First digit
+
+cannot be zero.
+
+So initialize separately.
+
+---
+
+# DP Initialization
+
+For first digit
+
+Possible digits
+
+```
+1
+
+2
+
+...
+
+9
+```
+
+If digit<=sum
+
+```
+dp[1][digit]=1
+```
+
+---
+
+Example
+
+```
+sum=5
+```
+
+Initially
+
+```
+digit
+
+1
+
+2
+
+3
+
+4
+
+5
+```
+
+Each has exactly one way.
+
+---
+
+# DP Transition
+
+For every next position
+
+Try every digit
+
+```
+0
+
+1
+
+2
+
+...
+
+9
+```
+
+Formula
+
+```
+dp[i][s]+=dp[i-1][s-digit]
+```
+
+provided
+
+```
+digit<=s
+```
+
+---
+
+# Optimal Code (Python)
+
+```python
+class Solution:
+    def countWays(self, n, sum):
+        if sum > 9 * n:
+            return -1
+
+        dp = [[0] * (sum + 1) for _ in range(n + 1)]
+
+        # First digit (1 to 9)
+        for digit in range(1, 10):
+            if digit <= sum:
+                dp[1][digit] = 1
+
+        # Fill DP table
+        for i in range(2, n + 1):
+            for s in range(sum + 1):
+                for digit in range(10):
+                    if digit <= s:
+                        dp[i][s] += dp[i - 1][s - digit]
+
+        return dp[n][sum] if dp[n][sum] > 0 else -1
+```
+
+---
+
+# Code Explanation
+
+### Step 1
+
+Impossible case
+
+```
+Maximum digit sum
+
+=9*n
+```
+
+If
+
+```
+sum>9*n
+```
+
+Return
+
+```
+-1
+```
+
+---
+
+### Step 2
+
+Create DP
+
+```
+dp[i][s]
+```
+
+---
+
+### Step 3
+
+Initialize first digit
+
+Only
+
+```
+1...9
+```
+
+allowed.
+
+---
+
+### Step 4
+
+Fill remaining digits.
+
+For every digit
+
+```
+0..9
+```
+
+Try placing it.
+
+---
+
+### Step 5
+
+Answer
+
+```
+dp[n][sum]
+```
+
+---
+
+# Complete Dry Run
+
+Input
+
+```
+n=2
+sum=2
+```
+
+---
+
+Initialize
+
+```
+dp[1]
+
+sum
+
+0 1 2
+
+0 1 1
+```
+
+Meaning
+
+```
+1
+
+2
+```
+
+each possible.
+
+---
+
+Now second digit.
+
+### Sum=2
+
+Try
+
+digit=0
+
+```
+dp[2][2]+=dp[1][2]
+
+=1
+```
+
+Number
+
+```
+20
+```
+
+---
+
+digit=1
+
+```
+dp[2][2]+=dp[1][1]
+
+=1
+```
+
+Number
+
+```
+11
+```
+
+---
+
+digit=2
+
+```
+dp[1][0]=0
+```
+
+Nothing.
+
+Remaining digits impossible.
+
+Final
+
+```
+dp[2][2]=2
+```
+
+Answer
+
+```
+2
+```
+
+---
+
+# Another Dry Run
+
+```
+n=2
+
+sum=10
+```
+
+Valid numbers
+
+```
+19
+
+28
+
+37
+
+46
+
+55
+
+64
+
+73
+
+82
+
+91
+```
+
+DP finally computes
+
+```
+dp[2][10]=9
+```
+
+Return
+
+```
+9
+```
+
+---
+
+# Time Complexity
+
+## Brute Force
+
+There are approximately (9 \times 10^{n-1}) n-digit numbers. Computing the digit sum of each number takes (O(n)).
+
+* **Time Complexity:** (O(9 \times 10^{,n-1} \times n)) (exponential in `n`)
+* **Space Complexity:** (O(1))
+
+---
+
+## Optimal (Dynamic Programming)
+
+There are:
+
+* `n` digit positions,
+
+* `sum + 1` possible sums,
+
+* `10` possible digits for each transition (constant factor).
+
+* **Time Complexity:** (O(n \times \text{sum})) (more precisely (O(n \times \text{sum} \times 10)), and 10 is constant)
+
+* **Space Complexity:** (O(n \times \text{sum}))
+
+This matches the expected complexity.
