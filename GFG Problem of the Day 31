@@ -1,0 +1,763 @@
+This is a **Kadane's Algorithm + Prefix/Suffix DP** problem.
+
+The pattern is:
+
+> **Whenever you need the maximum/minimum subarray on the left and right of every index, think of Kadane + Prefix/Suffix preprocessing.**
+
+---
+
+# Problem Understanding
+
+Given an array, choose **two non-overlapping contiguous subarrays** such that
+
+[
+|Sum(Subarray_1)-Sum(Subarray_2)|
+]
+
+is maximum.
+
+The two subarrays can appear anywhere, but **must not overlap**.
+
+Example
+
+```
+arr = [-2,-3,4,-1,-2,1,5,-3]
+```
+
+Choose
+
+```
+[-2,-3]      sum = -5
+
+[4,-1,-2,1,5] sum = 7
+
+|7-(-5)| = 12
+```
+
+Answer = **12**
+
+---
+
+# Brute Force Solution
+
+## Idea
+
+Generate every possible subarray.
+
+Store
+
+```
+(start,end,sum)
+```
+
+Then compare every pair.
+
+If they don't overlap
+
+```
+answer=max(answer,abs(sum1-sum2))
+```
+
+---
+
+## Brute Force Logic
+
+Suppose
+
+```
+1 2 -3 4
+```
+
+Possible subarrays
+
+```
+[1]
+[1,2]
+[1,2,-3]
+...
+
+[2]
+[2,-3]
+
+...
+
+[-3]
+
+[4]
+```
+
+Now compare
+
+```
+[1,2]
+
+and
+
+[4]
+```
+
+No overlap
+
+Compute
+
+```
+abs(3-4)=1
+```
+
+Compare with every pair.
+
+---
+
+## Brute Force Code (Python)
+
+```python
+class Solution:
+    def maxDiffSubArrays(self, arr):
+        n = len(arr)
+
+        subarrays = []
+
+        for i in range(n):
+            s = 0
+            for j in range(i, n):
+                s += arr[j]
+                subarrays.append((i, j, s))
+
+        ans = 0
+
+        m = len(subarrays)
+
+        for i in range(m):
+            l1, r1, s1 = subarrays[i]
+
+            for j in range(i + 1, m):
+                l2, r2, s2 = subarrays[j]
+
+                if r1 < l2 or r2 < l1:
+                    ans = max(ans, abs(s1 - s2))
+
+        return ans
+```
+
+---
+
+# Brute Force Code Explanation
+
+Generate all subarrays
+
+```
+for i
+    for j
+```
+
+Running sum
+
+```
+s += arr[j]
+```
+
+Store
+
+```
+(start,end,sum)
+```
+
+Later
+
+Compare every pair
+
+```
+if non-overlap
+```
+
+Compute
+
+```
+abs(sum1-sum2)
+```
+
+Update answer.
+
+---
+
+# Dry Run (Brute Force)
+
+Example
+
+```
+[2,-1]
+```
+
+Generated subarrays
+
+```
+(0,0)=2
+
+(0,1)=1
+
+(1,1)=-1
+```
+
+Compare
+
+```
+2
+
+and
+
+-1
+
+Difference
+
+3
+```
+
+Maximum
+
+```
+3
+```
+
+---
+
+# Why Brute Force is Bad?
+
+Number of subarrays
+
+```
+O(n²)
+```
+
+Pair comparison
+
+```
+O(n⁴)
+```
+
+Impossible for
+
+```
+10^5
+```
+
+Need better.
+
+---
+
+# Optimal Solution
+
+## Observation
+
+Suppose partition is here
+
+```
+Left | Right
+```
+
+Then
+
+Every valid answer must have
+
+```
+one subarray on left
+
+one subarray on right
+```
+
+So try every partition.
+
+For each partition we need
+
+```
+Left Maximum Sum
+
+Left Minimum Sum
+
+Right Maximum Sum
+
+Right Minimum Sum
+```
+
+Then
+
+Maximum difference is either
+
+```
+Left Max - Right Min
+```
+
+or
+
+```
+Right Max - Left Min
+```
+
+Take absolute values.
+
+---
+
+# Example
+
+```
+2 -1 -2 | 1 -4 2 8
+```
+
+Left
+
+```
+Maximum =2
+
+Minimum=-3
+```
+
+Right
+
+```
+Maximum=10
+
+Minimum=-4
+```
+
+Possible answers
+
+```
+|2-(-4)|=6
+
+|10-(-3)|=13
+```
+
+Take maximum.
+
+---
+
+# How to Find These Arrays?
+
+We use **Kadane**.
+
+Need four arrays.
+
+---
+
+## 1. leftMax[i]
+
+Maximum subarray sum ending anywhere in
+
+```
+0...i
+```
+
+---
+
+## 2. leftMin[i]
+
+Minimum subarray sum in
+
+```
+0...i
+```
+
+---
+
+## 3. rightMax[i]
+
+Maximum subarray sum in
+
+```
+i...n-1
+```
+
+---
+
+## 4. rightMin[i]
+
+Minimum subarray sum in
+
+```
+i...n-1
+```
+
+---
+
+Then
+
+For every partition
+
+```
+i | i+1
+```
+
+compute
+
+```
+abs(leftMax[i]-rightMin[i+1])
+
+abs(rightMax[i+1]-leftMin[i])
+```
+
+Maximum is answer.
+
+---
+
+# Building leftMax
+
+Normal Kadane
+
+```
+curr=max(arr[i],curr+arr[i])
+
+best=max(best,curr)
+```
+
+Store
+
+```
+leftMax[i]=best
+```
+
+---
+
+# Building leftMin
+
+Same idea
+
+```
+curr=min(arr[i],curr+arr[i])
+
+best=min(best,curr)
+```
+
+Store
+
+```
+leftMin[i]
+```
+
+---
+
+# Right Arrays
+
+Run Kadane from right.
+
+Exactly same logic.
+
+---
+
+# Optimal Code
+
+```python
+class Solution:
+    def maxDiffSubArrays(self, arr):
+        n = len(arr)
+
+        leftMax = [0] * n
+        leftMin = [0] * n
+        rightMax = [0] * n
+        rightMin = [0] * n
+
+        # Left Maximum
+        curr = best = arr[0]
+        leftMax[0] = arr[0]
+
+        for i in range(1, n):
+            curr = max(arr[i], curr + arr[i])
+            best = max(best, curr)
+            leftMax[i] = best
+
+        # Left Minimum
+        curr = best = arr[0]
+        leftMin[0] = arr[0]
+
+        for i in range(1, n):
+            curr = min(arr[i], curr + arr[i])
+            best = min(best, curr)
+            leftMin[i] = best
+
+        # Right Maximum
+        curr = best = arr[-1]
+        rightMax[-1] = arr[-1]
+
+        for i in range(n - 2, -1, -1):
+            curr = max(arr[i], curr + arr[i])
+            best = max(best, curr)
+            rightMax[i] = best
+
+        # Right Minimum
+        curr = best = arr[-1]
+        rightMin[-1] = arr[-1]
+
+        for i in range(n - 2, -1, -1):
+            curr = min(arr[i], curr + arr[i])
+            best = min(best, curr)
+            rightMin[i] = best
+
+        ans = 0
+
+        for i in range(n - 1):
+            ans = max(ans,
+                      abs(leftMax[i] - rightMin[i + 1]),
+                      abs(rightMax[i + 1] - leftMin[i]))
+
+        return ans
+```
+
+---
+
+# Optimal Code Explanation
+
+### Step 1
+
+Compute
+
+```
+leftMax
+```
+
+using Kadane.
+
+---
+
+### Step 2
+
+Compute
+
+```
+leftMin
+```
+
+using reverse Kadane (minimum version).
+
+---
+
+### Step 3
+
+Compute
+
+```
+rightMax
+```
+
+from right.
+
+---
+
+### Step 4
+
+Compute
+
+```
+rightMin
+```
+
+from right.
+
+---
+
+### Step 5
+
+Try every partition
+
+```
+0 | 1
+
+1 | 2
+
+2 | 3
+```
+
+For each partition compute
+
+```
+Left Maximum
+vs
+Right Minimum
+```
+
+and
+
+```
+Right Maximum
+vs
+Left Minimum
+```
+
+Return the largest value.
+
+---
+
+# Complete Dry Run
+
+Example
+
+```
+arr =
+[-2,-3,4,-1,-2,1,5,-3]
+```
+
+## leftMax
+
+```
+i=0
+
+-2
+
+leftMax
+[-2]
+```
+
+```
+i=1
+
+curr=max(-3,-5)
+
+=-3
+
+best=-2
+
+leftMax
+
+[-2,-2]
+```
+
+```
+i=2
+
+curr=max(4,1)=4
+
+best=4
+
+[-2,-2,4]
+```
+
+```
+i=3
+
+curr=max(-1,3)=3
+
+best=4
+
+[-2,-2,4,4]
+```
+
+```
+i=4
+
+curr=max(-2,1)=1
+
+best=4
+
+[-2,-2,4,4,4]
+```
+
+```
+i=5
+
+curr=max(1,2)=2
+
+best=4
+
+[-2,-2,4,4,4,4]
+```
+
+```
+i=6
+
+curr=max(5,7)=7
+
+best=7
+
+[-2,-2,4,4,4,4,7]
+```
+
+```
+i=7
+
+curr=max(-3,4)=4
+
+best=7
+
+leftMax
+
+[-2,-2,4,4,4,4,7,7]
+```
+
+Similarly,
+
+```
+leftMin
+
+[-2,-5,-5,-5,-5,-5,-5,-5]
+```
+
+```
+rightMax
+
+[7,7,7,5,5,5,5,-3]
+```
+
+```
+rightMin
+
+[-6,-4,-3,-3,-3,-3,-3,-3]
+```
+
+Now partitions
+
+```
+Between
+
+1|2
+
+leftMax=-2
+
+rightMin=-3
+
+difference=1
+
+rightMax=7
+
+leftMin=-5
+
+difference=12
+
+Answer=12
+```
+
+Checking every partition keeps the maximum at **12**, which is the final answer.
+
+---
+
+# Time Complexity
+
+## Brute Force
+
+* Number of subarrays = **O(n²)**
+* Compare every pair = **O(n⁴)**
+
+**Time Complexity:** **O(n⁴)**
+
+**Space Complexity:** **O(n²)** (to store all subarrays)
+
+---
+
+## Optimal
+
+* Build `leftMax` = **O(n)**
+* Build `leftMin` = **O(n)**
+* Build `rightMax` = **O(n)**
+* Build `rightMin` = **O(n)**
+* Scan all partitions = **O(n)**
+
+Overall:
+
+* **Time Complexity:** **O(n)**
+* **Space Complexity:** **O(n)**
+
+---
+
+# Pattern to Remember
+
+This problem belongs to a common interview pattern:
+
+> **"Two non-overlapping subarrays" → Precompute the best answer on the left and the best answer on the right using Kadane, then combine them across every partition.**
+
+The same prefix/suffix preprocessing idea also appears in problems involving maximum sum, minimum sum, maximum product, and similar "best subarray on each side" constraints.
