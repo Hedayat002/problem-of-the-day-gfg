@@ -1,0 +1,944 @@
+# Cut Matrix (Hard)
+
+> **Pattern:** Dynamic Programming + Suffix Sum + Binary Search + Prefix/Suffix DP Optimization
+
+---
+
+# Problem Understanding
+
+You are given a matrix containing only **0** and **1**.
+
+You have to divide the matrix into exactly **k pieces**.
+
+### Rules
+
+* Every piece must contain **at least one 1**.
+* A cut can be
+
+  * Horizontal
+  * Vertical
+* After a horizontal cut, **only the bottom part** can be cut again.
+* After a vertical cut, **only the right part** can be cut again.
+
+Return the total number of possible ways.
+
+---
+
+# Brute Force Solution
+
+## Idea
+
+Try every possible cut.
+
+From every submatrix,
+
+* Try every horizontal cut.
+* Try every vertical cut.
+* If the removed piece has at least one 1,
+  recursively divide the remaining matrix.
+
+Finally count all valid ways.
+
+---
+
+# Brute Force Logic
+
+Suppose we are currently at
+
+```
+(r,c)
+```
+
+representing
+
+```
+r...n-1
+c...m-1
+```
+
+If we still need `pieces` pieces,
+
+then
+
+### Horizontal
+
+Try
+
+```
+r+1
+r+2
+...
+n-1
+```
+
+For every cut
+
+```
+Top
+------
+Bottom
+```
+
+If top contains one 1
+
+then
+
+```
+answer += solve(bottom,pieces-1)
+```
+
+---
+
+### Vertical
+
+Try
+
+```
+c+1
+...
+m-1
+```
+
+If left contains one 1
+
+```
+answer += solve(right,pieces-1)
+```
+
+---
+
+## How to know whether a part contains 1?
+
+Brute force scans the whole region every time.
+
+That makes it very slow.
+
+---
+
+# Brute Force Code (Python)
+
+```python
+mod = 10**9 + 7
+
+def hasOne(matrix, r1, c1, r2, c2):
+    for i in range(r1, r2):
+        for j in range(c1, c2):
+            if matrix[i][j] == 1:
+                return True
+    return False
+
+
+def solve(matrix, r, c, pieces):
+    n = len(matrix)
+    m = len(matrix[0])
+
+    if pieces == 1:
+        return 1 if hasOne(matrix, r, c, n, m) else 0
+
+    ans = 0
+
+    # Horizontal
+    for nr in range(r + 1, n):
+        if hasOne(matrix, r, c, nr, m):
+            ans = (ans + solve(matrix, nr, c, pieces - 1)) % mod
+
+    # Vertical
+    for nc in range(c + 1, m):
+        if hasOne(matrix, r, c, n, nc):
+            ans = (ans + solve(matrix, r, nc, pieces - 1)) % mod
+
+    return ans
+
+
+def findWays(matrix, k):
+    return solve(matrix, 0, 0, k)
+```
+
+---
+
+# Brute Force Code Explanation
+
+### hasOne()
+
+Checks whether the current piece contains one.
+
+---
+
+### solve()
+
+Parameters
+
+```
+r,c
+```
+
+Current remaining matrix.
+
+```
+pieces
+```
+
+How many pieces still required.
+
+---
+
+Base
+
+```
+pieces==1
+```
+
+Remaining matrix itself becomes the last piece.
+
+If it has one
+
+```
+return 1
+```
+
+Else
+
+```
+0
+```
+
+---
+
+Then
+
+Try every
+
+Horizontal
+
+and
+
+Vertical cut.
+
+---
+
+# Dry Run (Brute Force)
+
+Matrix
+
+```
+1 0 0
+1 1 1
+0 0 0
+```
+
+k=3
+
+Start
+
+```
+solve(0,0,3)
+```
+
+Try
+
+Horizontal after row0
+
+Top
+
+```
+1 0 0
+```
+
+Contains one
+
+Good
+
+Call
+
+```
+solve(1,0,2)
+```
+
+Now again
+
+Try
+
+Vertical
+
+after col0
+
+Bottom becomes
+
+```
+1 1
+0 0
+```
+
+Valid
+
+Continue
+
+Similarly
+
+Vertical after col1
+
+Also valid
+
+Eventually
+
+3 ways.
+
+---
+
+# Why Brute Force is Bad?
+
+Suppose
+
+```
+200×200
+```
+
+Every recursive call
+
+tries
+
+```
+200 rows
+200 cols
+```
+
+and
+
+each validity check scans
+
+```
+200×200
+```
+
+Huge repeated work.
+
+Impossible.
+
+---
+
+# Better Observation
+
+Instead of scanning every submatrix,
+
+can we know
+
+```
+How many ones exist?
+```
+
+in
+
+O(1)?
+
+Yes.
+
+Using
+
+## Suffix Sum
+
+---
+
+# Optimal Solution
+
+## Main Idea
+
+Instead of scanning every rectangle,
+
+precompute
+
+```
+suffix sum
+```
+
+Then
+
+```
+Number of ones
+```
+
+inside any remaining matrix
+
+is
+
+O(1).
+
+Then
+
+Dynamic Programming
+
+stores
+
+```
+dp[r][c][p]
+```
+
+meaning
+
+> Number of ways to divide submatrix starting at `(r,c)` into exactly `p` pieces.
+
+---
+
+# Step 1 — Build Suffix Sum
+
+Suppose
+
+```
+1 0 0
+1 1 1
+0 0 0
+```
+
+Suffix matrix
+
+```
+4 2 1
+3 2 1
+0 0 0
+```
+
+Meaning
+
+```
+suf[i][j]
+```
+
+=
+
+Number of ones
+
+from
+
+```
+(i,j)
+
+↓
+
+↓
+
+↓
+
+bottom-right
+```
+
+---
+
+Formula
+
+```
+suf[i][j]
+=
+matrix[i][j]
++
+suf[i+1][j]
++
+suf[i][j+1]
+-
+suf[i+1][j+1]
+```
+
+Exactly like 2D prefix sum
+
+but reverse direction.
+
+---
+
+# Why Suffix Sum?
+
+Need to know
+
+```
+Remaining matrix
+```
+
+starting from
+
+```
+(r,c)
+```
+
+Suffix directly represents that.
+
+---
+
+# DP State
+
+```
+dp[r][c][p]
+```
+
+Meaning
+
+Number of ways
+
+to divide
+
+```
+(r,c)
+↓
+
+↓
+
+bottom-right
+```
+
+into
+
+```
+p pieces
+```
+
+---
+
+# Base Case
+
+If
+
+```
+p==1
+```
+
+No more cuts.
+
+Whole matrix becomes one piece.
+
+If
+
+```
+suf[r][c]>0
+```
+
+Return
+
+```
+1
+```
+
+Else
+
+```
+0
+```
+
+---
+
+# Transition
+
+Need
+
+```
+p pieces
+```
+
+Try
+
+Horizontal
+
+and
+
+Vertical.
+
+---
+
+## Horizontal
+
+Instead of checking every row,
+
+Binary Search finds
+
+the first row
+
+where
+
+top strip already contains one.
+
+Every row after that
+
+also valid.
+
+Using
+
+```
+sufRow
+```
+
+we add all answers together instantly.
+
+---
+
+## Vertical
+
+Same idea.
+
+Binary Search
+
+finds first valid column.
+
+Using
+
+```
+sufCol
+```
+
+add remaining answers.
+
+---
+
+# Why Binary Search Works?
+
+Suppose
+
+Current
+
+```
+suf[r][c]=6
+```
+
+Move downward.
+
+```
+6
+6
+5
+4
+2
+1
+0
+```
+
+Values never increase.
+
+The first place where value becomes smaller
+
+means
+
+we removed at least one 1.
+
+Exactly first valid horizontal cut.
+
+Binary Search works because
+
+suffix values are monotonic (non-increasing).
+
+Same for columns.
+
+---
+
+# What are sufRow and sufCol?
+
+Instead of
+
+```
+dp[x][c]
++
+dp[x+1][c]
++
+...
+```
+
+every time,
+
+precompute suffix sums.
+
+---
+
+## sufRow
+
+```
+sufRow[r][c]
+
+=
+
+dp[r][c]
++
+dp[r+1][c]
++
+...
+```
+
+So
+
+```
+sum from row lo
+```
+
+becomes
+
+```
+O(1)
+```
+
+---
+
+## sufCol
+
+```
+dp[r][c]
++
+dp[r][c+1]
++
+...
+```
+
+Again
+
+constant time.
+
+---
+
+# Optimal Code (Python)
+
+```python
+mod = 10**9 + 7
+
+def findWays(matrix, k):
+    n = len(matrix)
+    m = len(matrix[0])
+
+    # Build suffix sum
+    suf = [[0] * (m + 1) for _ in range(n + 1)]
+    for i in range(n - 1, -1, -1):
+        for j in range(m - 1, -1, -1):
+            suf[i][j] = (
+                suf[i + 1][j]
+                + suf[i][j + 1]
+                - suf[i + 1][j + 1]
+                + matrix[i][j]
+            )
+
+    # dp[r][c][p] = ways to divide submatrix (r,c) into p pieces
+    dp = [[[0] * (k + 1) for _ in range(m)] for _ in range(n)]
+
+    # Base case
+    for r in range(n):
+        for c in range(m):
+            dp[r][c][1] = 1 if suf[r][c] > 0 else 0
+
+    for p in range(2, k + 1):
+
+        # Row suffix sums of dp[..., p-1]
+        sufRow = [[0] * m for _ in range(n + 1)]
+        for c in range(m):
+            for r in range(n - 1, -1, -1):
+                sufRow[r][c] = (sufRow[r + 1][c] + dp[r][c][p - 1]) % mod
+
+        # Column suffix sums of dp[..., p-1]
+        sufCol = [[0] * (m + 1) for _ in range(n)]
+        for r in range(n):
+            for c in range(m - 1, -1, -1):
+                sufCol[r][c] = (sufCol[r][c + 1] + dp[r][c][p - 1]) % mod
+
+        for r in range(n - 1, -1, -1):
+            for c in range(m - 1, -1, -1):
+
+                if suf[r][c] == 0:
+                    continue
+
+                res = 0
+
+                # First valid horizontal cut
+                lo, hi = r + 1, n
+                while lo < hi:
+                    mid = (lo + hi) // 2
+                    if suf[mid][c] < suf[r][c]:
+                        hi = mid
+                    else:
+                        lo = mid + 1
+
+                if lo < n:
+                    res = (res + sufRow[lo][c]) % mod
+
+                # First valid vertical cut
+                lo, hi = c + 1, m
+                while lo < hi:
+                    mid = (lo + hi) // 2
+                    if suf[r][mid] < suf[r][c]:
+                        hi = mid
+                    else:
+                        lo = mid + 1
+
+                if lo < m:
+                    res = (res + sufCol[r][lo]) % mod
+
+                dp[r][c][p] = res
+
+    return dp[0][0][k]
+```
+
+---
+
+# Optimal Code Explanation
+
+### Step 1
+
+Build suffix sum.
+
+```
+suf[r][c]
+```
+
+stores the number of `1`s in the remaining submatrix from `(r, c)` to the bottom-right corner.
+
+---
+
+### Step 2
+
+Initialize DP.
+
+```
+dp[r][c][1]
+```
+
+* `1` if the remaining submatrix contains at least one `1`.
+* Otherwise `0`.
+
+---
+
+### Step 3
+
+For each required number of pieces `p = 2 ... k`:
+
+* Build `sufRow` from `dp[..., p-1]`.
+* Build `sufCol` from `dp[..., p-1]`.
+
+These allow summing all valid continuations in constant time.
+
+---
+
+### Step 4
+
+For every cell `(r, c)`:
+
+* Skip if there are no `1`s (`suf[r][c] == 0`).
+* Binary search the first valid horizontal cut.
+* Add all remaining horizontal DP values using `sufRow`.
+* Binary search the first valid vertical cut.
+* Add all remaining vertical DP values using `sufCol`.
+
+Store the result in `dp[r][c][p]`.
+
+---
+
+### Step 5
+
+Return
+
+```python
+dp[0][0][k]
+```
+
+which is the number of ways to divide the entire matrix into `k` valid pieces.
+
+---
+
+# Dry Run (Optimal)
+
+Input
+
+```
+1 0 0
+1 1 1
+0 0 0
+
+k = 3
+```
+
+### Suffix Sum
+
+```
+4 2 1
+3 2 1
+0 0 0
+```
+
+### Base (`p = 1`)
+
+Every state with `suf > 0` becomes `1`.
+
+### Compute `p = 2`
+
+At `(0, 0)`:
+
+* Binary search finds the first valid horizontal cut after row `0`.
+* Binary search finds the first valid vertical cut after column `0`.
+* `sufRow` and `sufCol` instantly sum all valid continuations.
+
+So `dp[0][0][2]` is computed.
+
+### Compute `p = 3`
+
+Repeat the same process using `dp[..., 2]`.
+
+Finally,
+
+```
+dp[0][0][3] = 3
+```
+
+Answer:
+
+```
+3
+```
+
+---
+
+# Time Complexity
+
+## Brute Force
+
+Checking each cut requires scanning submatrices repeatedly, and the recursion explores exponentially many cut sequences.
+
+* **Time:** Exponential (far too slow for `n, m, k ≤ 200`)
+* **Space:** `O(k)` recursion stack (excluding repeated scans)
+
+---
+
+## Optimal
+
+1. Build suffix sum: `O(n × m)`
+2. For each `p` (`k` levels):
+
+   * Build `sufRow`: `O(n × m)`
+   * Build `sufCol`: `O(n × m)`
+   * For each cell:
+
+     * Two binary searches: `O(log n + log m)`
+
+Overall:
+
+[
+O(n \times m \times k \times \log(n+m))
+]
+
+which matches the expected complexity.
+
+---
+
+# Space Complexity
+
+## Brute Force
+
+* **Auxiliary Space:** `O(k)` recursion stack.
+
+## Optimal
+
+* `suf`: `O(n × m)`
+* `dp`: `O(n × m × k)` (dominant)
+* `sufRow`: `O(n × m)`
+* `sufCol`: `O(n × m)`
+
+Overall:
+
+[
+O(n \times m \times k)
+]
+
+---
+
+# Key Learning Points
+
+* Use a **2D suffix sum** to determine in `O(1)` whether a remaining submatrix contains any `1`s.
+* Define the DP state as the remaining submatrix's top-left corner and the number of pieces left.
+* Exploit the monotonicity of suffix sums to locate the first valid cut with **binary search**.
+* Precompute **row-wise** and **column-wise suffix sums of DP values** to aggregate all valid transitions in `O(1)` instead of iterating over every possible cut.
+* This combination reduces an exponential search into an efficient `O(n × m × k × log(n+m))` dynamic programming solution.
