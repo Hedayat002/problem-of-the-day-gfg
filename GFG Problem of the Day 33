@@ -1,0 +1,1022 @@
+# Mountain Subarray Queries (GFG)
+
+## Problem Understanding
+
+You are given:
+
+* An array `arr`
+* Many queries `[l, r]`
+
+For every query, determine whether the subarray `arr[l...r]` is a **Mountain Array**.
+
+A mountain array means:
+
+* First it is **non-decreasing** (can stay equal)
+* Then it is **non-increasing** (can stay equal)
+
+There should **never** be:
+
+* decrease → increase
+
+---
+
+### Valid Mountains
+
+```
+1 2 3 5 4 2
+      ^
+     Peak
+```
+
+```
+1 2 2 2 3
+```
+
+(Entirely Non-Decreasing)
+
+```
+5 4 4 3 1
+```
+
+(Entirely Non-Increasing)
+
+```
+2 2 2 2
+```
+
+(All equal)
+
+---
+
+### Invalid
+
+```
+5 3 4
+```
+
+Decrease then Increase ❌
+
+---
+
+# Brute Force Solution
+
+## Idea
+
+For every query:
+
+1. Start from left.
+2. Move while numbers are non-decreasing.
+3. After increasing part ends,
+4. Continue while numbers are non-increasing.
+5. If we reach the end → Mountain.
+6. Otherwise → Not Mountain.
+
+---
+
+## Logic
+
+For query `[l,r]`
+
+Example
+
+```
+2 3 4 5 5 3 2
+
+Increase
+
+↓
+
+2 3 4 5 5
+
+Now decrease
+
+↓
+
+5 5 3 2
+
+Reached end
+
+Mountain
+```
+
+---
+
+Example
+
+```
+3 2 4
+```
+
+Increase Part
+
+```
+3
+```
+
+Immediately decrease
+
+```
+3 2
+```
+
+Now suddenly increase
+
+```
+2 4
+```
+
+Cannot continue.
+
+Not Mountain.
+
+---
+
+# Brute Force Code (Python)
+
+```python
+class Solution:
+    def mountainSubarray(self, arr, queries):
+        ans = []
+
+        for l, r in queries:
+            i = l
+
+            # Non-decreasing
+            while i < r and arr[i] <= arr[i + 1]:
+                i += 1
+
+            # Non-increasing
+            while i < r and arr[i] >= arr[i + 1]:
+                i += 1
+
+            ans.append(i == r)
+
+        return ans
+```
+
+---
+
+# Code Explanation
+
+For every query
+
+```python
+i = l
+```
+
+Start from left.
+
+---
+
+Increasing phase
+
+```python
+while i < r and arr[i] <= arr[i+1]:
+    i += 1
+```
+
+Move while increasing.
+
+---
+
+Now decreasing phase
+
+```python
+while i < r and arr[i] >= arr[i+1]:
+    i += 1
+```
+
+Move while decreasing.
+
+---
+
+Finally
+
+```python
+i == r
+```
+
+Means entire array successfully covered.
+
+Mountain.
+
+Else
+
+Not Mountain.
+
+---
+
+# Dry Run (Brute Force)
+
+```
+arr = [2,3,2,4,4,6,3,2]
+
+Query = [0,2]
+```
+
+Subarray
+
+```
+2 3 2
+```
+
+Start
+
+```
+i=0
+```
+
+Increase
+
+```
+2<=3
+
+i=1
+```
+
+Now
+
+```
+3<=2
+
+False
+```
+
+Increasing stops.
+
+Decrease
+
+```
+3>=2
+
+i=2
+```
+
+Reached end.
+
+Answer
+
+```
+True
+```
+
+---
+
+Second Query
+
+```
+[1,3]
+
+3 2 4
+```
+
+Increase
+
+```
+3<=2
+
+False
+```
+
+Increase ends immediately.
+
+Decrease
+
+```
+3>=2
+
+i=2
+```
+
+Next
+
+```
+2>=4
+
+False
+```
+
+Stopped.
+
+```
+i=2
+r=3
+```
+
+Not reached end.
+
+Answer
+
+```
+False
+```
+
+---
+
+# Brute Force Complexity
+
+For every query
+
+```
+Worst case = O(length of subarray)
+```
+
+If
+
+```
+n queries
+each size n
+```
+
+Time
+
+```
+O(n × q)
+```
+
+Worst
+
+```
+10^5 ×10^5
+
+Impossible
+```
+
+Need optimization.
+
+---
+
+# Optimal Solution
+
+## Observation
+
+A mountain only fails when we see
+
+```
+Decrease
+
+↓
+
+Increase
+```
+
+If we know **where increasing sequences end** and **where decreasing sequences begin**, we can answer each query in O(1).
+
+---
+
+## Key Idea
+
+Create two arrays.
+
+### 1. `inc[i]`
+
+Meaning:
+
+```
+Starting from i
+
+How far can we move to the right while array remains non-decreasing?
+```
+
+Example
+
+```
+2 3 3 5 2 1
+
+inc
+
+5
+```
+
+Actually
+
+```
+Index
+
+0 1 2 3 4 5
+
+Value
+
+2 3 3 5 2 1
+
+inc
+
+3 3 3 3 5 5
+```
+
+Explanation
+
+From index 0
+
+```
+2→3→3→5
+
+Stops at index 3
+```
+
+So
+
+```
+inc[0]=3
+```
+
+---
+
+### 2. `dec[i]`
+
+Meaning
+
+```
+Starting from i
+
+How far left can we move while array is non-increasing?
+```
+
+Computed from left.
+
+Example
+
+```
+2 3 3 5 2 1
+
+dec
+
+0 1 2 3 3 3
+```
+
+Meaning
+
+At index 5
+
+```
+5≥2≥1
+
+Started from index3
+
+dec[5]=3
+```
+
+---
+
+# Important Observation
+
+For query
+
+```
+l.............r
+```
+
+Increasing part ends at
+
+```
+inc[l]
+```
+
+Decreasing part starts from
+
+```
+dec[r]
+```
+
+If
+
+```
+inc[l] >= dec[r]
+```
+
+They overlap.
+
+So there exists a peak.
+
+Mountain.
+
+Otherwise
+
+Gap exists.
+
+Impossible.
+
+---
+
+# Preprocessing
+
+## Build dec
+
+Go Left → Right
+
+```
+dec[0]=0
+```
+
+If
+
+```
+arr[i-1] >= arr[i]
+```
+
+Then
+
+```
+Still decreasing
+
+dec[i]=dec[i-1]
+```
+
+Else
+
+```
+New start
+
+dec[i]=i
+```
+
+---
+
+## Build inc
+
+Go Right → Left
+
+```
+inc[n-1]=n-1
+```
+
+If
+
+```
+arr[i] <= arr[i+1]
+```
+
+Then
+
+```
+Still increasing
+
+inc[i]=inc[i+1]
+```
+
+Else
+
+```
+Stop here
+
+inc[i]=i
+```
+
+---
+
+# Optimal Code (Python)
+
+```python
+class Solution:
+    def mountainSubarray(self, arr, queries):
+        n = len(arr)
+
+        inc = [0] * n
+        dec = [0] * n
+
+        # Build dec[]
+        dec[0] = 0
+        for i in range(1, n):
+            if arr[i - 1] >= arr[i]:
+                dec[i] = dec[i - 1]
+            else:
+                dec[i] = i
+
+        # Build inc[]
+        inc[n - 1] = n - 1
+        for i in range(n - 2, -1, -1):
+            if arr[i] <= arr[i + 1]:
+                inc[i] = inc[i + 1]
+            else:
+                inc[i] = i
+
+        ans = []
+
+        for l, r in queries:
+            ans.append(inc[l] >= dec[r])
+
+        return ans
+```
+
+---
+
+# Code Explanation
+
+Create
+
+```python
+inc = [0]*n
+dec = [0]*n
+```
+
+---
+
+Build decreasing array
+
+```python
+for i in range(1,n):
+```
+
+If
+
+```python
+arr[i-1] >= arr[i]
+```
+
+Still decreasing.
+
+Continue previous start.
+
+Else
+
+Start new decreasing segment.
+
+---
+
+Build increasing array
+
+Traverse backward.
+
+If
+
+```python
+arr[i] <= arr[i+1]
+```
+
+Increasing continues.
+
+Else
+
+Increasing stops.
+
+---
+
+For every query
+
+```python
+inc[l]
+```
+
+Rightmost increasing position.
+
+```python
+dec[r]
+```
+
+Leftmost decreasing position.
+
+If
+
+```python
+inc[l] >= dec[r]
+```
+
+Increasing and decreasing touch (or overlap), so a valid peak exists.
+
+Otherwise, there is a decrease followed by an increase, which violates the mountain property.
+
+---
+
+# Complete Dry Run (Optimal)
+
+```
+arr
+
+[2,3,2,4,4,6,3,2]
+```
+
+---
+
+### Step 1 Build dec
+
+```
+Index
+
+0 1 2 3 4 5 6 7
+
+Value
+
+2 3 2 4 4 6 3 2
+```
+
+Start
+
+```
+dec[0]=0
+```
+
+i=1
+
+```
+2>=3 ?
+
+No
+
+dec[1]=1
+```
+
+i=2
+
+```
+3>=2
+
+Yes
+
+dec[2]=1
+```
+
+i=3
+
+```
+2>=4
+
+No
+
+dec[3]=3
+```
+
+i=4
+
+```
+4>=4
+
+Yes
+
+dec[4]=3
+```
+
+i=5
+
+```
+4>=6
+
+No
+
+dec[5]=5
+```
+
+i=6
+
+```
+6>=3
+
+Yes
+
+dec[6]=5
+```
+
+i=7
+
+```
+3>=2
+
+Yes
+
+dec[7]=5
+```
+
+Final
+
+```
+dec
+
+[0,1,1,3,3,5,5,5]
+```
+
+---
+
+### Step 2 Build inc
+
+Start
+
+```
+inc[7]=7
+```
+
+i=6
+
+```
+3<=2
+
+No
+
+inc[6]=6
+```
+
+i=5
+
+```
+6<=3
+
+No
+
+inc[5]=5
+```
+
+i=4
+
+```
+4<=6
+
+Yes
+
+inc[4]=5
+```
+
+i=3
+
+```
+4<=4
+
+Yes
+
+inc[3]=5
+```
+
+i=2
+
+```
+2<=4
+
+Yes
+
+inc[2]=5
+```
+
+i=1
+
+```
+3<=2
+
+No
+
+inc[1]=1
+```
+
+i=0
+
+```
+2<=3
+
+Yes
+
+inc[0]=1
+```
+
+Final
+
+```
+inc
+
+[1,1,5,5,5,5,6,7]
+```
+
+---
+
+### Query 1
+
+```
+[0,2]
+```
+
+```
+inc[0]=1
+
+dec[2]=1
+```
+
+```
+1>=1
+
+True
+```
+
+Mountain.
+
+---
+
+### Query 2
+
+```
+[1,3]
+```
+
+```
+inc[1]=1
+
+dec[3]=3
+```
+
+```
+1>=3
+
+False
+```
+
+Not Mountain.
+
+---
+
+# Why `inc[l] >= dec[r]` Works
+
+```
+l----------------------r
+
+Increasing from left
+
+l------inc[l]
+
+Decreasing from right
+
+dec[r]------r
+```
+
+### Case 1
+
+```
+l----inc[l]
+      |
+      |
+dec[r]----r
+```
+
+They overlap.
+
+A peak exists.
+
+Mountain.
+
+---
+
+### Case 2
+
+```
+l---inc[l]
+
+
+dec[r]------r
+```
+
+Gap exists.
+
+That gap corresponds to a decrease followed by an increase.
+
+Not Mountain.
+
+---
+
+# Complexity Comparison
+
+## Brute Force
+
+### Time Complexity
+
+* Each query may scan the whole subarray: **O(r - l + 1)**
+* Worst case: **O(n × q)**
+
+If:
+
+* `n = 10^5`
+* `q = 10^5`
+
+Worst case ≈ `10^10` operations, which is too slow.
+
+### Space Complexity
+
+* Only a few variables are used: **O(1)**
+
+---
+
+## Optimal
+
+### Preprocessing
+
+* Build `dec[]`: **O(n)**
+* Build `inc[]`: **O(n)**
+
+Total preprocessing: **O(n)**
+
+### Query Processing
+
+* Each query performs one comparison: **O(1)**
+
+For `q` queries: **O(q)**
+
+### Overall Time Complexity
+
+**O(n + q)**
+
+### Space Complexity
+
+* `inc[]`: **O(n)**
+* `dec[]`: **O(n)**
+
+Total: **O(n)**
+
+---
+
+# Pattern Learned
+
+This is a **preprocessing + range query** problem.
+
+The key technique is to preprocess auxiliary arrays that summarize local monotonic behavior (`inc` and `dec`), allowing each query to be answered in constant time. This pattern frequently appears in array query problems where many queries are asked on a fixed array.
