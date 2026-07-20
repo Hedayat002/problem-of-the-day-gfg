@@ -1,0 +1,1045 @@
+# Shortest Unique Prefix for Every Word
+
+## Problem Understanding
+
+You are given an array of words.
+
+For every word, find the **smallest prefix** that makes it different from every other word.
+
+A prefix is **unique** if no other word starts with that prefix.
+
+> **Important:** It is guaranteed that **no word is a prefix of another word**.
+
+---
+
+### Example
+
+```text
+arr = ["zebra", "dog", "duck", "dove"]
+```
+
+Need to find
+
+```text
+zebra -> ?
+dog   -> ?
+duck  -> ?
+dove  -> ?
+```
+
+Output
+
+```text
+["z", "dog", "du", "dov"]
+```
+
+Because
+
+```
+z      -> only zebra starts with z
+
+d      -> dog, duck, dove
+do     -> dog, dove
+dog    -> only dog
+
+du     -> only duck
+
+dov    -> only dove
+```
+
+---
+
+# Brute Force Approach
+
+## Idea
+
+For every word,
+
+Start taking prefixes of increasing length.
+
+Check whether this prefix appears at the beginning of any other word.
+
+The first prefix that is not shared with any other word is the answer.
+
+---
+
+## Logic
+
+Suppose
+
+```text
+arr = ["zebra","dog","duck","dove"]
+```
+
+For
+
+```text
+word = "duck"
+```
+
+Check
+
+```
+"d"
+```
+
+Compare with
+
+```
+zebra ❌
+dog   ✅
+duck  ✅
+dove  ✅
+```
+
+Shared by others
+
+Not unique.
+
+Now
+
+```
+"du"
+```
+
+Compare
+
+```
+zebra ❌
+dog   ❌
+duck  ✅
+dove  ❌
+```
+
+Only duck has prefix "du"
+
+Answer
+
+```
+du
+```
+
+Repeat for every word.
+
+---
+
+# Brute Force Algorithm
+
+For every word
+
+```
+for prefix length = 1 to word length
+
+      prefix = word[:length]
+
+      compare with every other word
+
+      if no other word starts with prefix
+
+             answer found
+```
+
+---
+
+# Brute Force Code (Python)
+
+```python
+class Solution:
+    def findPrefixes(self, arr):
+        ans = []
+
+        for i in range(len(arr)):
+            word = arr[i]
+
+            for l in range(1, len(word) + 1):
+                prefix = word[:l]
+
+                unique = True
+
+                for j in range(len(arr)):
+                    if i == j:
+                        continue
+
+                    if arr[j].startswith(prefix):
+                        unique = False
+                        break
+
+                if unique:
+                    ans.append(prefix)
+                    break
+
+        return ans
+```
+
+---
+
+# Code Explanation
+
+### Outer loop
+
+```python
+for i in range(len(arr)):
+```
+
+Process every word.
+
+---
+
+### Take every possible prefix
+
+```python
+for l in range(1, len(word)+1):
+```
+
+Example
+
+```
+word = duck
+
+d
+du
+duc
+duck
+```
+
+---
+
+### Compare with all words
+
+```python
+for j in range(len(arr)):
+```
+
+Skip itself
+
+```python
+if i == j:
+    continue
+```
+
+---
+
+### Check prefix
+
+```python
+arr[j].startswith(prefix)
+```
+
+If another word also starts with this prefix
+
+then
+
+```
+Not unique
+```
+
+Otherwise
+
+```
+Unique
+```
+
+Store answer.
+
+---
+
+# Brute Force Dry Run
+
+Input
+
+```text
+["zebra","dog","duck","dove"]
+```
+
+---
+
+### Word = zebra
+
+Try
+
+```
+z
+```
+
+Compare
+
+```
+dog
+duck
+dove
+```
+
+Nobody starts with z
+
+Answer
+
+```
+z
+```
+
+---
+
+### Word = dog
+
+Try
+
+```
+d
+```
+
+Shared
+
+```
+dog
+duck
+dove
+```
+
+Try
+
+```
+do
+```
+
+Shared
+
+```
+dog
+dove
+```
+
+Try
+
+```
+dog
+```
+
+Only dog
+
+Answer
+
+```
+dog
+```
+
+---
+
+### Word = duck
+
+Try
+
+```
+d
+```
+
+Shared
+
+Try
+
+```
+du
+```
+
+Only duck
+
+Answer
+
+```
+du
+```
+
+---
+
+### Word = dove
+
+Try
+
+```
+d
+```
+
+Shared
+
+Try
+
+```
+do
+```
+
+Shared
+
+Try
+
+```
+dov
+```
+
+Only dove
+
+Answer
+
+```
+dov
+```
+
+Final
+
+```text
+["z","dog","du","dov"]
+```
+
+---
+
+# Why Brute Force is Slow?
+
+Suppose
+
+```
+n = 1000
+
+length = 1000
+```
+
+For every word
+
+```
+1000 prefixes
+```
+
+Each prefix compares with
+
+```
+1000 words
+```
+
+Each `startswith()` may compare up to
+
+```
+1000 characters
+```
+
+Very expensive.
+
+---
+
+# Optimal Solution (Trie)
+
+## Observation
+
+Instead of repeatedly comparing prefixes,
+
+store all words in a Trie.
+
+While inserting,
+
+count how many words pass through each node.
+
+Then
+
+A prefix becomes unique when its node's count becomes **1**.
+
+---
+
+# Main Idea
+
+Each Trie node stores
+
+```
+children
+
+count
+```
+
+Whenever a word passes through a node
+
+```
+count += 1
+```
+
+Later
+
+While searching
+
+The first node whose count becomes
+
+```
+1
+```
+
+means
+
+Only one word reaches this node.
+
+Hence
+
+That prefix is unique.
+
+---
+
+# Visualization
+
+Insert
+
+```
+zebra
+dog
+duck
+dove
+```
+
+Trie
+
+```
+(root)
+
+ ├── z(1)
+ │     |
+ │     e(1)
+ │
+ └── d(3)
+       |
+       o(2)
+      / \
+    g(1) v(1)
+         |
+         e(1)
+
+       u(1)
+```
+
+Numbers represent
+
+```
+count
+```
+
+Notice
+
+```
+d = 3
+```
+
+because
+
+```
+dog
+duck
+dove
+```
+
+pass here.
+
+---
+
+```
+o = 2
+```
+
+because
+
+```
+dog
+dove
+```
+
+pass here.
+
+---
+
+```
+u = 1
+```
+
+Only duck.
+
+Therefore
+
+```
+du
+```
+
+is unique.
+
+---
+
+# Optimal Algorithm
+
+### Step 1
+
+Insert every word into Trie.
+
+Increase count of every visited node.
+
+---
+
+### Step 2
+
+Again traverse every word.
+
+Move character by character.
+
+As soon as
+
+```
+count == 1
+```
+
+Stop.
+
+Current prefix is answer.
+
+---
+
+# Optimal Code (Python)
+
+```python
+class TrieNode:
+    def __init__(self):
+        self.children = {}
+        self.count = 0
+
+
+class Solution:
+    def findPrefixes(self, arr):
+        root = TrieNode()
+
+        # Insert all words into Trie
+        for word in arr:
+            node = root
+            for ch in word:
+                if ch not in node.children:
+                    node.children[ch] = TrieNode()
+
+                node = node.children[ch]
+                node.count += 1
+
+        ans = []
+
+        # Find shortest unique prefix
+        for word in arr:
+            node = root
+            prefix = ""
+
+            for ch in word:
+                node = node.children[ch]
+                prefix += ch
+
+                if node.count == 1:
+                    break
+
+            ans.append(prefix)
+
+        return ans
+```
+
+---
+
+# Code Explanation
+
+## TrieNode
+
+```python
+self.children={}
+```
+
+Stores next characters.
+
+---
+
+```python
+self.count=0
+```
+
+Stores
+
+How many words pass through this node.
+
+---
+
+## Insert
+
+```python
+for word in arr:
+```
+
+Every word enters Trie.
+
+---
+
+If child doesn't exist
+
+```python
+if ch not in node.children:
+```
+
+Create it.
+
+---
+
+Move
+
+```python
+node=node.children[ch]
+```
+
+Increase frequency
+
+```python
+node.count+=1
+```
+
+---
+
+## Searching Prefix
+
+Again traverse
+
+```python
+for word in arr
+```
+
+Build prefix
+
+```python
+prefix += ch
+```
+
+As soon as
+
+```python
+node.count==1
+```
+
+Only one word reaches here.
+
+Stop.
+
+Append prefix.
+
+---
+
+# Complete Dry Run
+
+Input
+
+```text
+["zebra","dog","duck","dove"]
+```
+
+---
+
+## Step 1 : Insert zebra
+
+```
+z count=1
+
+e count=1
+
+b count=1
+
+r count=1
+
+a count=1
+```
+
+---
+
+## Insert dog
+
+```
+d count=1
+
+o count=1
+
+g count=1
+```
+
+---
+
+## Insert duck
+
+```
+d count=2
+
+u count=1
+
+c count=1
+
+k count=1
+```
+
+---
+
+## Insert dove
+
+```
+d count=3
+
+o count=2
+
+v count=1
+
+e count=1
+```
+
+Trie counts become
+
+```
+z =1
+
+d =3
+
+o =2
+
+g =1
+
+u =1
+
+v =1
+```
+
+---
+
+## Search zebra
+
+```
+z
+
+count=1
+```
+
+Stop
+
+Answer
+
+```
+z
+```
+
+---
+
+## Search dog
+
+```
+d
+
+count=3
+```
+
+Continue
+
+```
+do
+
+count=2
+```
+
+Continue
+
+```
+dog
+
+count=1
+```
+
+Answer
+
+```
+dog
+```
+
+---
+
+## Search duck
+
+```
+d
+
+count=3
+```
+
+Continue
+
+```
+du
+
+count=1
+```
+
+Answer
+
+```
+du
+```
+
+---
+
+## Search dove
+
+```
+d
+
+count=3
+```
+
+Continue
+
+```
+do
+
+count=2
+```
+
+Continue
+
+```
+dov
+
+count=1
+```
+
+Answer
+
+```
+dov
+```
+
+Final
+
+```text
+["z","dog","du","dov"]
+```
+
+---
+
+# Time Complexity (Brute Force)
+
+Let:
+
+* **n** = number of words
+* **L** = maximum length of a word
+
+For each word:
+
+* Generate up to **L** prefixes.
+* For each prefix, compare against **n** words.
+* Each `startswith()` comparison can take up to **L** characters.
+
+So,
+
+```
+Time = O(n × L × n × L)
+     = O(n² × L²)
+```
+
+---
+
+# Space Complexity (Brute Force)
+
+Only the output array is stored (ignoring temporary prefix strings).
+
+```
+Answer array = n strings
+```
+
+Extra auxiliary space:
+
+```
+O(1)
+```
+
+Including the output:
+
+```
+O(n)
+```
+
+---
+
+# Time Complexity (Optimal Trie)
+
+Let:
+
+* **n** = number of words
+* **L** = maximum length of a word
+
+### Building the Trie
+
+Each character of every word is inserted exactly once.
+
+```
+O(n × L)
+```
+
+### Finding Prefixes
+
+Each character is traversed at most once.
+
+```
+O(n × L)
+```
+
+Total:
+
+```
+O(n × L + n × L)
+= O(2 × n × L)
+≈ O(n × L)
+```
+
+---
+
+# Space Complexity (Optimal Trie)
+
+In the worst case, every character creates a new Trie node.
+
+Total Trie nodes:
+
+```
+n × L
+```
+
+Each node stores:
+
+* children dictionary
+* count
+
+So,
+
+```
+Trie = O(n × L)
+```
+
+Answer array:
+
+```
+O(n)
+```
+
+Overall auxiliary space is dominated by the Trie:
+
+```
+O(n × L)
+```
+
+---
+
+# Comparison
+
+| Approach       | Time Complexity | Space Complexity                                  | Suitable For                     |
+| -------------- | --------------- | ------------------------------------------------- | -------------------------------- |
+| Brute Force    | **O(n² × L²)**  | **O(1)** auxiliary (or **O(n)** including output) | Small inputs                     |
+| Trie (Optimal) | **O(n × L)**    | **O(n × L)**                                      | Large inputs (expected solution) |
+
+## Pattern to Recognize
+
+Whenever you see problems involving:
+
+* Prefix matching
+* Autocomplete
+* Dictionary of words
+* Unique prefixes
+* Prefix frequency
+* Word search
+
+think of using a **Trie (Prefix Tree)**. By storing a frequency/count at each node, you can often answer prefix-related queries in linear time with respect to the total number of characters.
