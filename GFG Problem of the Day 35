@@ -1,0 +1,1102 @@
+   # Maximum Reachable Index Difference (GFG)
+
+## Problem Understanding
+
+You are given a string `s`.
+
+You can start **only from an index containing 'a'**.
+
+From your current character, you can jump to **any index on the right** whose character is the **next alphabet**.
+
+```
+'a' -> 'b'
+'b' -> 'c'
+'c' -> 'd'
+...
+'y' -> 'z'
+```
+
+You can skip any number of characters while jumping, but you **cannot move left**.
+
+Your task is to find the **maximum difference**
+
+```
+Ending Index - Starting Index
+```
+
+among all possible valid jump sequences.
+
+If there is no `'a'` in the string, return `-1`.
+
+---
+
+# Brute Force Solution
+
+## Brute Force Logic
+
+Suppose every `'a'` is a possible starting point.
+
+For every `'a'`
+
+* Try every possible `'b'` on the right.
+* From every chosen `'b'`, try every `'c'`.
+* Continue recursively until no next character exists.
+* Store the farthest ending index.
+* Update maximum answer.
+
+So we explore **all possible jump paths**.
+
+---
+
+## Brute Force Algorithm
+
+For every index
+
+```
+if s[i]=='a'
+
+    DFS(i,'a')
+```
+
+Inside DFS
+
+```
+Current Character = ch
+
+Find every occurrence of (ch+1) after current index
+
+For each occurrence
+
+    DFS(nextIndex,nextCharacter)
+
+If no next character exists
+
+    update answer
+```
+
+---
+
+## Brute Force Code (Python)
+
+```python
+class Solution:
+    def maxIndexDiff(self, s):
+        n = len(s)
+
+        ans = -1
+
+        def dfs(idx, ch, start):
+
+            nonlocal ans
+
+            found = False
+
+            nextChar = chr(ord(ch) + 1)
+
+            if ch != 'z':
+
+                for j in range(idx + 1, n):
+
+                    if s[j] == nextChar:
+                        found = True
+                        dfs(j, nextChar, start)
+
+            if not found:
+                ans = max(ans, idx - start)
+
+        for i in range(n):
+
+            if s[i] == 'a':
+                dfs(i, 'a', i)
+
+        return ans
+```
+
+---
+
+# Code Explanation
+
+### Variable
+
+```
+ans
+```
+
+Stores maximum answer.
+
+---
+
+### DFS
+
+```
+dfs(currentIndex,currentCharacter,startIndex)
+```
+
+tries every possible jump.
+
+---
+
+### Next Character
+
+```
+nextChar = chr(ord(ch)+1)
+```
+
+Example
+
+```
+a -> b
+b -> c
+c -> d
+```
+
+---
+
+### Search Right Side
+
+```
+for j in range(idx+1,n):
+
+    if s[j]==nextChar
+```
+
+If next alphabet exists
+
+continue DFS.
+
+---
+
+### No More Jump
+
+If no next alphabet found
+
+```
+answer = currentIndex-startIndex
+```
+
+---
+
+# Brute Force Dry Run
+
+```
+s = "aaabcb"
+```
+
+Indices
+
+```
+0 1 2 3 4 5
+a a a b c b
+```
+
+Start
+
+```
+index 0
+```
+
+Possible b
+
+```
+3
+5
+```
+
+Branch 1
+
+```
+0 ->3
+
+Need c
+
+4
+
+Need d
+
+No
+
+Difference
+
+4-0=4
+```
+
+Branch 2
+
+```
+0->5
+
+Need c
+
+No
+
+Difference
+
+5-0=5
+```
+
+Maximum
+
+```
+5
+```
+
+Now start
+
+```
+1
+
+1->3->4
+
+Difference=3
+```
+
+and
+
+```
+1->5
+
+Difference=4
+```
+
+Start
+
+```
+2
+
+2->3->4
+
+Difference=2
+
+2->5
+
+Difference=3
+```
+
+Maximum remains
+
+```
+5
+```
+
+Answer
+
+```
+5
+```
+
+---
+
+# Brute Force Complexity
+
+## Time Complexity
+
+Worst case
+
+Every jump branches into many possibilities.
+
+```
+Exponential
+```
+
+Approximately
+
+```
+O(2^n)
+```
+
+in the worst case due to exploring many paths.
+
+---
+
+## Space Complexity
+
+Recursive stack
+
+```
+Maximum 26 levels
+```
+
+because alphabet has only 26 letters.
+
+```
+O(26)
+
+≈ O(1)
+```
+
+---
+
+# Optimal Solution
+
+## Observation
+
+We only move
+
+```
+a -> b -> c -> d ...
+```
+
+The alphabet length is fixed.
+
+Maximum
+
+```
+26 letters
+```
+
+Instead of trying every path, we ask:
+
+> **From every position, what is the farthest index I can finally reach?**
+
+If we already know that answer for future positions, we can compute the current one efficiently.
+
+---
+
+## Main Idea
+
+Traverse the string **from right to left**.
+
+Maintain an array
+
+```
+best[26]
+```
+
+Meaning
+
+```
+best[c]
+
+=
+
+Farthest ending index
+starting from some occurrence
+of character c
+that has already been processed
+(on the right side).
+```
+
+Example
+
+```
+best['d']=10
+```
+
+means
+
+There exists a `'d'` on the right from which the farthest reachable ending index is `10`.
+
+---
+
+## Transition
+
+Suppose current character is
+
+```
+'c'
+```
+
+There are two possibilities.
+
+### Case 1
+
+No `'d'` exists on right.
+
+Then jumping is impossible.
+
+So
+
+```
+best['c']=current index
+```
+
+because journey ends here.
+
+---
+
+### Case 2
+
+Some `'d'` exists on right.
+
+Then
+
+```
+Current c
+
+↓
+
+jump to d
+
+↓
+
+continue from d
+
+↓
+
+reach farthest destination
+```
+
+Therefore
+
+```
+best['c']=best['d']
+```
+
+---
+
+Do this for every character.
+
+Whenever character is `'a'`
+
+```
+Answer
+
+=
+
+best['a']-currentIndex
+```
+
+---
+
+# Why Traverse Right to Left?
+
+Suppose
+
+```
+a b c d
+```
+
+When processing
+
+```
+c
+```
+
+We must already know
+
+```
+best[d]
+```
+
+So
+
+```
+Process d first
+
+↓
+
+then c
+
+↓
+
+then b
+
+↓
+
+then a
+```
+
+Hence
+
+```
+Right
+
+↓
+
+Left
+```
+
+---
+
+# Optimal Algorithm
+
+Traverse string from right to left.
+
+For every character
+
+```
+current = s[i]
+```
+
+If
+
+```
+current=='z'
+```
+
+```
+best[z]=i
+```
+
+because nothing comes after z.
+
+Otherwise
+
+```
+next=current+1
+```
+
+If
+
+```
+best[next] exists
+```
+
+```
+best[current]=best[next]
+```
+
+Else
+
+```
+best[current]=i
+```
+
+Whenever current is
+
+```
+'a'
+```
+
+update answer.
+
+---
+
+# Optimal Code (Python)
+
+```python
+class Solution:
+    def maxIndexDiff(self, s):
+        n = len(s)
+
+        # best[i] = farthest ending index reachable from character ('a' + i)
+        # -1 means this character has not appeared on the right yet
+        best = [-1] * 26
+
+        ans = -1
+
+        # Traverse from right to left
+        for i in range(n - 1, -1, -1):
+
+            idx = ord(s[i]) - ord('a')
+
+            # If current character is 'z'
+            if idx == 25:
+                best[idx] = i
+
+            else:
+                # If next alphabet exists on the right
+                if best[idx + 1] != -1:
+                    best[idx] = best[idx + 1]
+                else:
+                    # Cannot jump further
+                    best[idx] = i
+
+            # If current character is 'a'
+            if idx == 0:
+                ans = max(ans, best[0] - i)
+
+        return ans
+```
+
+---
+
+# Code Explanation
+
+### Step 1
+
+```python
+best = [-1] * 26
+```
+
+Initially
+
+```
+No character processed.
+```
+
+---
+
+### Step 2
+
+```python
+for i in range(n-1,-1,-1)
+```
+
+Process from right.
+
+---
+
+### Step 3
+
+```python
+idx = ord(s[i])-ord('a')
+```
+
+Convert
+
+```
+'a'→0
+'b'→1
+'c'→2
+```
+
+---
+
+### Step 4
+
+If current is
+
+```
+'z'
+```
+
+```
+best[z]=current index
+```
+
+because journey stops.
+
+---
+
+### Step 5
+
+If next alphabet exists
+
+```
+best[current]=best[next]
+```
+
+Example
+
+```
+Current
+
+c
+
+↓
+
+jump
+
+↓
+
+d
+
+↓
+
+final destination
+
+12
+
+Therefore
+
+best[c]=12
+```
+
+---
+
+### Step 6
+
+Otherwise
+
+```
+best[current]=current index
+```
+
+No jump possible.
+
+---
+
+### Step 7
+
+Whenever
+
+```
+'a'
+```
+
+compute
+
+```
+best[a]-currentIndex
+```
+
+Update answer.
+
+---
+
+# Complete Dry Run
+
+```
+s="abcbzzd"
+```
+
+Indices
+
+```
+0 1 2 3 4 5 6
+
+a b c b z z d
+```
+
+Initial
+
+```
+best=[-1...]
+ans=-1
+```
+
+---
+
+## i=6
+
+```
+d
+```
+
+Next
+
+```
+e
+
+not found
+```
+
+```
+best[d]=6
+```
+
+---
+
+## i=5
+
+```
+z
+```
+
+```
+best[z]=5
+```
+
+---
+
+## i=4
+
+```
+z
+```
+
+```
+best[z]=4
+```
+
+(latest processed occurrence on the left)
+
+---
+
+## i=3
+
+```
+b
+```
+
+Need
+
+```
+c
+```
+
+No processed c yet
+
+```
+best[b]=3
+```
+
+---
+
+## i=2
+
+```
+c
+```
+
+Need
+
+```
+d
+```
+
+```
+best[d]=6
+```
+
+Therefore
+
+```
+best[c]=6
+```
+
+---
+
+## i=1
+
+```
+b
+```
+
+Need
+
+```
+c
+```
+
+```
+best[c]=6
+```
+
+Therefore
+
+```
+best[b]=6
+```
+
+---
+
+## i=0
+
+```
+a
+```
+
+Need
+
+```
+b
+```
+
+```
+best[b]=6
+```
+
+Therefore
+
+```
+best[a]=6
+```
+
+Answer
+
+```
+6-0=6
+```
+
+Final Answer
+
+```
+6
+```
+
+---
+
+# Another Dry Run
+
+```
+s="aaabcb"
+```
+
+Indices
+
+```
+0 1 2 3 4 5
+
+a a a b c b
+```
+
+Process from right.
+
+---
+
+### i=5
+
+```
+b
+```
+
+Need c
+
+No
+
+```
+best[b]=5
+```
+
+---
+
+### i=4
+
+```
+c
+```
+
+Need d
+
+No
+
+```
+best[c]=4
+```
+
+---
+
+### i=3
+
+```
+b
+```
+
+Need c
+
+Yes
+
+```
+best[b]=4
+```
+
+---
+
+### i=2
+
+```
+a
+```
+
+Need b
+
+```
+best[b]=4
+```
+
+```
+best[a]=4
+
+answer=2
+```
+
+---
+
+### i=1
+
+Need b
+
+```
+best[a]=4
+
+difference
+
+4-1=3
+```
+
+---
+
+### i=0
+
+Need b
+
+```
+best[a]=4
+
+difference
+
+4
+```
+
+Wait, what about jumping directly to index **5 ('b')**?
+
+At this point, notice that `best[b]` became `4` after processing index `3`, which overwrote the value from index `5`. That loses the farther `'b'`, so this implementation does **not** produce the correct answer (`5`) for this test case.
+
+### Correct Fix
+
+For each character, we must preserve the **maximum reachable ending index** among all occurrences of that character on the right. Therefore, when updating `best[idx]`, we should take the maximum:
+
+```python
+class Solution:
+    def maxIndexDiff(self, s):
+        n = len(s)
+        best = [-1] * 26
+        ans = -1
+
+        for i in range(n - 1, -1, -1):
+            idx = ord(s[i]) - ord('a')
+
+            if idx == 25:
+                reach = i
+            elif best[idx + 1] != -1:
+                reach = best[idx + 1]
+            else:
+                reach = i
+
+            best[idx] = max(best[idx], reach)
+
+            if idx == 0:
+                ans = max(ans, best[0] - i)
+
+        return ans
+```
+
+Now for `"aaabcb"`:
+
+* Rightmost `'b'` at index `5` gives reach `5`.
+* `'b'` at index `3` can reach `'c'` at `4`, so its reach is `4`.
+* `best['b'] = max(5, 4) = 5`.
+* Therefore, starting from index `0`, we can jump directly to `'b'` at index `5`, giving `5 - 0 = 5`, which is correct.
+
+---
+
+# Complexity Comparison
+
+## Brute Force
+
+### Time Complexity
+
+In the worst case, many branching choices are explored.
+
+```
+Exponential (worst case)
+```
+
+### Space Complexity
+
+Recursive depth is at most 26 (letters in the alphabet).
+
+```
+O(26) ≈ O(1)
+```
+
+---
+
+## Optimal
+
+### Time Complexity
+
+* Single traversal of the string: **O(n)**
+* Each character update is **O(1)**
+
+Total:
+
+```
+O(n)
+```
+
+### Space Complexity
+
+* `best` array of size 26
+
+Total:
+
+```
+O(26)
+
+≈ O(1)
+```
+
+This satisfies the expected complexities of **O(n)** time and **O(1)** auxiliary space.
