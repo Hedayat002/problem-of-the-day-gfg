@@ -1,0 +1,855 @@
+# Minimum Deletions to Make Sorted
+
+## Problem Statement
+
+Given an array `arr[]`, remove the **minimum number of elements** so that the remaining elements are:
+
+* **Strictly increasing**
+* **In the same relative order** (we cannot rearrange elements)
+
+Return the **minimum deletions** required.
+
+### Example
+
+```text
+Input:
+arr = [5, 6, 1, 7, 4]
+
+Output:
+2
+
+Explanation:
+Delete 1 and 4.
+
+Remaining array:
+[5, 6, 7]
+```
+
+---
+
+# Key Observation
+
+We are only deleting elements.
+
+Suppose the **Longest Increasing Subsequence (LIS)** has length **L**.
+
+Those `L` elements can stay.
+
+Every other element must be deleted.
+
+Therefore,
+
+```text
+Minimum Deletions = n - LIS Length
+```
+
+So the whole problem becomes:
+
+> Find LIS length.
+
+---
+
+# Brute Force Solution
+
+## Idea
+
+Generate **every possible subsequence**.
+
+For every subsequence:
+
+* Check whether it is strictly increasing.
+* Keep the maximum length.
+
+Finally,
+
+```text
+Answer = n - longestIncreasingLength
+```
+
+---
+
+## Brute Force Logic
+
+Suppose
+
+```text
+arr = [5,6,1]
+```
+
+Possible subsequences:
+
+```text
+[]
+[5]
+[6]
+[1]
+[5,6]   ✓
+[5,1]
+[6,1]
+[5,6,1]
+```
+
+Longest increasing subsequence:
+
+```text
+[5,6]
+```
+
+Length = 2
+
+Answer
+
+```text
+3 - 2 = 1
+```
+
+---
+
+## Brute Force Code (Recursive)
+
+```python
+def minDeletions(arr):
+    n = len(arr)
+
+    def solve(index, prev):
+        if index == n:
+            return 0
+
+        # Skip current element
+        notTake = solve(index + 1, prev)
+
+        # Take current element if increasing
+        take = 0
+        if prev == -1 or arr[index] > prev:
+            take = 1 + solve(index + 1, arr[index])
+
+        return max(take, notTake)
+
+    lis = solve(0, -1)
+
+    return n - lis
+```
+
+---
+
+## Time Complexity
+
+Every element has two choices.
+
+```text
+Take
+Not Take
+```
+
+Total
+
+```text
+O(2^n)
+```
+
+Space
+
+```text
+O(n)
+```
+
+(recursion stack)
+
+This is impossible for n = 100000.
+
+---
+
+# Better Solution (Dynamic Programming)
+
+Instead of checking every subsequence, calculate
+
+```text
+LIS ending at every index.
+```
+
+---
+
+# DP Idea
+
+Create
+
+```python
+dp[i]
+```
+
+Meaning
+
+> Length of LIS ending at index `i`.
+
+Initially
+
+```python
+dp = [1]*n
+```
+
+Why 1?
+
+Every element alone is an increasing subsequence.
+
+---
+
+# Transition
+
+For every previous index
+
+```text
+j < i
+```
+
+If
+
+```text
+arr[j] < arr[i]
+```
+
+Then
+
+```text
+arr[i]
+```
+
+can extend the subsequence ending at `j`.
+
+So
+
+```python
+dp[i] = max(dp[i], dp[j]+1)
+```
+
+---
+
+# Given Code
+
+```python
+def minDeletions(arr):
+    n = len(arr)
+    dp = [1] * n
+
+    for i in range(1, n):
+        for j in range(i):
+
+            # Extend LIS if arr[j] is smaller than arr[i]
+            if arr[j] < arr[i]:
+                dp[i] = max(dp[i], dp[j] + 1)
+
+    return n - max(dp)
+```
+
+---
+
+# Line-by-Line Explanation
+
+```python
+def minDeletions(arr):
+```
+
+Function starts.
+
+---
+
+```python
+n = len(arr)
+```
+
+Store array length.
+
+Example
+
+```text
+arr = [5,6,1,7,4]
+
+n = 5
+```
+
+---
+
+```python
+dp = [1] * n
+```
+
+Initially
+
+```text
+dp =
+[1,1,1,1,1]
+```
+
+Meaning
+
+Every element alone has LIS length = 1.
+
+---
+
+```python
+for i in range(1, n):
+```
+
+Try making every element the ending element.
+
+Starts from index 1 because index 0 has no previous element.
+
+---
+
+```python
+for j in range(i):
+```
+
+Look at every previous element.
+
+---
+
+```python
+if arr[j] < arr[i]:
+```
+
+Can current element extend previous increasing sequence?
+
+If yes,
+
+---
+
+```python
+dp[i] = max(dp[i], dp[j] + 1)
+```
+
+Update LIS ending at i.
+
+---
+
+Finally
+
+```python
+return n - max(dp)
+```
+
+Largest LIS stays.
+
+Everything else is deleted.
+
+---
+
+# Complete Dry Run
+
+## Example
+
+```text
+arr = [5,6,1,7,4]
+```
+
+Initially
+
+```text
+dp
+
+[1,1,1,1,1]
+```
+
+---
+
+## i = 1
+
+Current element
+
+```text
+6
+```
+
+Check previous
+
+### j = 0
+
+```text
+5 < 6
+```
+
+Yes
+
+```text
+dp[1]
+
+=max(1,1+1)
+
+=2
+```
+
+Now
+
+```text
+dp
+
+[1,2,1,1,1]
+```
+
+---
+
+## i = 2
+
+Current
+
+```text
+1
+```
+
+### j=0
+
+```text
+5<1
+
+No
+```
+
+### j=1
+
+```text
+6<1
+
+No
+```
+
+No update.
+
+```text
+dp
+
+[1,2,1,1,1]
+```
+
+---
+
+## i = 3
+
+Current
+
+```text
+7
+```
+
+### j=0
+
+```text
+5<7
+
+Yes
+
+dp[3]=2
+```
+
+dp
+
+```text
+[1,2,1,2,1]
+```
+
+---
+
+### j=1
+
+```text
+6<7
+
+Yes
+
+dp[3]
+
+=max(2,2+1)
+
+=3
+```
+
+Now
+
+```text
+[1,2,1,3,1]
+```
+
+---
+
+### j=2
+
+```text
+1<7
+
+Yes
+
+dp[3]
+
+=max(3,1+1)
+
+=3
+```
+
+No change.
+
+---
+
+## i = 4
+
+Current
+
+```text
+4
+```
+
+### j=0
+
+```text
+5<4
+
+No
+```
+
+---
+
+### j=1
+
+```text
+6<4
+
+No
+```
+
+---
+
+### j=2
+
+```text
+1<4
+
+Yes
+
+dp[4]
+
+=max(1,1+1)
+
+=2
+```
+
+dp
+
+```text
+[1,2,1,3,2]
+```
+
+---
+
+### j=3
+
+```text
+7<4
+
+No
+```
+
+Finished.
+
+---
+
+Final
+
+```text
+dp
+
+[1,2,1,3,2]
+```
+
+Maximum LIS
+
+```text
+3
+```
+
+Minimum deletions
+
+```text
+5-3=2
+```
+
+Answer
+
+```text
+2
+```
+
+---
+
+# Why Does This Work?
+
+Suppose
+
+```text
+dp[j]=4
+```
+
+That means
+
+There is already an increasing subsequence of length 4 ending at `j`.
+
+If
+
+```text
+arr[j] < arr[i]
+```
+
+Then we simply append
+
+```text
+arr[i]
+```
+
+New length becomes
+
+```text
+5
+```
+
+That's why
+
+```python
+dp[i] = dp[j] + 1
+```
+
+---
+
+# Optimal Solution (Binary Search LIS)
+
+The expected time complexity is **O(n log n)**.
+
+Instead of storing LIS for every index, maintain a list `tails` where:
+
+* `tails[k]` = the smallest possible tail value of an increasing subsequence of length `k + 1`.
+* For each number:
+
+  * If it is larger than all tails, append it.
+  * Otherwise, replace the first tail that is greater than or equal to it (using binary search).
+
+The length of `tails` at the end is the LIS length.
+
+## Code
+
+```python
+from bisect import bisect_left
+
+def minDeletions(arr):
+    tails = []
+
+    for num in arr:
+        idx = bisect_left(tails, num)
+
+        if idx == len(tails):
+            tails.append(num)
+        else:
+            tails[idx] = num
+
+    return len(arr) - len(tails)
+```
+
+---
+
+# Line-by-Line Explanation
+
+```python
+from bisect import bisect_left
+```
+
+Imports binary search.
+
+---
+
+```python
+tails = []
+```
+
+Stores the minimum possible tail for increasing subsequences.
+
+---
+
+```python
+for num in arr:
+```
+
+Process every element.
+
+---
+
+```python
+idx = bisect_left(tails, num)
+```
+
+Find the first position where `num` can be placed without breaking sorted order.
+
+Using `bisect_left` is important because the subsequence must be **strictly increasing**. Equal values replace an existing tail instead of extending the sequence.
+
+---
+
+```python
+if idx == len(tails):
+    tails.append(num)
+```
+
+If `num` is larger than every tail, it extends the LIS.
+
+---
+
+```python
+else:
+    tails[idx] = num
+```
+
+Otherwise, replace the existing tail with a smaller value. This keeps more options open for future elements while preserving the LIS length.
+
+---
+
+```python
+return len(arr) - len(tails)
+```
+
+`len(tails)` is the LIS length.
+
+Minimum deletions = `n - LIS`.
+
+---
+
+# Full Dry Run (Optimal)
+
+Example:
+
+```text
+arr = [5, 6, 1, 7, 4]
+```
+
+Initially:
+
+```text
+tails = []
+```
+
+### num = 5
+
+```text
+tails = [5]
+```
+
+---
+
+### num = 6
+
+6 > 5
+
+```text
+tails = [5, 6]
+```
+
+---
+
+### num = 1
+
+Binary search:
+
+```text
+First value >= 1 is index 0
+```
+
+Replace:
+
+```text
+tails = [1, 6]
+```
+
+The LIS length is still 2.
+
+---
+
+### num = 7
+
+7 is larger than all tails.
+
+```text
+tails = [1, 6, 7]
+```
+
+LIS length becomes 3.
+
+---
+
+### num = 4
+
+Binary search:
+
+```text
+First value >= 4 is index 1
+```
+
+Replace:
+
+```text
+tails = [1, 4, 7]
+```
+
+Again, the LIS length remains 3.
+
+---
+
+Finished:
+
+```text
+tails = [1, 4, 7]
+```
+
+LIS length:
+
+```text
+3
+```
+
+Answer:
+
+```text
+5 - 3 = 2
+```
+
+---
+
+# Why Replacing Works
+
+Many people think replacing loses information, but it doesn't.
+
+Compare these two tails for a subsequence of length 2:
+
+```text
+[5, 6]
+```
+
+and
+
+```text
+[1, 4]
+```
+
+Both represent an increasing subsequence of length 2, but `[1, 4]` is better because a smaller ending value makes it easier to extend with future numbers.
+
+The algorithm only needs the **length** of the LIS, not the actual subsequence.
+
+---
+
+# Complexity Comparison
+
+| Approach                    | Time Complexity | Space Complexity |
+| --------------------------- | --------------- | ---------------- |
+| Brute Force (Recursion)     | **O(2ⁿ)**       | **O(n)**         |
+| DP (Nested Loops)           | **O(n²)**       | **O(n)**         |
+| Binary Search LIS (Optimal) | **O(n log n)**  | **O(n)**         |
+
+---
+
+# Important Takeaways
+
+* The minimum deletions problem is directly transformed into an LIS problem.
+* **Formula:** `Minimum Deletions = n - LIS Length`.
+* Brute force checks all subsequences and is exponential.
+* Dynamic programming computes the LIS ending at each index in `O(n²)`.
+* The optimal solution maintains the smallest possible tails of increasing subsequences and uses binary search to achieve `O(n log n)`, meeting the expected complexity.
