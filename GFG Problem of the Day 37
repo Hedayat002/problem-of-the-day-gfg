@@ -1,0 +1,1119 @@
+# Check Preorder of BST
+
+## Problem Statement
+
+You are given an array `arr[]` of **distinct integers**.
+
+You have to determine whether this array **can be the preorder traversal of some Binary Search Tree (BST).**
+
+### BST Property
+
+* Left subtree values < Root
+* Right subtree values > Root
+
+### Preorder Traversal
+
+```
+Root → Left → Right
+```
+
+---
+
+## Example 1
+
+```text
+Input:
+arr = [2,4,3]
+
+Output:
+True
+```
+
+Possible BST
+
+```
+    2
+     \
+      4
+     /
+    3
+```
+
+Preorder
+
+```
+2 → 4 → 3
+```
+
+Matches.
+
+---
+
+## Example 2
+
+```text
+Input:
+arr = [2,4,1]
+
+Output:
+False
+```
+
+After visiting node 4, we are already inside the **right subtree** of 2.
+
+Now value **1** appears.
+
+But
+
+```
+1 < 2
+```
+
+A node smaller than 2 can never appear after entering the right subtree.
+
+So impossible.
+
+---
+
+# Brute Force Solution
+
+---
+
+## Logic
+
+The preorder traversal is
+
+```
+Root
+Left subtree
+Right subtree
+```
+
+For every subtree,
+
+1. First element is root.
+2. Find where right subtree starts.
+3. Check
+
+* Left part contains only smaller values.
+* Right part contains only larger values.
+
+Then recursively verify both subtrees.
+
+---
+
+### Example
+
+```
+[8,5,1,7,10,12]
+```
+
+Root
+
+```
+8
+```
+
+Left
+
+```
+5 1 7
+```
+
+Right
+
+```
+10 12
+```
+
+Again
+
+Left subtree
+
+```
+Root = 5
+
+Left = 1
+
+Right = 7
+```
+
+Again recurse...
+
+---
+
+## Brute Force Algorithm
+
+```
+check(start,end)
+
+root = arr[start]
+
+Find first index > root
+
+Everything before it
+must be smaller
+
+Everything after it
+must be larger
+
+Recursively verify both parts
+```
+
+---
+
+## Brute Force Code (Python)
+
+```python
+class Solution:
+
+    def helper(self, arr, start, end):
+
+        if start >= end:
+            return True
+
+        root = arr[start]
+
+        idx = start + 1
+
+        while idx <= end and arr[idx] < root:
+            idx += 1
+
+        for j in range(idx, end + 1):
+            if arr[j] < root:
+                return False
+
+        return (self.helper(arr, start + 1, idx - 1) and
+                self.helper(arr, idx, end))
+
+    def canRepresentBST(self, arr):
+        return self.helper(arr, 0, len(arr) - 1)
+```
+
+---
+
+# Code Explanation
+
+### Base Case
+
+```python
+if start >= end:
+    return True
+```
+
+Empty tree or single node is always valid.
+
+---
+
+### Root
+
+```python
+root = arr[start]
+```
+
+First element is root.
+
+---
+
+### Find Right Subtree
+
+```python
+idx = start + 1
+
+while idx <= end and arr[idx] < root:
+    idx += 1
+```
+
+Everything smaller belongs to left subtree.
+
+---
+
+### Verify Right Subtree
+
+```python
+for j in range(idx, end + 1):
+    if arr[j] < root:
+        return False
+```
+
+If any smaller value appears inside right subtree
+
+Impossible.
+
+---
+
+### Recursive Calls
+
+```python
+return helper(left) and helper(right)
+```
+
+Check both subtrees.
+
+---
+
+# Dry Run (Brute Force)
+
+Example
+
+```
+arr = [8,5,1,7,10,12]
+```
+
+### Call 1
+
+```
+Root = 8
+
+Left
+5 1 7
+
+Right
+10 12
+```
+
+---
+
+### Left Call
+
+```
+Root = 5
+
+Left
+1
+
+Right
+7
+```
+
+---
+
+### Left
+
+```
+Root = 1
+
+Done
+```
+
+---
+
+### Right
+
+```
+Root = 7
+
+Done
+```
+
+---
+
+### Right Subtree
+
+```
+Root = 10
+
+Right
+12
+```
+
+Done
+
+All valid
+
+Return True.
+
+---
+
+# Brute Force Complexity
+
+### Time
+
+Worst case
+
+```
+O(n²)
+```
+
+Because for every recursive call we scan remaining array.
+
+---
+
+### Space
+
+```
+O(n)
+```
+
+Recursive stack in skewed tree.
+
+---
+
+# Optimal Solution (Using Stack)
+
+---
+
+## Main Idea
+
+Instead of building BST,
+
+we simulate preorder traversal.
+
+We keep
+
+* Stack → ancestors
+* root → lowest allowed value
+
+---
+
+## Observation
+
+Suppose preorder is
+
+```
+8 5 1 7 10 12
+```
+
+Process
+
+```
+8
+```
+
+Stack
+
+```
+[8]
+```
+
+---
+
+Next
+
+```
+5
+```
+
+Smaller than 8
+
+Left child
+
+Stack
+
+```
+8
+5
+```
+
+---
+
+Next
+
+```
+1
+```
+
+Stack
+
+```
+8
+5
+1
+```
+
+---
+
+Next
+
+```
+7
+```
+
+Now
+
+```
+7 > 1
+```
+
+Finished left subtree of 1.
+
+Pop
+
+```
+root = 1
+```
+
+Stack
+
+```
+8
+5
+```
+
+Still
+
+```
+7 > 5
+```
+
+Pop
+
+```
+root = 5
+```
+
+Stack
+
+```
+8
+```
+
+Now
+
+```
+7 < 8
+```
+
+Stop.
+
+Push
+
+```
+7
+```
+
+Stack
+
+```
+8
+7
+```
+
+Current minimum allowed value
+
+```
+root = 5
+```
+
+Meaning
+
+No future node can be smaller than 5.
+
+---
+
+Next
+
+```
+10
+```
+
+Pop
+
+```
+7
+```
+
+root = 7
+
+Pop
+
+```
+8
+```
+
+root = 8
+
+Push
+
+```
+10
+```
+
+---
+
+Next
+
+```
+12
+```
+
+Pop
+
+```
+10
+
+root = 10
+```
+
+Push
+
+```
+12
+```
+
+Done.
+
+---
+
+## Why do we keep `root`?
+
+Suppose
+
+```
+8
+5
+1
+7
+10
+6
+```
+
+When processing
+
+```
+10
+```
+
+We popped
+
+```
+8
+
+root = 8
+```
+
+Now
+
+```
+6
+```
+
+appears.
+
+But
+
+```
+6 < root (8)
+```
+
+Impossible.
+
+Because after entering right subtree of 8,
+
+we can never visit a node smaller than 8.
+
+---
+
+# Optimal Code
+
+```python
+class Solution:
+    def canRepresentBST(self, arr):
+        stack = []
+        root = float("-inf")
+
+        for x in arr:
+
+            # Invalid
+            if x < root:
+                return False
+
+            # Move to right subtree
+            while stack and stack[-1] < x:
+                root = stack.pop()
+
+            stack.append(x)
+
+        return True
+```
+
+---
+
+# Code Explanation
+
+### Stack
+
+```python
+stack = []
+```
+
+Stores ancestors whose right subtree hasn't been completely processed yet.
+
+---
+
+### Root
+
+```python
+root = float("-inf")
+```
+
+Represents the **minimum allowed value** for future nodes.
+
+Initially
+
+```
+(-∞)
+```
+
+Everything is allowed.
+
+---
+
+### Traverse Array
+
+```python
+for x in arr:
+```
+
+Process preorder one by one.
+
+---
+
+### Invalid Case
+
+```python
+if x < root:
+    return False
+```
+
+Suppose
+
+```
+root = 8
+```
+
+Then every future node
+
+must satisfy
+
+```
+value > 8
+```
+
+If
+
+```
+6
+```
+
+comes
+
+Impossible.
+
+---
+
+### Move to Right Subtree
+
+```python
+while stack and stack[-1] < x:
+    root = stack.pop()
+```
+
+Whenever current value is greater than stack top,
+
+we have finished that node's left subtree and are moving into its right subtree.
+
+So pop it and update the minimum allowed value (`root`).
+
+---
+
+### Push Current Node
+
+```python
+stack.append(x)
+```
+
+Current node may later get its own left or right children.
+
+Store it.
+
+---
+
+### Finish
+
+```python
+return True
+```
+
+No rule violated.
+
+Hence valid preorder.
+
+---
+
+# Full Dry Run (Optimal)
+
+Example
+
+```
+arr = [8,5,1,7,10,12]
+```
+
+Initially
+
+```
+stack = []
+
+root = -∞
+```
+
+---
+
+## Step 1
+
+```
+x = 8
+```
+
+Check
+
+```
+8 < -∞ ?
+
+No
+```
+
+Pop?
+
+No
+
+Push
+
+```
+stack = [8]
+
+root = -∞
+```
+
+---
+
+## Step 2
+
+```
+x = 5
+```
+
+Check
+
+```
+5 < -∞
+
+No
+```
+
+Pop?
+
+```
+8 < 5 ?
+
+No
+```
+
+Push
+
+```
+stack
+
+8
+5
+```
+
+root
+
+```
+-∞
+```
+
+---
+
+## Step 3
+
+```
+x = 1
+```
+
+Check
+
+```
+1 < -∞ ?
+
+No
+```
+
+Push
+
+```
+8
+5
+1
+```
+
+---
+
+## Step 4
+
+```
+x = 7
+```
+
+Check
+
+```
+7 < -∞ ?
+
+No
+```
+
+Pop
+
+```
+1
+
+root = 1
+```
+
+Stack
+
+```
+8
+5
+```
+
+Again
+
+```
+5 < 7
+```
+
+Pop
+
+```
+root = 5
+```
+
+Stack
+
+```
+8
+```
+
+Again
+
+```
+8 < 7 ?
+
+No
+```
+
+Push
+
+```
+8
+7
+```
+
+Current
+
+```
+root = 5
+```
+
+Meaning
+
+Future nodes cannot be smaller than **5**.
+
+---
+
+## Step 5
+
+```
+x = 10
+```
+
+Check
+
+```
+10 < 5 ?
+
+No
+```
+
+Pop
+
+```
+7
+
+root = 7
+```
+
+Stack
+
+```
+8
+```
+
+Again
+
+```
+8 < 10
+```
+
+Pop
+
+```
+root = 8
+```
+
+Stack
+
+```
+[]
+```
+
+Push
+
+```
+10
+```
+
+Stack
+
+```
+10
+```
+
+---
+
+## Step 6
+
+```
+x = 12
+```
+
+Check
+
+```
+12 < 8 ?
+
+No
+```
+
+Pop
+
+```
+10
+
+root = 10
+```
+
+Push
+
+```
+12
+```
+
+Finished
+
+Return
+
+```
+True
+```
+
+---
+
+# Invalid Example Dry Run
+
+```
+arr = [8,5,1,7,10,6]
+```
+
+Process until `10`:
+
+```
+stack = [10]
+
+root = 8
+```
+
+Now
+
+```
+x = 6
+```
+
+Check
+
+```python
+if x < root
+```
+
+```
+6 < 8
+
+Yes
+```
+
+Return
+
+```
+False
+```
+
+Why?
+
+Because after entering the **right subtree of 8**, every remaining node must be greater than `8`. A value `6` would belong in the left subtree of `8`, which has already been completely processed.
+
+---
+
+# Complexity Analysis
+
+## Brute Force
+
+### Time Complexity
+
+* Each recursive call may scan a large portion of the array to find the split point and validate the right subtree.
+* In the worst case (e.g., a skewed tree), this happens for almost every element.
+
+**Time:** `O(n²)`
+
+### Space Complexity
+
+* Recursive call stack can go as deep as `n` in the worst case.
+
+**Space:** `O(n)`
+
+---
+
+## Optimal (Stack)
+
+### Time Complexity
+
+* Every element is **pushed onto the stack exactly once**.
+* Every element is **popped from the stack at most once**.
+* The `while` loop looks nested, but across the entire algorithm each element can only be popped one time.
+
+Therefore, the total number of stack operations is at most `2n`.
+
+**Time:** `O(n)`
+
+### Space Complexity
+
+* In the worst case (strictly decreasing preorder), all elements remain in the stack.
+
+**Space:** `O(n)`
+
+---
+
+# Key Pattern to Remember
+
+This problem is an excellent example of the **Monotonic Stack + Lower Bound** pattern.
+
+The idea is:
+
+* Maintain a stack of ancestors.
+* Maintain a variable (`root`) representing the **minimum value allowed** for the current node.
+* Pop from the stack whenever moving from a left subtree to a right subtree.
+* If any future value is smaller than `root`, the preorder sequence cannot represent a BST.
+
+This pattern also appears in several BST validation and preorder/postorder verification problems.
