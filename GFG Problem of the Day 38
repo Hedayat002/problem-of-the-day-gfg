@@ -1,0 +1,1044 @@
+# Longest Consecutive Path in Binary Tree (GFG)
+
+**Difficulty:** Medium
+
+---
+
+# Problem Explanation
+
+You are given the root of a binary tree.
+
+Your task is to find the **longest path** such that:
+
+* The path moves **only from parent → child**.
+* Every child's value is **exactly 1 greater** than its parent.
+
+That means,
+
+```
+parent = x
+child = x + 1
+```
+
+Only then can the path continue.
+
+If no consecutive pair exists anywhere in the tree, return **-1**.
+
+---
+
+## Example 1
+
+```
+        1
+       / \
+      2   3
+```
+
+Possible paths
+
+```
+1 → 2   ✅ consecutive
+1 → 3   ❌ not consecutive
+```
+
+Answer
+
+```
+2
+```
+
+---
+
+## Example 2
+
+```
+        10
+       /  \
+      20   30
+     /     / \
+    40    60 90
+```
+
+No parent-child pair differs by exactly 1.
+
+Answer
+
+```
+-1
+```
+
+---
+
+# Brute Force Solution
+
+## Brute Force Idea
+
+Think like this.
+
+For **every node** in the tree,
+
+* assume it is the starting point
+* find the longest consecutive path starting from it
+* compare with the global maximum.
+
+So every node starts its own DFS.
+
+---
+
+## Brute Force Logic
+
+For every node
+
+```
+findLength(node)
+```
+
+Inside it
+
+```
+length = 1
+
+if left child == node+1
+      go left
+
+if right child == node+1
+      go right
+
+return maximum length
+```
+
+After finishing one node
+
+Move to every other node and repeat again.
+
+---
+
+## Brute Force Algorithm
+
+```
+answer = 1
+
+For every node
+      calculate consecutive length starting there
+      update answer
+
+if answer==1
+      return -1
+else
+      return answer
+```
+
+---
+
+# Brute Force Code (Python)
+
+```python
+class Solution:
+
+    def getLength(self, node):
+        if node is None:
+            return 0
+
+        curr = 1
+
+        if node.left and node.left.data == node.data + 1:
+            curr = max(curr, 1 + self.getLength(node.left))
+
+        if node.right and node.right.data == node.data + 1:
+            curr = max(curr, 1 + self.getLength(node.right))
+
+        return curr
+
+    def traverse(self, node):
+        if node is None:
+            return
+
+        self.ans = max(self.ans, self.getLength(node))
+
+        self.traverse(node.left)
+        self.traverse(node.right)
+
+    def longestConsecutive(self, root):
+
+        self.ans = 1
+
+        self.traverse(root)
+
+        if self.ans == 1:
+            return -1
+
+        return self.ans
+```
+
+---
+
+# Brute Force Code Explanation
+
+### Function 1
+
+```python
+getLength(node)
+```
+
+Returns
+
+> Longest consecutive path starting from this node.
+
+---
+
+### Base Case
+
+```python
+if node is None:
+    return 0
+```
+
+Empty tree has length 0.
+
+---
+
+### Current node alone
+
+```python
+curr = 1
+```
+
+At least the node itself exists.
+
+---
+
+### Check left child
+
+```python
+if node.left and node.left.data == node.data + 1:
+```
+
+Example
+
+```
+5
+|
+6
+```
+
+Then
+
+```python
+curr = max(curr, 1 + getLength(left))
+```
+
+---
+
+### Check right child
+
+Same logic.
+
+---
+
+### Return
+
+```python
+return curr
+```
+
+---
+
+## Function 2
+
+```python
+traverse(node)
+```
+
+Visits every node.
+
+For every node
+
+```
+calculate longest path
+update answer
+```
+
+---
+
+# Brute Force Dry Run
+
+Example
+
+```
+         1
+        / \
+       2   5
+      /
+     3
+```
+
+---
+
+Start traversal
+
+---
+
+### Node = 1
+
+```
+length = 1
+```
+
+Left
+
+```
+2 == 1+1
+
+Yes
+```
+
+Go left
+
+---
+
+Node =2
+
+```
+length=1
+```
+
+Left
+
+```
+3==2+1
+
+Yes
+```
+
+Go left
+
+---
+
+Node =3
+
+No child
+
+Return
+
+```
+1
+```
+
+Back to node2
+
+```
+1+1=2
+```
+
+Return
+
+```
+2
+```
+
+Back to node1
+
+```
+2+1=3
+```
+
+Return
+
+```
+3
+```
+
+Answer becomes
+
+```
+3
+```
+
+---
+
+Now traversal goes to node2
+
+Again compute
+
+```
+2→3
+
+length=2
+```
+
+Answer still
+
+```
+3
+```
+
+---
+
+Traversal goes node3
+
+```
+length=1
+```
+
+---
+
+Traversal goes node5
+
+```
+length=1
+```
+
+Final answer
+
+```
+3
+```
+
+---
+
+# Why Brute Force is Slow?
+
+Suppose
+
+```
+1
+|
+2
+|
+3
+|
+4
+|
+5
+```
+
+Starting from
+
+```
+1
+```
+
+visits all nodes.
+
+Starting from
+
+```
+2
+```
+
+again visits
+
+```
+2 3 4 5
+```
+
+Starting from
+
+```
+3
+```
+
+again visits
+
+```
+3 4 5
+```
+
+Lots of repeated work.
+
+---
+
+# Optimal Solution
+
+## Main Idea
+
+Instead of calculating the path multiple times,
+
+calculate it **once** using **Postorder DFS**.
+
+Each node returns
+
+> Longest consecutive path **starting from itself**.
+
+Its parent will use this answer.
+
+Every subtree is solved only once.
+
+---
+
+# Intuition
+
+Suppose
+
+```
+      5
+     /
+    6
+   /
+  7
+```
+
+When DFS reaches
+
+```
+7
+```
+
+It knows
+
+```
+answer =1
+```
+
+Return to
+
+```
+6
+```
+
+Since
+
+```
+7=6+1
+```
+
+Length becomes
+
+```
+2
+```
+
+Return to
+
+```
+5
+```
+
+Since
+
+```
+6=5+1
+```
+
+Length becomes
+
+```
+3
+```
+
+Done.
+
+Each node processed exactly once.
+
+---
+
+# Optimal Code
+
+```python
+class Solution:
+
+    def solve(self, node):
+
+        if node is None:
+            return 0
+
+        left = self.solve(node.left)
+        right = self.solve(node.right)
+
+        curr = 1
+
+        if node.left and node.left.data == node.data + 1:
+            curr = max(curr, left + 1)
+
+        if node.right and node.right.data == node.data + 1:
+            curr = max(curr, right + 1)
+
+        self.ans = max(self.ans, curr)
+
+        return curr
+
+    def longestConsecutive(self, root):
+
+        self.ans = 1
+
+        self.solve(root)
+
+        if self.ans == 1:
+            return -1
+
+        return self.ans
+```
+
+---
+
+# Optimal Code Explanation
+
+---
+
+## Base Case
+
+```python
+if node is None:
+    return 0
+```
+
+Empty subtree
+
+Longest path = 0.
+
+---
+
+## Solve Left
+
+```python
+left = self.solve(node.left)
+```
+
+Returns
+
+```
+Longest consecutive path
+starting from left child
+```
+
+---
+
+## Solve Right
+
+```python
+right = self.solve(node.right)
+```
+
+Returns
+
+```
+Longest consecutive path
+starting from right child
+```
+
+---
+
+## Current Node
+
+```python
+curr = 1
+```
+
+Node itself counts.
+
+---
+
+## Left Consecutive
+
+```python
+if node.left and node.left.data == node.data + 1:
+```
+
+Example
+
+```
+10
+|
+11
+```
+
+Then
+
+```
+curr=max(curr,left+1)
+```
+
+Suppose
+
+```
+left=4
+```
+
+Means
+
+```
+11→12→13→14
+```
+
+Now include current node
+
+```
+10→11→12→13→14
+
+length=5
+```
+
+---
+
+## Right Consecutive
+
+Exactly same.
+
+---
+
+## Update Global Answer
+
+```python
+self.ans=max(self.ans,curr)
+```
+
+Because this node may start the longest path.
+
+---
+
+## Return
+
+```python
+return curr
+```
+
+Parent uses it.
+
+---
+
+# Complete Dry Run
+
+Tree
+
+```
+           1
+          / \
+         2   5
+        / \
+       3   8
+      /
+     4
+```
+
+---
+
+DFS starts.
+
+---
+
+### Visit 4
+
+```
+left=0
+right=0
+
+curr=1
+
+return 1
+```
+
+Answer
+
+```
+1
+```
+
+---
+
+### Visit 3
+
+Left returns
+
+```
+1
+```
+
+Check
+
+```
+4==3+1
+
+Yes
+```
+
+curr
+
+```
+2
+```
+
+Return
+
+```
+2
+```
+
+Answer
+
+```
+2
+```
+
+---
+
+### Visit 8
+
+Leaf
+
+Return
+
+```
+1
+```
+
+---
+
+### Visit 2
+
+Left returned
+
+```
+2
+```
+
+Check
+
+```
+3==2+1
+
+Yes
+```
+
+curr
+
+```
+3
+```
+
+Right
+
+```
+8!=3
+```
+
+Ignore.
+
+Return
+
+```
+3
+```
+
+Answer
+
+```
+3
+```
+
+---
+
+### Visit 5
+
+Leaf
+
+Return
+
+```
+1
+```
+
+---
+
+### Visit 1
+
+Left returned
+
+```
+3
+```
+
+Check
+
+```
+2==1+1
+
+Yes
+```
+
+curr
+
+```
+4
+```
+
+Right
+
+```
+5!=2
+```
+
+Ignore.
+
+Return
+
+```
+4
+```
+
+Answer
+
+```
+4
+```
+
+Final answer
+
+```
+4
+```
+
+Path
+
+```
+1→2→3→4
+```
+
+---
+
+# Why Postorder DFS?
+
+We need children's answers before computing the parent's answer.
+
+```
+Parent
+
+needs
+
+Left answer
+Right answer
+```
+
+Therefore
+
+```
+Left
+↓
+
+Right
+↓
+
+Parent
+```
+
+This is exactly **Postorder Traversal**.
+
+---
+
+# Why `curr = 1`?
+
+Even if neither child is consecutive,
+
+the current node itself forms a path of length 1.
+
+Example
+
+```
+50
+```
+
+Path
+
+```
+50
+```
+
+Length
+
+```
+1
+```
+
+---
+
+# Why Return `curr`?
+
+The parent wants to know:
+
+> "If I include you, what is the longest consecutive path starting from you?"
+
+So every node returns only its own best starting path.
+
+---
+
+# Time and Space Complexity
+
+## Brute Force
+
+### Time Complexity
+
+For every node, we may traverse a large part of its subtree again.
+
+In the worst case (a skewed tree with `n` nodes):
+
+* First node explores `n` nodes.
+* Second explores `n-1`.
+* Third explores `n-2`.
+* ...
+
+So:
+
+```
+n + (n-1) + (n-2) + ... + 1
+= n(n+1)/2
+= O(n²)
+```
+
+### Space Complexity
+
+The recursion depth is equal to the tree height `h`.
+
+* Balanced tree: `O(log n)`
+* Skewed tree: `O(n)`
+
+So auxiliary space is:
+
+```
+O(h)
+```
+
+---
+
+## Optimal Solution
+
+### Time Complexity
+
+Each node is visited exactly once.
+
+For every node, we perform only constant-time operations:
+
+* Visit left child
+* Visit right child
+* Compare values
+* Update answer
+
+Therefore:
+
+```
+O(n)
+```
+
+---
+
+### Space Complexity
+
+The algorithm uses recursion only.
+
+The recursion stack depends on the tree height `h`:
+
+* Balanced tree: `O(log n)`
+* Skewed tree: `O(n)`
+
+So auxiliary space is:
+
+```
+O(h)
+```
+
+---
+
+# Final Comparison
+
+| Approach                | Time Complexity | Space Complexity | Reason                                                             |
+| ----------------------- | --------------- | ---------------- | ------------------------------------------------------------------ |
+| Brute Force             | `O(n²)`         | `O(h)`           | Recomputes consecutive paths from every node.                      |
+| Optimal (Postorder DFS) | `O(n)`          | `O(h)`           | Each node is processed exactly once, and child results are reused. |
