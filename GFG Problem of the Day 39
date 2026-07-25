@@ -1,0 +1,1081 @@
+# Max Sum Square Sub-Matrix of Size `k` (GFG)
+
+## Problem Statement
+
+You are given an `n × n` matrix `mat` and an integer `k`.
+
+You need to find the **maximum sum** among **all possible `k × k` sub-matrices**.
+
+* Matrix can contain **negative numbers**.
+* Return **only the maximum sum**.
+
+### Example
+
+```text
+mat =
+
+1   2  -1   4
+-8 -3   4   2
+3   8  10  -8
+-4 -1   1   7
+
+k = 3
+```
+
+Possible 3×3 matrices are:
+
+```
+1   2  -1
+-8 -3   4
+3   8  10
+```
+
+Sum = 16
+
+```
+2  -1   4
+-3  4   2
+8  10  -8
+```
+
+Sum = 18
+
+```
+-8 -3   4
+3   8  10
+-4 -1   1
+```
+
+Sum = 10
+
+```
+-3   4   2
+8   10  -8
+-1   1   7
+```
+
+Sum = **20** ✅
+
+Answer = **20**
+
+---
+
+# Solution 1 (Brute Force)
+
+## Brute Force Idea
+
+The simplest idea is
+
+For every possible `k × k` submatrix,
+
+* visit every cell
+* calculate its sum
+* keep the maximum.
+
+There are
+
+```
+(n-k+1)^2
+```
+
+possible submatrices.
+
+For every submatrix we visit
+
+```
+k × k cells
+```
+
+---
+
+## Brute Force Logic
+
+```
+for every starting row
+    for every starting column
+
+         sum = 0
+
+         for every row inside k×k
+              for every column inside k×k
+                    sum += element
+
+         answer = max(answer,sum)
+```
+
+---
+
+## Brute Force Code (Python)
+
+```python
+class Solution:
+    def maximumSum(self, mat, k):
+        n = len(mat)
+
+        ans = float("-inf")
+
+        for i in range(n - k + 1):
+            for j in range(n - k + 1):
+
+                total = 0
+
+                # Traverse current k × k matrix
+                for r in range(i, i + k):
+                    for c in range(j, j + k):
+                        total += mat[r][c]
+
+                ans = max(ans, total)
+
+        return ans
+```
+
+---
+
+## Code Explanation
+
+```python
+n = len(mat)
+```
+
+Matrix size.
+
+---
+
+```python
+ans = float("-inf")
+```
+
+Stores maximum sum.
+
+---
+
+```python
+for i in range(n-k+1):
+```
+
+Possible starting rows.
+
+---
+
+```python
+for j in range(n-k+1):
+```
+
+Possible starting columns.
+
+---
+
+```python
+total = 0
+```
+
+Current submatrix sum.
+
+---
+
+```python
+for r in range(i,i+k):
+    for c in range(j,j+k):
+```
+
+Visit every cell inside current `k×k`.
+
+---
+
+```python
+total += mat[r][c]
+```
+
+Add element.
+
+---
+
+```python
+ans = max(ans,total)
+```
+
+Update answer.
+
+---
+
+```python
+return ans
+```
+
+Return maximum sum.
+
+---
+
+# Brute Force Dry Run
+
+```
+k = 2
+
+1 2
+3 4
+```
+
+Only one submatrix
+
+```
+1 2
+3 4
+```
+
+Sum
+
+```
+1+2+3+4=10
+```
+
+Answer = 10
+
+---
+
+Another example
+
+```
+1 2 3
+4 5 6
+7 8 9
+
+k=2
+```
+
+Possible matrices
+
+### First
+
+```
+1 2
+4 5
+```
+
+Sum=12
+
+Answer=12
+
+---
+
+### Second
+
+```
+2 3
+5 6
+```
+
+Sum=16
+
+Answer=16
+
+---
+
+### Third
+
+```
+4 5
+7 8
+```
+
+Sum=24
+
+Answer=24
+
+---
+
+### Fourth
+
+```
+5 6
+8 9
+```
+
+Sum=28
+
+Answer=28
+
+Return 28.
+
+---
+
+# Brute Force Complexity
+
+### Time
+
+There are
+
+```
+(n-k+1)^2
+```
+
+submatrices.
+
+Each takes
+
+```
+k²
+```
+
+work.
+
+Overall
+
+```
+O((n-k+1)^2 × k²)
+
+Worst case
+
+O(n⁴)
+```
+
+---
+
+### Space
+
+```
+O(1)
+```
+
+---
+
+# Solution 2 (Optimal using 2D Prefix Sum)
+
+## Idea
+
+Brute force recalculates the same cells many times.
+
+Instead,
+
+first build a **2D Prefix Sum Matrix**.
+
+Then any rectangle sum can be found in **O(1)**.
+
+Overall complexity becomes
+
+```
+O(n²)
+```
+
+---
+
+# What is Prefix Sum Matrix?
+
+Each cell stores
+
+```
+Sum of all elements
+from (0,0)
+to (i,j)
+```
+
+Example
+
+Original matrix
+
+```
+1 2 3
+4 5 6
+7 8 9
+```
+
+Prefix matrix
+
+```
+1  3   6
+5 12  21
+12 27 45
+```
+
+Example
+
+```
+prefix[2][2]=45
+```
+
+means
+
+```
+1+2+3
+4+5+6
+7+8+9
+```
+
+---
+
+# Formula
+
+While building
+
+```
+prefix[i][j]
+
+=
+mat[i][j]
+
++ prefix[i-1][j]
+
++ prefix[i][j-1]
+
+- prefix[i-1][j-1]
+```
+
+Why subtract?
+
+Because
+
+```
+prefix[i-1][j-1]
+```
+
+gets added twice.
+
+---
+
+# Rectangle Sum Formula
+
+Suppose rectangle is
+
+```
+(i,j)
+
+↓
+
+(r,c)
+```
+
+Then
+
+```
+Sum
+
+=
+
+prefix[r][c]
+
+- prefix[i-1][c]
+
+- prefix[r][j-1]
+
++ prefix[i-1][j-1]
+```
+
+---
+
+## Optimal Code (2D Prefix Sum)
+
+```python
+class Solution:
+    def maximumSum(self, mat, k):
+        n = len(mat)
+
+        # Prefix sum matrix
+        prefix = [[0] * n for _ in range(n)]
+
+        # Build prefix matrix
+        for i in range(n):
+            for j in range(n):
+                prefix[i][j] = mat[i][j]
+
+                if i > 0:
+                    prefix[i][j] += prefix[i - 1][j]
+
+                if j > 0:
+                    prefix[i][j] += prefix[i][j - 1]
+
+                if i > 0 and j > 0:
+                    prefix[i][j] -= prefix[i - 1][j - 1]
+
+        ans = float("-inf")
+
+        # Check every k × k submatrix
+        for i in range(n - k + 1):
+            for j in range(n - k + 1):
+
+                r = i + k - 1
+                c = j + k - 1
+
+                total = prefix[r][c]
+
+                if i > 0:
+                    total -= prefix[i - 1][c]
+
+                if j > 0:
+                    total -= prefix[r][j - 1]
+
+                if i > 0 and j > 0:
+                    total += prefix[i - 1][j - 1]
+
+                ans = max(ans, total)
+
+        return ans
+```
+
+---
+
+# Code Explanation
+
+## Build Prefix Matrix
+
+```python
+prefix = [[0]*n for _ in range(n)]
+```
+
+Stores cumulative sums.
+
+---
+
+```python
+prefix[i][j]=mat[i][j]
+```
+
+Start with current value.
+
+---
+
+```python
+if i>0:
+    prefix[i][j]+=prefix[i-1][j]
+```
+
+Add upper rectangle.
+
+---
+
+```python
+if j>0:
+    prefix[i][j]+=prefix[i][j-1]
+```
+
+Add left rectangle.
+
+---
+
+```python
+if i>0 and j>0:
+    prefix[i][j]-=prefix[i-1][j-1]
+```
+
+Remove overlap.
+
+---
+
+## Finding k×k Sum
+
+Bottom-right corner
+
+```python
+r=i+k-1
+c=j+k-1
+```
+
+Initially
+
+```python
+total=prefix[r][c]
+```
+
+Remove upper area.
+
+Remove left area.
+
+Add overlap back.
+
+That's the required rectangle sum.
+
+---
+
+# Full Dry Run (Prefix Sum)
+
+Matrix
+
+```
+1 2 -1 4
+-8 -3 4 2
+3 8 10 -8
+-4 -1 1 7
+```
+
+k=3
+
+---
+
+## Prefix Matrix
+
+```
+1    3    2    6
+-7  -8   -5    1
+-4   3   16   14
+-8  -2   12   17
+```
+
+Now first 3×3
+
+```
+1 2 -1
+-8 -3 4
+3 8 10
+```
+
+Using formula
+
+```
+r=2
+c=2
+
+total=prefix[2][2]=16
+```
+
+Answer
+
+```
+16
+```
+
+---
+
+Second 3×3
+
+```
+2 -1 4
+-3 4 2
+8 10 -8
+```
+
+```
+r=2
+c=3
+
+total=14
+
+subtract left
+
+14-(-4)
+
+=18
+```
+
+Answer
+
+18
+
+---
+
+Last matrix
+
+```
+-3 4 2
+8 10 -8
+-1 1 7
+```
+
+Formula gives
+
+```
+20
+```
+
+Maximum becomes
+
+```
+20
+```
+
+Return 20.
+
+---
+
+# Prefix Sum Complexity
+
+### Time
+
+Building prefix
+
+```
+O(n²)
+```
+
+Checking every submatrix
+
+```
+O(n²)
+```
+
+Overall
+
+```
+O(n²)
+```
+
+---
+
+### Space
+
+```
+O(n²)
+```
+
+because of prefix matrix.
+
+---
+
+# Solution 3 (Best / Most Space Efficient - Sliding Window on Columns)
+
+This solution is even better in terms of **space**.
+
+Instead of storing an `n × n` prefix matrix, we maintain only a **1D column sum array**.
+
+This reduces the auxiliary space from **O(n²)** to **O(n)** while keeping the time complexity **O(n²)**.
+
+---
+
+## Idea
+
+Think of the `k × k` submatrix in two steps:
+
+1. Maintain the sum of every column for the last `k` rows.
+2. Once we have these column sums, finding a `k × k` submatrix becomes a **1D sliding window** problem across the columns.
+
+### Step 1: Vertical Sliding Window
+
+For each row:
+
+* Add the current row to `colSum`.
+* If the window has more than `k` rows, remove the row that goes out.
+
+After this,
+
+```
+colSum[j]
+```
+
+contains the sum of column `j` over the last `k` rows.
+
+---
+
+### Step 2: Horizontal Sliding Window
+
+Now `colSum` looks like a 1D array.
+
+Find the maximum sum of every consecutive `k` elements using a sliding window.
+
+That window sum is exactly the sum of a `k × k` submatrix.
+
+---
+
+## Visualization
+
+Suppose
+
+```
+1 2 3
+4 5 6
+7 8 9
+
+k = 2
+```
+
+After processing first two rows,
+
+```
+colSum
+
+=
+
+5
+7
+9
+```
+
+because
+
+```
+1+4 = 5
+
+2+5 = 7
+
+3+6 = 9
+```
+
+Now apply a window of size 2.
+
+Window 1
+
+```
+5 7
+```
+
+Sum = 12
+
+↓
+
+```
+1 2
+4 5
+```
+
+Window 2
+
+```
+7 9
+```
+
+Sum = 16
+
+↓
+
+```
+2 3
+5 6
+```
+
+Exactly the two possible `2 × 2` matrices for the first two rows.
+
+---
+
+## Optimal Code (Sliding Window)
+
+```python
+class Solution:
+    def maximumSum(self, mat, k):
+        n = len(mat)
+
+        # Stores sum of last k rows for each column
+        colSum = [0] * n
+
+        ans = float("-inf")
+
+        for i in range(n):
+
+            # Update vertical window
+            for j in range(n):
+                colSum[j] += mat[i][j]
+
+                if i >= k:
+                    colSum[j] -= mat[i - k][j]
+
+            # When we have k rows
+            if i >= k - 1:
+
+                windowSum = 0
+
+                # Horizontal sliding window
+                for j in range(n):
+
+                    windowSum += colSum[j]
+
+                    if j >= k:
+                        windowSum -= colSum[j - k]
+
+                    if j >= k - 1:
+                        ans = max(ans, windowSum)
+
+        return ans
+```
+
+---
+
+# Code Explanation
+
+### Create column sum array
+
+```python
+colSum = [0] * n
+```
+
+`colSum[j]` stores the sum of column `j` for the current vertical window of `k` rows.
+
+---
+
+### Add current row
+
+```python
+colSum[j] += mat[i][j]
+```
+
+Include the current row.
+
+---
+
+### Remove old row
+
+```python
+if i >= k:
+    colSum[j] -= mat[i - k][j]
+```
+
+Keep only the last `k` rows.
+
+---
+
+### Start horizontal window
+
+```python
+if i >= k - 1:
+```
+
+Only after collecting `k` rows can we form a `k × k` submatrix.
+
+---
+
+### Expand window
+
+```python
+windowSum += colSum[j]
+```
+
+Add the current column.
+
+---
+
+### Shrink window
+
+```python
+if j >= k:
+    windowSum -= colSum[j - k]
+```
+
+Remove the column leaving the window.
+
+---
+
+### Update answer
+
+```python
+if j >= k - 1:
+    ans = max(ans, windowSum)
+```
+
+A complete `k × k` submatrix has been formed.
+
+---
+
+# Full Dry Run (Sliding Window)
+
+Matrix
+
+```
+1   2  -1   4
+-8 -3   4   2
+3   8  10  -8
+-4 -1   1   7
+
+k = 3
+```
+
+### Row 0
+
+```
+colSum
+
+[1, 2, -1, 4]
+```
+
+Not enough rows yet.
+
+---
+
+### Row 1
+
+```
+colSum
+
+[-7, -1, 3, 6]
+```
+
+Still fewer than 3 rows.
+
+---
+
+### Row 2
+
+Add row 2:
+
+```
+colSum
+
+[-4, 7, 13, -2]
+```
+
+Now we have 3 rows.
+
+Horizontal window:
+
+First 3 columns:
+
+```
+-4 + 7 + 13 = 16
+```
+
+Answer = 16
+
+Slide right:
+
+```
+16
+- (-4)
++ (-2)
+
+=18
+```
+
+Answer = 18
+
+---
+
+### Row 3
+
+Add row 3 and remove row 0:
+
+```
+Old colSum
+
+[-4, 7, 13, -2]
+
++ row3
+
+[-8, 6, 14, 5]
+
+- row0
+
+[-9, 4, 15, 1]
+```
+
+Horizontal window:
+
+First 3 columns:
+
+```
+-9 + 4 + 15 = 10
+```
+
+Second window:
+
+```
+10
+- (-9)
++ 1
+
+=20
+```
+
+Answer = **20**
+
+Return **20**.
+
+---
+
+# Complexity Comparison
+
+| Solution                       | Time                                        | Space     |
+| ------------------------------ | ------------------------------------------- | --------- |
+| Brute Force                    | **O((n-k+1)² × k²)** (worst case **O(n⁴)**) | **O(1)**  |
+| Prefix Sum (2D)                | **O(n²)**                                   | **O(n²)** |
+| Sliding Window (1D Column Sum) | **O(n²)**                                   | **O(n)**  |
+
+---
+
+# Which Solution is Best?
+
+* **Brute Force:** Easy to understand but far too slow for large `n`.
+* **2D Prefix Sum:** Excellent when you need to answer many submatrix sum queries. It achieves `O(n²)` time but uses `O(n²)` extra space.
+* **1D Column Sliding Window:** This is the most space-efficient solution. It also runs in `O(n²)` time while requiring only `O(n)` auxiliary space, making it the best choice for this problem.
