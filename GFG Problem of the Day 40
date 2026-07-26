@@ -1,0 +1,900 @@
+# Complete Binary Tree Traversal with Array Input
+
+## Problem Understanding
+
+You are given an array representing the **Level Order Traversal** of a **Complete Binary Tree**.
+
+Your task is:
+
+* Take all nodes present at each level.
+* Sort only that level in ascending order.
+* Return all levels as a 2D array.
+
+### Example
+
+```text
+arr = [7, 6, 5, 4, 3, 2, 1]
+
+Complete Binary Tree
+
+            7
+          /   \
+         6     5
+        / \   / \
+       4  3  2  1
+```
+
+Levels are
+
+```text
+Level 0 → [7]
+Level 1 → [6,5]
+Level 2 → [4,3,2,1]
+```
+
+After sorting individually
+
+```text
+Level 0 → [7]
+Level 1 → [5,6]
+Level 2 → [1,2,3,4]
+```
+
+Answer
+
+```python
+[[7],[5,6],[1,2,3,4]]
+```
+
+---
+
+# Brute Force Solution
+
+## Brute Force Idea
+
+Instead of using the property of complete binary trees, we can actually **construct the binary tree**.
+
+Steps:
+
+1. Create TreeNode objects for every value.
+2. Connect nodes using
+
+```text
+Left Child  = 2*i+1
+Right Child = 2*i+2
+```
+
+3. Perform Level Order Traversal (BFS).
+4. Store nodes level by level.
+5. Sort every level.
+6. Return answer.
+
+---
+
+## Brute Force Logic
+
+Suppose
+
+```text
+arr = [7,6,5,4,3,2,1]
+```
+
+Construct
+
+```text
+            7
+          /   \
+         6     5
+        / \   / \
+       4  3  2  1
+```
+
+Now perform BFS
+
+Queue
+
+```text
+[7]
+```
+
+Visit
+
+```text
+Level = [7]
+```
+
+Next queue
+
+```text
+[6,5]
+```
+
+Visit
+
+```text
+Level = [6,5]
+
+Sort
+
+[5,6]
+```
+
+Next queue
+
+```text
+[4,3,2,1]
+```
+
+Sort
+
+```text
+[1,2,3,4]
+```
+
+Done.
+
+---
+
+# Brute Force Code (Python)
+
+```python
+from collections import deque
+
+class TreeNode:
+    def __init__(self, val):
+        self.val = val
+        self.left = None
+        self.right = None
+
+
+class Solution:
+
+    def levelSort(self, arr):
+
+        if not arr:
+            return []
+
+        # Step 1 : Create nodes
+        nodes = [TreeNode(x) for x in arr]
+
+        # Step 2 : Connect nodes
+        n = len(arr)
+
+        for i in range(n):
+
+            left = 2 * i + 1
+            right = 2 * i + 2
+
+            if left < n:
+                nodes[i].left = nodes[left]
+
+            if right < n:
+                nodes[i].right = nodes[right]
+
+        # Step 3 : BFS
+        ans = []
+
+        queue = deque([nodes[0]])
+
+        while queue:
+
+            size = len(queue)
+
+            level = []
+
+            for _ in range(size):
+
+                node = queue.popleft()
+
+                level.append(node.val)
+
+                if node.left:
+                    queue.append(node.left)
+
+                if node.right:
+                    queue.append(node.right)
+
+            level.sort()
+
+            ans.append(level)
+
+        return ans
+```
+
+---
+
+# Brute Force Code Explanation
+
+### Step 1
+
+Create every tree node.
+
+```python
+nodes = [TreeNode(x) for x in arr]
+```
+
+---
+
+### Step 2
+
+Connect children.
+
+```python
+left = 2*i+1
+right = 2*i+2
+```
+
+---
+
+### Step 3
+
+Run BFS.
+
+```python
+queue = deque([nodes[0]])
+```
+
+---
+
+### Step 4
+
+Collect nodes of one level.
+
+```python
+level.append(node.val)
+```
+
+---
+
+### Step 5
+
+Sort the level.
+
+```python
+level.sort()
+```
+
+---
+
+### Step 6
+
+Store answer.
+
+```python
+ans.append(level)
+```
+
+---
+
+# Brute Force Dry Run
+
+Input
+
+```text
+arr = [7,6,5,4,3,2,1]
+```
+
+Queue
+
+```text
+[7]
+```
+
+---
+
+Level 0
+
+Visit
+
+```text
+7
+```
+
+Level
+
+```text
+[7]
+```
+
+Sort
+
+```text
+[7]
+```
+
+Answer
+
+```text
+[[7]]
+```
+
+Queue
+
+```text
+[6,5]
+```
+
+---
+
+Level 1
+
+Visit
+
+```text
+6
+5
+```
+
+Level
+
+```text
+[6,5]
+```
+
+Sort
+
+```text
+[5,6]
+```
+
+Answer
+
+```text
+[[7],[5,6]]
+```
+
+Queue
+
+```text
+[4,3,2,1]
+```
+
+---
+
+Level 2
+
+Visit
+
+```text
+4
+3
+2
+1
+```
+
+Sort
+
+```text
+[1,2,3,4]
+```
+
+Final
+
+```text
+[[7],[5,6],[1,2,3,4]]
+```
+
+---
+
+# Drawback of Brute Force
+
+We unnecessarily build the complete binary tree.
+
+That takes:
+
+* Extra memory
+* Extra pointer connections
+* Extra traversal
+
+But notice something important...
+
+The array is **already stored in level order**.
+
+So why build the tree?
+
+We can directly process the array.
+
+---
+
+# Optimal Solution
+
+## Key Observation
+
+For a Complete Binary Tree:
+
+```text
+Level 0 → 1 node
+
+Level 1 → 2 nodes
+
+Level 2 → 4 nodes
+
+Level 3 → 8 nodes
+
+Level 4 → 16 nodes
+```
+
+Every level size doubles.
+
+So we simply keep taking:
+
+```text
+1 element
+
+then 2 elements
+
+then 4
+
+then 8
+
+then 16
+```
+
+No tree construction required.
+
+---
+
+## Optimal Algorithm
+
+Initialize
+
+```text
+index = 0
+level_size = 1
+```
+
+While array remains
+
+Take
+
+```text
+arr[index:index+level_size]
+```
+
+Sort it.
+
+Store it.
+
+Move
+
+```text
+index += level_size
+```
+
+Double
+
+```text
+level_size *= 2
+```
+
+Repeat.
+
+---
+
+# Optimal Code
+
+```python
+class Solution:
+    def levelSort(self, arr):
+        result = []
+
+        index = 0
+        level_size = 1
+
+        while index < len(arr):
+
+            level = arr[index:index + level_size]
+            level.sort()
+
+            result.append(level)
+
+            index += level_size
+            level_size *= 2
+
+        return result
+```
+
+---
+
+# Optimal Code Explanation
+
+### Result Array
+
+```python
+result = []
+```
+
+Stores final answer.
+
+---
+
+### Current Starting Index
+
+```python
+index = 0
+```
+
+Points to the first node of the current level.
+
+---
+
+### Number of Nodes in Current Level
+
+```python
+level_size = 1
+```
+
+Root level has only one node.
+
+---
+
+### Process Until Array Ends
+
+```python
+while index < len(arr):
+```
+
+Continue until all elements are processed.
+
+---
+
+### Extract One Level
+
+```python
+level = arr[index:index + level_size]
+```
+
+Python slicing automatically returns only the remaining elements if fewer than `level_size` are left (e.g., the last level may be incomplete).
+
+Example
+
+```text
+index = 3
+level_size = 4
+
+arr[3:7]
+```
+
+Returns
+
+```text
+[4,3,2,1]
+```
+
+---
+
+### Sort Current Level
+
+```python
+level.sort()
+```
+
+Sort only this level.
+
+---
+
+### Store It
+
+```python
+result.append(level)
+```
+
+---
+
+### Move to Next Level
+
+```python
+index += level_size
+```
+
+---
+
+### Double the Level Size
+
+```python
+level_size *= 2
+```
+
+Levels contain
+
+```text
+1
+
+2
+
+4
+
+8
+
+16
+
+...
+```
+
+---
+
+### Return Answer
+
+```python
+return result
+```
+
+---
+
+# Complete Dry Run (Optimal)
+
+Input
+
+```text
+arr = [7,6,5,4,3,2,1]
+```
+
+Initially
+
+```text
+index = 0
+level_size = 1
+result = []
+```
+
+---
+
+## Iteration 1
+
+Slice
+
+```text
+arr[0:1]
+```
+
+Gets
+
+```text
+[7]
+```
+
+Sort
+
+```text
+[7]
+```
+
+Result
+
+```text
+[[7]]
+```
+
+Update
+
+```text
+index = 1
+level_size = 2
+```
+
+---
+
+## Iteration 2
+
+Slice
+
+```text
+arr[1:3]
+```
+
+Gets
+
+```text
+[6,5]
+```
+
+Sort
+
+```text
+[5,6]
+```
+
+Result
+
+```text
+[[7],[5,6]]
+```
+
+Update
+
+```text
+index = 3
+level_size = 4
+```
+
+---
+
+## Iteration 3
+
+Slice
+
+```text
+arr[3:7]
+```
+
+Gets
+
+```text
+[4,3,2,1]
+```
+
+Sort
+
+```text
+[1,2,3,4]
+```
+
+Result
+
+```text
+[[7],[5,6],[1,2,3,4]]
+```
+
+Update
+
+```text
+index = 7
+```
+
+Loop ends.
+
+Final Answer
+
+```text
+[[7],[5,6],[1,2,3,4]]
+```
+
+---
+
+# Why Does This Work?
+
+The input array is already in **level order**. For a complete binary tree, the number of nodes at each level follows:
+
+```text
+Level 0 → 1 node
+Level 1 → 2 nodes
+Level 2 → 4 nodes
+Level 3 → 8 nodes
+...
+```
+
+Therefore, instead of constructing the tree, we can directly split the array into chunks of sizes:
+
+```text
+1 → 2 → 4 → 8 → ...
+```
+
+Sort each chunk independently and append it to the result.
+
+---
+
+# Time Complexity Analysis
+
+## Brute Force
+
+### Tree Construction
+
+```text
+O(n)
+```
+
+### BFS Traversal
+
+```text
+O(n)
+```
+
+### Sorting Each Level
+
+If the levels contain `1, 2, 4, 8, ...` nodes, the total sorting cost is:
+
+[
+\sum k_i \log k_i
+]
+
+where (k_i) is the number of nodes at level (i). In the worst case, this is bounded by:
+
+```text
+O(n log n)
+```
+
+### Total Time
+
+```text
+O(n log n)
+```
+
+### Auxiliary Space
+
+Tree Nodes
+
+```text
+O(n)
+```
+
+Queue
+
+```text
+O(n)
+```
+
+Answer
+
+```text
+O(n)
+```
+
+Overall
+
+```text
+O(n)
+```
+
+---
+
+## Optimal
+
+### Extract Every Element Once
+
+```text
+O(n)
+```
+
+### Sorting Each Level
+
+Again,
+
+[
+\sum k_i \log k_i \le O(n \log n)
+]
+
+Worst case:
+
+```text
+O(n log n)
+```
+
+### Total Time
+
+```text
+O(n log n)
+```
+
+### Auxiliary Space
+
+Result
+
+```text
+O(n)
+```
+
+Temporary level slices across iterations are not held simultaneously; the dominant extra space remains the output structure.
+
+Overall
+
+```text
+O(n)
+```
+
+---
+
+# Comparison
+
+| Feature                     | Brute Force    | Optimal        |
+| --------------------------- | -------------- | -------------- |
+| Build Tree                  | ✅ Yes          | ❌ No           |
+| BFS Traversal               | ✅ Yes          | ❌ No           |
+| Uses Complete Tree Property | ❌ No           | ✅ Yes          |
+| Time Complexity             | **O(n log n)** | **O(n log n)** |
+| Auxiliary Space             | **O(n)**       | **O(n)**       |
+| Simplicity                  | Moderate       | Very Simple    |
+| Recommended                 | ❌              | ✅              |
+
+## Interview Takeaway
+
+The key insight is recognizing that the input array is already the **level-order traversal of a complete binary tree**. Since each level in a complete binary tree contains `1, 2, 4, 8, ...` nodes, you can process the array directly in chunks of those sizes, sort each chunk, and avoid building or traversing the tree entirely. This makes the solution cleaner while maintaining the required `O(n log n)` time complexity.
