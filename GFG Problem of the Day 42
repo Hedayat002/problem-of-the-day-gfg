@@ -1,0 +1,997 @@
+This is an excellent graph problem because although **edge weights are only 1 or 2**, the expected complexity is **O(V + E)** instead of Dijkstra's **O((V+E) log V)**.
+
+We'll solve it exactly in your requested pattern.
+
+---
+
+# Problem Understanding
+
+We are given
+
+* Undirected weighted graph
+* Weight of every edge is either **1** or **2**
+* Source vertex
+* Destination vertex
+
+Need to return
+
+> Minimum total weight from source to destination.
+
+If impossible
+
+> return **-1**
+
+Example
+
+```
+0 --1-- 1
+|      / \
+2     1   2
+|   /      \
+2--1--------3
+```
+
+Possible paths
+
+```
+0 → 1 → 3
+
+1 + 2 = 3
+
+0 → 2 → 3
+
+2 + 1 = 3
+```
+
+Answer = **3**
+
+---
+
+# Brute Force Solution (Dijkstra)
+
+## Observation
+
+Although weights are only 1 or 2,
+
+they are still **weighted edges**, so the simplest solution is Dijkstra.
+
+Dijkstra always finds shortest path in graphs having positive weights.
+
+---
+
+# Brute Force Logic
+
+### Step 1
+
+Build adjacency list.
+
+```
+0 → (1,1) (2,2)
+
+1 → (0,1) (2,1) (3,2)
+
+...
+```
+
+---
+
+### Step 2
+
+Maintain distance array
+
+```
+distance[i]
+
+Minimum distance from source to i
+```
+
+Initially
+
+```
+∞ ∞ ∞ ∞
+
+source =0
+
+0 ∞ ∞ ∞
+```
+
+---
+
+### Step 3
+
+Use Min Heap
+
+```
+(distance,node)
+```
+
+Initially
+
+```
+[(0,0)]
+```
+
+---
+
+### Step 4
+
+Take smallest distance node
+
+Relax every neighbour.
+
+If
+
+```
+current distance + edge weight
+<
+stored distance
+```
+
+update.
+
+---
+
+Continue until heap becomes empty.
+
+---
+
+# Brute Force Code
+
+```python
+import heapq
+
+class Solution:
+    def shortestPath(self, V: int, src: int, dest: int, edges):
+
+        # Build Graph
+        adj = [[] for _ in range(V)]
+
+        for u, v, wt in edges:
+            adj[u].append((v, wt))
+            adj[v].append((u, wt))
+
+        # Distance array
+        distance = [float("inf")] * V
+        distance[src] = 0
+
+        # Min Heap
+        pq = [(0, src)]
+
+        while pq:
+
+            currDist, node = heapq.heappop(pq)
+
+            # Ignore outdated entry
+            if currDist != distance[node]:
+                continue
+
+            if node == dest:
+                return currDist
+
+            for adjNode, weight in adj[node]:
+
+                newDist = currDist + weight
+
+                if newDist < distance[adjNode]:
+
+                    distance[adjNode] = newDist
+                    heapq.heappush(pq, (newDist, adjNode))
+
+        return -1
+```
+
+---
+
+# Code Explanation
+
+## Build Graph
+
+```python
+adj = [[] for _ in range(V)]
+```
+
+Adjacency list.
+
+---
+
+```python
+adj[u].append((v,wt))
+adj[v].append((u,wt))
+```
+
+Undirected graph.
+
+---
+
+Distance array
+
+```python
+distance=[inf]*V
+```
+
+Stores shortest distance.
+
+---
+
+Heap
+
+```python
+pq=[(0,src)]
+```
+
+Always processes minimum distance first.
+
+---
+
+Relaxation
+
+```
+newDist=current+weight
+
+if newDist<distance[adjNode]
+```
+
+update.
+
+---
+
+If destination popped
+
+```
+return current distance
+```
+
+because Dijkstra guarantees it is minimum.
+
+---
+
+# Full Dry Run (Brute Force)
+
+Example
+
+```
+V=4
+
+Edges
+
+0-1 (1)
+
+0-2 (2)
+
+2-3 (1)
+
+1-2 (1)
+
+1-3 (2)
+
+src=0
+dest=3
+```
+
+---
+
+Initial
+
+```
+distance
+
+0 ∞ ∞ ∞
+
+Heap
+
+[(0,0)]
+```
+
+---
+
+Pop
+
+```
+(0,0)
+```
+
+Neighbours
+
+```
+1
+
+distance=1
+
+push(1,1)
+
+2
+
+distance=2
+
+push(2,2)
+```
+
+Heap
+
+```
+(1,1)
+
+(2,2)
+```
+
+---
+
+Pop
+
+```
+(1,1)
+```
+
+Neighbours
+
+```
+0
+
+ignore
+
+2
+
+1+1=2
+
+already 2
+
+3
+
+1+2=3
+
+distance[3]=3
+
+push(3,3)
+```
+
+Heap
+
+```
+(2,2)
+
+(3,3)
+```
+
+---
+
+Pop
+
+```
+(2,2)
+```
+
+Neighbours
+
+```
+3
+
+2+1=3
+
+already 3
+```
+
+No update.
+
+---
+
+Heap
+
+```
+(3,3)
+```
+
+---
+
+Pop
+
+```
+(3,3)
+
+node==destination
+```
+
+Return
+
+```
+3
+```
+
+Correct.
+
+---
+
+# Brute Force Complexity
+
+### Time
+
+Building graph
+
+```
+O(E)
+```
+
+Dijkstra
+
+```
+O((V+E) log V)
+```
+
+---
+
+### Space
+
+Graph
+
+```
+O(V+E)
+```
+
+Distance
+
+```
+O(V)
+```
+
+Heap
+
+```
+O(V)
+```
+
+Overall
+
+```
+O(V+E)
+```
+
+---
+
+# Optimal Solution (Expected O(V+E))
+
+## Main Observation
+
+Weights are only
+
+```
+1
+
+or
+
+2
+```
+
+Suppose an edge has weight 2.
+
+```
+A --------2-------- B
+```
+
+Replace it by
+
+```
+A --1-- Dummy --1-- B
+```
+
+Example
+
+Original
+
+```
+0 -----2----- 1
+```
+
+Transformed
+
+```
+0 --1-- D --1-- 1
+```
+
+Cost
+
+```
+1+1=2
+```
+
+Exactly same.
+
+Now every edge has weight **1**.
+
+Once every edge weight becomes **1**, shortest path is simply **BFS**.
+
+---
+
+# Graph Transformation
+
+Original
+
+```
+0 --2-- 1
+```
+
+↓
+
+```
+0 --1-- X --1-- 1
+```
+
+Original
+
+```
+2 --2-- 5
+```
+
+↓
+
+```
+2 --1-- Y --1-- 5
+```
+
+Each weight-2 edge gets one dummy vertex.
+
+---
+
+# Why Does This Work?
+
+Suppose original path
+
+```
+0
+
+↓
+
+(weight2)
+
+↓
+
+1
+```
+
+Cost
+
+```
+2
+```
+
+After transformation
+
+```
+0
+
+↓
+
+1
+
+↓
+
+Dummy
+
+↓
+
+1
+
+↓
+
+1
+```
+
+BFS counts edges.
+
+```
+2 edges
+
+= cost 2
+```
+
+Exactly same.
+
+Hence BFS distance equals original weighted distance.
+
+---
+
+# Optimal Algorithm
+
+### Step 1
+
+Create graph.
+
+For weight 1
+
+```
+u ---- v
+```
+
+Store directly.
+
+---
+
+For weight 2
+
+Create dummy node.
+
+```
+u
+
+↓
+
+dummy
+
+↓
+
+v
+```
+
+---
+
+### Step 2
+
+Run BFS.
+
+Every edge weight now equals 1.
+
+---
+
+### Step 3
+
+Return BFS distance.
+
+---
+
+# Optimal Code
+
+```python
+from collections import deque
+
+class Solution:
+    def shortestPath(self, V, src, dest, edges):
+
+        # Maximum possible nodes
+        max_nodes = V + len(edges)
+
+        adj = [[] for _ in range(max_nodes)]
+
+        next_dummy = V
+
+        # Build transformed graph
+        for u, v, w in edges:
+
+            if w == 1:
+
+                adj[u].append(v)
+                adj[v].append(u)
+
+            else:
+
+                dummy = next_dummy
+                next_dummy += 1
+
+                adj[u].append(dummy)
+                adj[dummy].append(u)
+
+                adj[dummy].append(v)
+                adj[v].append(dummy)
+
+        total_nodes = next_dummy
+
+        distance = [-1] * total_nodes
+        distance[src] = 0
+
+        q = deque([src])
+
+        while q:
+
+            node = q.popleft()
+
+            if node == dest:
+                return distance[node]
+
+            for neighbour in adj[node]:
+
+                if distance[neighbour] == -1:
+
+                    distance[neighbour] = distance[node] + 1
+                    q.append(neighbour)
+
+        return -1
+```
+
+---
+
+# Code Explanation
+
+### Maximum Nodes
+
+```python
+max_nodes = V + len(edges)
+```
+
+Every weight-2 edge may create one dummy node.
+
+Worst case
+
+```
+All edges have weight 2
+```
+
+Need
+
+```
+V+E
+```
+
+nodes.
+
+---
+
+### Weight 1
+
+```
+adj[u].append(v)
+```
+
+Normal edge.
+
+---
+
+### Weight 2
+
+```
+dummy = next_dummy
+```
+
+Create new node.
+
+Convert
+
+```
+u--2--v
+```
+
+into
+
+```
+u--dummy--v
+```
+
+---
+
+### BFS
+
+Exactly same as unweighted shortest path.
+
+Distance array stores number of edges traversed, which equals the original weighted distance.
+
+---
+
+# Complete Dry Run (Optimal)
+
+Graph
+
+```
+0 --1--1
+
+0 --2--2
+
+2 --1--3
+
+1 --1--2
+
+1 --2--3
+```
+
+---
+
+Weight-2 edges become
+
+```
+0--4--2
+
+1--5--3
+```
+
+New graph
+
+```
+0
+
+↓
+
+1
+
+↓
+
+1
+
+↓
+
+2
+
+↓
+
+3
+
+0
+
+↓
+
+4
+
+↓
+
+2
+
+1
+
+↓
+
+5
+
+↓
+
+3
+```
+
+---
+
+Initial
+
+```
+Queue
+
+0
+
+distance
+
+0 -1 -1 -1 -1 -1
+```
+
+---
+
+Visit
+
+```
+0
+```
+
+Reach
+
+```
+1
+
+distance=1
+
+4
+
+distance=1
+```
+
+Queue
+
+```
+1
+
+4
+```
+
+---
+
+Visit
+
+```
+1
+```
+
+Reach
+
+```
+2
+
+distance=2
+
+5
+
+distance=2
+```
+
+Queue
+
+```
+4
+
+2
+
+5
+```
+
+---
+
+Visit
+
+```
+4
+```
+
+Reach
+
+```
+2
+
+already visited
+```
+
+---
+
+Visit
+
+```
+2
+```
+
+Reach
+
+```
+3
+
+distance=3
+```
+
+Queue
+
+```
+5
+
+3
+```
+
+---
+
+Visit
+
+```
+3
+
+Destination reached
+```
+
+Return
+
+```
+3
+```
+
+---
+
+# Why Is This Faster?
+
+Dijkstra uses a priority queue because edges have different weights.
+
+After transformation:
+
+```
+All weights = 1
+```
+
+BFS always visits nodes in increasing distance order.
+
+No heap is needed.
+
+This removes the `log V` factor.
+
+---
+
+# Complexity Comparison
+
+| Method                     | Time                 | Space        |
+| -------------------------- | -------------------- | ------------ |
+| Dijkstra (Heap)            | **O((V + E) log V)** | **O(V + E)** |
+| Graph Transformation + BFS | **O(V + E)**         | **O(V + E)** |
+
+---
+
+# Key Interview Points
+
+* Dijkstra works for any positive edge weights but incurs a `log V` factor due to the priority queue.
+* When edge weights are restricted to **1 and 2**, every weight-2 edge can be replaced with a dummy vertex, converting it into two weight-1 edges.
+* The transformed graph preserves all shortest-path costs because each original weight-2 edge is represented by exactly two unit-weight edges.
+* After transformation, the graph is effectively **unweighted**, so **BFS** computes shortest paths in linear time.
+* At most one dummy node is created per weight-2 edge, so the transformed graph has at most `V + E` vertices and `O(E)` edges.
+* This transformation is a specialized optimization for weights `{1,2}`. For weights `{0,1}`, the appropriate optimal algorithm is **0-1 BFS** using a deque. For arbitrary positive weights, use **Dijkstra's algorithm**.
