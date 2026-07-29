@@ -1,0 +1,820 @@
+# Split Array into Minimum Subsets (GFG)
+
+## Problem Statement
+
+You are given an array of **distinct positive integers**.
+
+You have to split the array into the **minimum number of subsets** such that:
+
+* Every subset contains **only consecutive numbers**.
+* Every element belongs to **exactly one subset**.
+
+Return the **minimum number of subsets**.
+
+---
+
+### Example 1
+
+```text
+Input:
+arr = [100, 56, 5, 6, 102, 58, 101, 57, 7, 103, 59]
+
+Output:
+3
+
+Explanation:
+
+Subset 1 = [5,6,7]
+Subset 2 = [56,57,58,59]
+Subset 3 = [100,101,102,103]
+```
+
+---
+
+### Example 2
+
+```text
+Input:
+arr = [10,100,105]
+
+Output:
+3
+
+Explanation:
+
+[10]
+[100]
+[105]
+```
+
+---
+
+# Observation
+
+The array is **unsorted**.
+
+Consecutive numbers may appear anywhere.
+
+For example
+
+```text
+[7,100,5,6]
+
+Actually contains
+
+5,6,7
+```
+
+So first we somehow need numbers in order.
+
+---
+
+# Brute Force Approach
+
+## Idea
+
+For every number,
+
+keep searching whether
+
+```text
+current + 1
+```
+
+exists.
+
+If yes,
+
+add it into the same subset.
+
+Otherwise stop.
+
+Repeat for every unused element.
+
+---
+
+## Steps
+
+For every element
+
+1. If already visited → skip.
+2. Start one subset.
+3. Find x+1 using linear search.
+4. Mark visited.
+5. Continue until no consecutive number exists.
+
+---
+
+## Example
+
+```text
+5 6 7 56 57 58
+```
+
+Start
+
+```
+5
+```
+
+Search
+
+```
+6 → found
+```
+
+Search
+
+```
+7 → found
+```
+
+Search
+
+```
+8 → not found
+```
+
+Subset finished.
+
+Repeat from 56.
+
+---
+
+# Brute Force Code (Python)
+
+```python
+class Solution:
+    def minSubsets(self, arr):
+        n = len(arr)
+        visited = [False] * n
+        answer = 0
+
+        for i in range(n):
+
+            if visited[i]:
+                continue
+
+            visited[i] = True
+            answer += 1
+
+            current = arr[i]
+
+            while True:
+
+                found = False
+
+                for j in range(n):
+
+                    if not visited[j] and arr[j] == current + 1:
+                        visited[j] = True
+                        current = arr[j]
+                        found = True
+                        break
+
+                if not found:
+                    break
+
+        return answer
+```
+
+---
+
+# Brute Force Code Explanation
+
+```python
+visited = [False] * n
+```
+
+Marks whether an element is already placed in a subset.
+
+---
+
+```python
+answer += 1
+```
+
+New subset starts.
+
+---
+
+```python
+current = arr[i]
+```
+
+Current last number of this subset.
+
+---
+
+```python
+for j in range(n):
+```
+
+Search entire array for
+
+```
+current + 1
+```
+
+---
+
+If found
+
+```python
+visited[j] = True
+current = arr[j]
+```
+
+Extend the subset.
+
+---
+
+Otherwise
+
+```python
+break
+```
+
+Subset ends.
+
+---
+
+# Brute Force Dry Run
+
+Input
+
+```text
+[5,6,7,56,57]
+```
+
+Visited
+
+```text
+F F F F F
+```
+
+---
+
+Start from 5
+
+Subset count
+
+```
+1
+```
+
+Search 6
+
+Found
+
+Visited
+
+```text
+T T F F F
+```
+
+Search 7
+
+Found
+
+Visited
+
+```text
+T T T F F
+```
+
+Search 8
+
+Not found
+
+Stop.
+
+---
+
+Next unused
+
+56
+
+Subset count
+
+```
+2
+```
+
+Search 57
+
+Found
+
+Visited
+
+```text
+T T T T T
+```
+
+Done.
+
+Answer
+
+```
+2
+```
+
+---
+
+# Brute Force Complexity
+
+### Time Complexity
+
+Outer loop
+
+```
+O(n)
+```
+
+Searching next element
+
+```
+O(n)
+```
+
+Overall
+
+```
+O(n²)
+```
+
+---
+
+### Space Complexity
+
+Visited array
+
+```
+O(n)
+```
+
+---
+
+# Can We Do Better?
+
+Yes.
+
+Notice something.
+
+If we sort
+
+```text
+100 56 5 6 102 58 101 57 7 103 59
+```
+
+becomes
+
+```text
+5 6 7 56 57 58 59 100 101 102 103
+```
+
+Now consecutive numbers become neighbors.
+
+We only need to count where the sequence **breaks**.
+
+---
+
+# Optimal Approach
+
+## Idea
+
+After sorting,
+
+every time
+
+```text
+arr[i] != arr[i-1] + 1
+```
+
+means
+
+Previous subset ended.
+
+New subset starts.
+
+So count such breaks.
+
+---
+
+## Algorithm
+
+Sort array.
+
+Initialize
+
+```
+answer = 1
+```
+
+Traverse from index 1.
+
+If
+
+```text
+arr[i] != arr[i-1] + 1
+```
+
+increment answer.
+
+Return answer.
+
+---
+
+# Why Does This Work?
+
+Suppose sorted array is
+
+```text
+5 6 7 56 57 58 100
+```
+
+Look at adjacent numbers.
+
+```
+5→6
+```
+
+Consecutive.
+
+Same subset.
+
+---
+
+```
+6→7
+```
+
+Consecutive.
+
+Same subset.
+
+---
+
+```
+7→56
+```
+
+Gap exists.
+
+Cannot belong to same subset.
+
+Need new subset.
+
+---
+
+```
+56→57
+```
+
+Same subset.
+
+---
+
+```
+58→100
+```
+
+Gap.
+
+Another subset.
+
+So every gap creates exactly one new subset.
+
+---
+
+# Optimal Code (Python)
+
+```python
+class Solution:
+    def minSubsets(self, arr):
+        arr.sort()
+
+        answer = 1
+
+        for i in range(1, len(arr)):
+            if arr[i] != arr[i - 1] + 1:
+                answer += 1
+
+        return answer
+```
+
+---
+
+# Code Explanation
+
+### Step 1
+
+```python
+arr.sort()
+```
+
+Arrange numbers in increasing order.
+
+---
+
+### Step 2
+
+```python
+answer = 1
+```
+
+Initially one subset exists (assuming the array is non-empty).
+
+---
+
+### Step 3
+
+Traverse
+
+```python
+for i in range(1, len(arr)):
+```
+
+Compare current element with previous.
+
+---
+
+### Step 4
+
+If
+
+```python
+arr[i] != arr[i-1] + 1
+```
+
+then
+
+```python
+answer += 1
+```
+
+because a new consecutive block starts.
+
+---
+
+### Step 5
+
+Return
+
+```python
+answer
+```
+
+---
+
+# Complete Dry Run
+
+Input
+
+```text
+[100,56,5,6,102,58,101,57,7,103,59]
+```
+
+---
+
+## Step 1
+
+Sort
+
+```text
+[5,6,7,56,57,58,59,100,101,102,103]
+```
+
+---
+
+Initialize
+
+```
+answer = 1
+```
+
+---
+
+### i = 1
+
+```
+6 == 5+1
+```
+
+Same subset.
+
+```
+answer = 1
+```
+
+---
+
+### i = 2
+
+```
+7 == 6+1
+```
+
+Same subset.
+
+```
+answer = 1
+```
+
+---
+
+### i = 3
+
+```
+56 != 7+1
+```
+
+Gap.
+
+New subset.
+
+```
+answer = 2
+```
+
+---
+
+### i = 4
+
+```
+57 == 56+1
+```
+
+Same subset.
+
+---
+
+### i = 5
+
+```
+58 == 57+1
+```
+
+Same subset.
+
+---
+
+### i = 6
+
+```
+59 == 58+1
+```
+
+Same subset.
+
+---
+
+### i = 7
+
+```
+100 != 59+1
+```
+
+Gap.
+
+```
+answer = 3
+```
+
+---
+
+### i = 8
+
+```
+101 == 100+1
+```
+
+Same subset.
+
+---
+
+### i = 9
+
+```
+102 == 101+1
+```
+
+Same subset.
+
+---
+
+### i = 10
+
+```
+103 == 102+1
+```
+
+Same subset.
+
+---
+
+Loop ends.
+
+Return
+
+```text
+3
+```
+
+---
+
+# Dry Run (Example 2)
+
+Input
+
+```text
+[10,100,105]
+```
+
+Sort
+
+```text
+10 100 105
+```
+
+Initialize
+
+```
+answer = 1
+```
+
+---
+
+Compare
+
+```
+100 != 11
+```
+
+```
+answer = 2
+```
+
+---
+
+Compare
+
+```
+105 != 101
+```
+
+```
+answer = 3
+```
+
+Return
+
+```
+3
+```
+
+---
+
+# Correctness Proof
+
+After sorting, every maximal sequence of consecutive integers appears as one contiguous block.
+
+* If two adjacent sorted elements differ by exactly `1`, they can belong to the same subset.
+* If the difference is greater than `1`, no missing values exist in the array to bridge that gap, so they **must** belong to different subsets.
+
+Therefore, the minimum number of subsets equals:
+
+> **1 + (number of gaps between consecutive sorted elements)**
+
+Hence, the algorithm is correct.
+
+---
+
+# Complexity Analysis
+
+## Brute Force
+
+| Complexity | Value     |
+| ---------- | --------- |
+| Time       | **O(n²)** |
+| Space      | **O(n)**  |
+
+---
+
+## Optimal
+
+| Complexity  | Value                                                                                                                                 |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| Sorting     | **O(n log n)**                                                                                                                        |
+| Traversal   | **O(n)**                                                                                                                              |
+| Total Time  | **O(n log n)**                                                                                                                        |
+| Extra Space | **O(1)** (ignoring the sorting algorithm's internal stack; **O(log n)** for Python's Timsort recursion/merge bookkeeping in practice) |
+
+---
+
+# Key Interview Takeaways
+
+* Unsorted arrays often become much simpler after **sorting**.
+* Count **gaps** instead of explicitly constructing subsets when only the number of subsets is required.
+* Since all elements are **distinct**, every break between adjacent sorted numbers directly starts a new subset.
+* The dominant cost is sorting, giving an overall time complexity of **O(n log n)**.
