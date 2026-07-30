@@ -1,0 +1,902 @@
+# Maximum Subset XOR (GFG)
+
+**Difficulty:** Medium
+
+---
+
+# Problem Statement
+
+You are given an array `arr[]`.
+
+You can choose **any subset** of the array (including a subset containing all elements or just one element).
+
+Your task is to find the **maximum possible XOR** of the chosen subset.
+
+Remember:
+
+* A subset can contain any combination of elements.
+* Order does not matter.
+* We need **only the maximum XOR value**, not the subset itself.
+
+---
+
+## Example 1
+
+```
+Input:
+arr = [2,4,5]
+
+Possible subsets
+
+{}            XOR = 0
+{2}           XOR = 2
+{4}           XOR = 4
+{5}           XOR = 5
+{2,4}         XOR = 6
+{2,5}         XOR = 7   ← Maximum
+{4,5}         XOR = 1
+{2,4,5}       XOR = 3
+
+Output:
+7
+```
+
+---
+
+## Example 2
+
+```
+Input:
+arr = [9,8,5]
+
+Subsets
+
+{}          =0
+{9}=9
+{8}=8
+{5}=5
+{9,8}=1
+{9,5}=12
+{8,5}=13  ← Maximum
+{9,8,5}=4
+
+Output:
+13
+```
+
+---
+
+# Brute Force Solution
+
+## Idea
+
+Generate **every possible subset**.
+
+For each subset
+
+* calculate XOR
+* keep track of maximum XOR
+
+Since there are **2ⁿ subsets**, this works only for small `n`.
+
+---
+
+# Brute Force Logic
+
+Suppose
+
+```
+arr = [2,4,5]
+```
+
+Every element has two choices
+
+```
+Take it
+Don't take it
+```
+
+So total subsets
+
+```
+2 × 2 × 2 = 8
+```
+
+For every subset
+
+```
+calculate XOR
+update answer
+```
+
+---
+
+# Brute Force Code (Python)
+
+```python
+class Solution:
+    def maxSubsetXOR(self, arr):
+        n = len(arr)
+        ans = 0
+
+        for mask in range(1 << n):
+            xr = 0
+
+            for i in range(n):
+                if mask & (1 << i):
+                    xr ^= arr[i]
+
+            ans = max(ans, xr)
+
+        return ans
+```
+
+---
+
+# Code Explanation
+
+### Step 1
+
+```
+for mask in range(1<<n)
+```
+
+Generates every subset.
+
+Example
+
+```
+n=3
+
+000
+001
+010
+011
+100
+101
+110
+111
+```
+
+---
+
+### Step 2
+
+```
+xr=0
+```
+
+Current subset XOR.
+
+---
+
+### Step 3
+
+```
+if(mask&(1<<i))
+```
+
+Checks whether ith element belongs to subset.
+
+---
+
+### Step 4
+
+```
+xr ^= arr[i]
+```
+
+Include element in XOR.
+
+---
+
+### Step 5
+
+```
+ans=max(ans,xr)
+```
+
+Store maximum XOR.
+
+---
+
+# Full Dry Run (Brute Force)
+
+```
+arr=[2,4,5]
+```
+
+### mask = 000
+
+```
+Subset = {}
+
+xor=0
+
+ans=0
+```
+
+---
+
+### mask = 001
+
+```
+Subset={2}
+
+xor=2
+
+ans=2
+```
+
+---
+
+### mask = 010
+
+```
+Subset={4}
+
+xor=4
+
+ans=4
+```
+
+---
+
+### mask = 011
+
+```
+Subset={2,4}
+
+2^4=6
+
+ans=6
+```
+
+---
+
+### mask =100
+
+```
+Subset={5}
+
+xor=5
+
+ans=6
+```
+
+---
+
+### mask =101
+
+```
+Subset={2,5}
+
+2^5=7
+
+ans=7
+```
+
+---
+
+### mask =110
+
+```
+Subset={4,5}
+
+4^5=1
+
+ans=7
+```
+
+---
+
+### mask =111
+
+```
+Subset={2,4,5}
+
+2^4=6
+
+6^5=3
+
+ans=7
+```
+
+Final answer
+
+```
+7
+```
+
+---
+
+# Brute Force Complexity
+
+### Time Complexity
+
+There are
+
+```
+2ⁿ subsets
+```
+
+For every subset we may visit all `n` elements.
+
+So
+
+```
+O(n × 2ⁿ)
+```
+
+---
+
+### Space Complexity
+
+Only variables are used.
+
+```
+O(1)
+```
+
+---
+
+# Optimal Solution
+
+## Observation
+
+The constraints are
+
+```
+n = 100000
+```
+
+Brute force is impossible.
+
+We need another idea.
+
+---
+
+This problem is actually solved using **Gaussian Elimination over Binary Numbers**, also called the **XOR Basis (Linear Basis)**.
+
+It is very similar to Gaussian elimination in mathematics, but instead of addition/subtraction we use XOR.
+
+---
+
+## Key Idea
+
+Every number can be represented in binary.
+
+Example
+
+```
+13
+
+1101
+```
+
+Suppose
+
+```
+arr
+
+2 =0010
+
+4 =0100
+
+5 =0101
+```
+
+Notice
+
+```
+5 =0101
+
+4 =0100
+```
+
+Both have highest set bit at position **2**.
+
+We only need **one representative** for each highest set bit.
+
+If two numbers have the same leading bit, we eliminate one using XOR.
+
+Exactly like Gaussian elimination.
+
+---
+
+# XOR Properties Used
+
+```
+a ^ a =0
+
+a ^0 =a
+
+a ^b ^a =b
+
+XOR is associative
+
+XOR is commutative
+```
+
+These properties let us eliminate bits without changing the set of XOR values we can produce.
+
+---
+
+# Step 1 : Build XOR Basis
+
+For every bit from highest to lowest
+
+```
+Find one number
+whose highest set bit is this bit.
+```
+
+Make it the pivot.
+
+Then eliminate that bit from every other number.
+
+---
+
+Suppose
+
+```
+2 =0010
+
+4 =0100
+
+5 =0101
+```
+
+Highest bit
+
+```
+5
+```
+
+becomes pivot.
+
+Now remove that bit from
+
+```
+4
+
+4^5=1
+```
+
+Now array becomes
+
+```
+5
+
+2
+
+1
+```
+
+Every number now has different leading bit.
+
+This is called the XOR Basis.
+
+---
+
+# Step 2 : Construct Maximum XOR
+
+Start
+
+```
+ans=0
+```
+
+Try every basis element.
+
+If
+
+```
+ans ^ basis_element
+```
+
+is larger,
+
+take it.
+
+Otherwise skip it.
+
+Greedy works because basis vectors are independent.
+
+---
+
+# Optimal Code (Python)
+
+```python
+class Solution:
+    def maxSubsetXOR(self, arr):
+        n = len(arr)
+        index = 0
+
+        # Build XOR Basis
+        for bit in range(31, -1, -1):
+
+            max_index = index
+
+            while max_index < n and ((arr[max_index] >> bit) & 1) == 0:
+                max_index += 1
+
+            if max_index == n:
+                continue
+
+            arr[index], arr[max_index] = arr[max_index], arr[index]
+
+            for j in range(n):
+                if j != index and ((arr[j] >> bit) & 1):
+                    arr[j] ^= arr[index]
+
+            index += 1
+
+        ans = 0
+
+        # Build Maximum XOR
+        for num in arr:
+            ans = max(ans, ans ^ num)
+
+        return ans
+```
+
+---
+
+# Code Explanation
+
+### Step 1
+
+```python
+index = 0
+```
+
+Tracks the next position where we place a pivot (basis element).
+
+---
+
+### Step 2
+
+```python
+for bit in range(31, -1, -1):
+```
+
+Process bits from the most significant to the least significant. For the given constraints (`arr[i] ≤ 10^6`), 31 bits are sufficient.
+
+---
+
+### Step 3
+
+```python
+while max_index < n and ((arr[max_index] >> bit) & 1) == 0:
+    max_index += 1
+```
+
+Find a number whose current highest useful bit is `bit`.
+
+---
+
+### Step 4
+
+```python
+arr[index], arr[max_index] = arr[max_index], arr[index]
+```
+
+Move the pivot into the current basis position.
+
+---
+
+### Step 5
+
+```python
+for j in range(n):
+    if j != index and ((arr[j] >> bit) & 1):
+        arr[j] ^= arr[index]
+```
+
+Eliminate this bit from every other number, making the pivot the only basis element with that leading bit.
+
+---
+
+### Step 6
+
+```python
+ans = 0
+```
+
+Start building the maximum XOR.
+
+---
+
+### Step 7
+
+```python
+ans = max(ans, ans ^ num)
+```
+
+If XOR-ing the current basis element increases the value, keep it; otherwise ignore it.
+
+---
+
+### Step 8
+
+```python
+return ans
+```
+
+Return the maximum subset XOR.
+
+---
+
+# Full Dry Run (Optimal)
+
+Input
+
+```
+arr = [2,4,5]
+```
+
+Binary
+
+```
+2 = 010
+4 = 100
+5 = 101
+```
+
+---
+
+## Initial
+
+```
+arr
+
+010
+100
+101
+```
+
+```
+index = 0
+```
+
+---
+
+## Process bit = 2 (value 4)
+
+Numbers having bit 2 set
+
+```
+100
+101
+```
+
+Choose
+
+```
+100
+```
+
+as pivot.
+
+Swap if needed (already at index 1, moved to index 0):
+
+```
+100
+010
+101
+```
+
+Eliminate bit 2 from the others.
+
+`101` has bit 2 set:
+
+```
+101
+^100
+----
+001
+```
+
+Array becomes
+
+```
+100
+010
+001
+```
+
+```
+index = 1
+```
+
+---
+
+## Process bit = 1 (value 2)
+
+Remaining numbers
+
+```
+010
+001
+```
+
+Choose
+
+```
+010
+```
+
+as pivot.
+
+Eliminate bit 1 from others.
+
+No other remaining number has bit 1.
+
+Array
+
+```
+100
+010
+001
+```
+
+```
+index = 2
+```
+
+---
+
+## Process bit = 0 (value 1)
+
+Choose
+
+```
+001
+```
+
+as pivot.
+
+No elimination needed.
+
+Final basis
+
+```
+100
+010
+001
+```
+
+(decimal: `4, 2, 1`)
+
+---
+
+## Build Answer
+
+Start
+
+```
+ans = 0
+```
+
+Take `4`
+
+```
+0 ^ 4 = 4
+
+ans = 4
+```
+
+Take `2`
+
+```
+4 ^ 2 = 6
+
+ans = 6
+```
+
+Take `1`
+
+```
+6 ^ 1 = 7
+
+ans = 7
+```
+
+Return
+
+```
+7
+```
+
+---
+
+# Why Does the Greedy Construction Work?
+
+After elimination:
+
+* Every basis element has a unique highest set bit.
+* No basis element can be formed by XOR-ing the others (they are linearly independent over GF(2)).
+* Processing from higher bits to lower bits ensures that whenever `ans ^ num` is larger, taking `num` improves the result without preventing a better solution later.
+
+This is the same principle as Gaussian elimination for linear equations, but with XOR instead of addition.
+
+---
+
+# Complexity Analysis
+
+## Brute Force
+
+### Time Complexity
+
+* Number of subsets = `2^n`
+* XOR computation per subset = `O(n)`
+
+**Total:**
+
+```
+O(n × 2^n)
+```
+
+---
+
+### Space Complexity
+
+Only a few variables are used.
+
+```
+O(1)
+```
+
+---
+
+## Optimal (XOR Basis)
+
+Let `B` be the number of bits. Here, `B ≈ 32` (or generally `log₂(max(arr[i]))`).
+
+### Time Complexity
+
+* We process each bit.
+* For each bit, we may scan the array and eliminate that bit from other numbers.
+
+```
+O(B × n)
+```
+
+Since
+
+```
+B = log₂(max(arr[i]))
+```
+
+the complexity is
+
+```
+O(n × log(max(arr[i])))
+```
+
+For the given constraints (`arr[i] ≤ 10^6`), `log₂(10^6) ≈ 20`, so this is effectively linear in `n`.
+
+---
+
+### Space Complexity
+
+The algorithm modifies the array in place and uses only a few extra variables.
+
+```
+O(1)
+```
+
+---
+
+# Pattern to Recognize
+
+Whenever you see:
+
+* **Maximum XOR**
+* **Subset XOR**
+* **Linear independence under XOR**
+* **Optimize XOR value**
+* Constraints like `n = 10^5`
+
+think of **XOR Basis (Linear Basis / Gaussian Elimination over GF(2))**, which is the standard optimal technique for this class of problems.
