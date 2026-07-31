@@ -1,0 +1,1050 @@
+This is one of the hardest DP + Bitmask problems on GFG. The trick is that **arr[i] ≤ 30**, which is much more important than **n ≤ 10^5**.
+
+---
+
+# Problem Understanding
+
+You are given an array.
+
+You have to count all subsets such that
+
+> Product of all numbers in that subset can be written as multiplication of **distinct primes only**.
+
+That means
+
+Every prime can appear **at most once** in the final product.
+
+Example
+
+```
+6 = 2 × 3      ✅ valid
+
+30 = 2 × 3 × 5 ✅ valid
+
+4 = 2 × 2      ❌ invalid
+
+12 = 2 × 2 × 3 ❌ invalid
+
+18 = 2 × 3 × 3 ❌ invalid
+
+8 = 2 × 2 × 2 ❌ invalid
+```
+
+So repeated prime factors are NOT allowed.
+
+---
+
+# Observation 1
+
+Since
+
+```
+arr[i] ≤ 30
+```
+
+Let's write prime factorization of every number.
+
+```
+2 = 2
+
+3 = 3
+
+4 = 2² ❌
+
+5 = 5
+
+6 = 2×3
+
+7 = 7
+
+8 = 2³ ❌
+
+9 = 3² ❌
+
+10 = 2×5
+
+12 = 2²×3 ❌
+```
+
+Immediately we notice
+
+Many numbers are already impossible.
+
+Example
+
+```
+4
+
+8
+
+9
+
+12
+
+18
+
+20
+
+24
+
+27
+
+28...
+```
+
+These numbers already contain repeated primes.
+
+If a subset contains one of them,
+
+it can never become valid.
+
+So we completely ignore them.
+
+---
+
+# Observation 2
+
+There are only 10 primes ≤30
+
+```
+2
+3
+5
+7
+11
+13
+17
+19
+23
+29
+```
+
+Only 10 primes.
+
+This is the biggest hint.
+
+Let's assign each prime one bit.
+
+| Prime | Bit |
+| ----- | --- |
+| 2     | 0   |
+| 3     | 1   |
+| 5     | 2   |
+| 7     | 3   |
+| 11    | 4   |
+| 13    | 5   |
+| 17    | 6   |
+| 19    | 7   |
+| 23    | 8   |
+| 29    | 9   |
+
+Now every valid number can be represented by a bitmask.
+
+Example
+
+```
+2
+```
+
+mask
+
+```
+0000000001
+```
+
+---
+
+```
+3
+```
+
+mask
+
+```
+0000000010
+```
+
+---
+
+```
+6 = 2×3
+```
+
+mask
+
+```
+0000000011
+```
+
+---
+
+```
+30=2×3×5
+```
+
+mask
+
+```
+0000000111
+```
+
+---
+
+# Observation 3
+
+Suppose we already selected
+
+```
+6
+```
+
+mask
+
+```
+0011
+```
+
+Now we want
+
+```
+10
+```
+
+mask
+
+```
+0101
+```
+
+Both contain prime 2.
+
+```
+0011
+0101
+----
+0001
+```
+
+AND ≠ 0
+
+means repeated prime.
+
+Cannot take.
+
+---
+
+Suppose
+
+Current
+
+```
+6
+
+0011
+```
+
+Take
+
+```
+5
+
+0100
+```
+
+```
+0011
+0100
+-----
+0000
+```
+
+Safe.
+
+New mask
+
+```
+0011 | 0100
+
+0111
+```
+
+---
+
+This is exactly Bitmask DP.
+
+---
+
+# Brute Force Solution
+
+## Idea
+
+Generate every subset.
+
+For each subset
+
+calculate product
+
+factorize product
+
+check if every prime appears once.
+
+If yes
+
+answer++
+
+---
+
+## Algorithm
+
+```
+Generate all subsets
+
+For every subset
+
+      compute product
+
+      factorize
+
+      if any prime count>1
+
+             invalid
+
+      else
+
+             answer++
+```
+
+---
+
+# Brute Force Code (Python)
+
+```python
+class Solution:
+    MOD = 10**9 + 7
+
+    def prime_ok(self, product):
+        p = 2
+
+        while p * p <= product:
+            cnt = 0
+
+            while product % p == 0:
+                cnt += 1
+                product //= p
+
+            if cnt > 1:
+                return False
+
+            p += 1
+
+        return True
+
+    def goodSubsets(self, arr):
+        n = len(arr)
+
+        ans = 0
+
+        for mask in range(1, 1 << n):
+
+            prod = 1
+
+            for i in range(n):
+                if mask & (1 << i):
+                    prod *= arr[i]
+
+            if self.prime_ok(prod):
+                ans += 1
+
+        return ans
+```
+
+---
+
+# Brute Force Dry Run
+
+Example
+
+```
+[2,3]
+```
+
+Subsets
+
+```
+{}
+
+ignore
+```
+
+---
+
+```
+{2}
+
+product=2
+
+valid
+
+ans=1
+```
+
+---
+
+```
+{3}
+
+product=3
+
+valid
+
+ans=2
+```
+
+---
+
+```
+{2,3}
+
+product=6
+
+2×3
+
+valid
+
+ans=3
+```
+
+Return
+
+```
+3
+```
+
+---
+
+# Brute Force Complexity
+
+Generate subsets
+
+```
+2^N
+```
+
+Every subset
+
+```
+N
+```
+
+Factorization
+
+```
+√product
+```
+
+Overall
+
+```
+O(2^N × N)
+```
+
+Impossible.
+
+---
+
+# Optimal Solution
+
+The constraints
+
+```
+N=100000
+```
+
+make subset generation impossible.
+
+Need DP.
+
+---
+
+# Step 1
+
+Prime list
+
+```
+2
+3
+5
+7
+11
+13
+17
+19
+23
+29
+```
+
+---
+
+# Step 2
+
+Create mask for every number.
+
+Example
+
+```
+6
+
+2×3
+
+mask
+
+0011
+```
+
+---
+
+```
+10
+
+2×5
+
+0101
+```
+
+---
+
+```
+15
+
+3×5
+
+0110
+```
+
+---
+
+Numbers like
+
+```
+4
+
+8
+
+9
+
+12
+
+18
+```
+
+have repeated primes
+
+ignore them.
+
+---
+
+# Step 3
+
+Special treatment of 1
+
+```
+1 has no prime.
+```
+
+It never conflicts.
+
+Example
+
+```
+{2}
+
+valid
+
+{1,2}
+
+also valid
+```
+
+If there are
+
+```
+k ones
+```
+
+Each valid subset can include
+
+or exclude
+
+every one.
+
+Hence
+
+multiply answer by
+
+```
+2^k
+```
+
+at the end.
+
+---
+
+# DP State
+
+```
+dp[mask]
+
+=
+
+number of ways
+```
+
+mask represents used primes.
+
+Initially
+
+```
+dp[0]=1
+```
+
+means
+
+empty subset.
+
+---
+
+# Transition
+
+Suppose
+
+Current mask
+
+```
+0011
+```
+
+Current number
+
+```
+10
+
+mask=0101
+```
+
+Conflict?
+
+```
+0011 & 0101
+
+0001
+
+!=0
+
+cannot
+```
+
+---
+
+Suppose
+
+Current mask
+
+```
+0010
+```
+
+Current
+
+```
+5
+
+0100
+```
+
+```
+0010&0100
+
+0000
+```
+
+Take it.
+
+New mask
+
+```
+0110
+```
+
+Update
+
+```
+dp[0110]+=dp[0010]
+```
+
+---
+
+Always iterate masks backwards
+
+so one number isn't reused in the same iteration.
+
+---
+
+# Complete Optimal Code
+
+```python
+class Solution:
+    def goodSubsets(self, arr):
+        MOD = 10**9 + 7
+
+        primes = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29]
+
+        # Count frequency of every value (1..30)
+        freq = [0] * 31
+        for x in arr:
+            freq[x] += 1
+
+        # mask[num] = bitmask of distinct prime factors
+        # -1 means number has repeated prime factors (invalid)
+        masks = [-1] * 31
+
+        for num in range(2, 31):
+            x = num
+            mask = 0
+            valid = True
+
+            for i, p in enumerate(primes):
+                cnt = 0
+                while x % p == 0:
+                    cnt += 1
+                    x //= p
+
+                if cnt > 1:
+                    valid = False
+                    break
+
+                if cnt == 1:
+                    mask |= (1 << i)
+
+            if valid:
+                masks[num] = mask
+
+        dp = [0] * (1 << 10)
+        dp[0] = 1
+
+        for num in range(2, 31):
+
+            if freq[num] == 0:
+                continue
+
+            if masks[num] == -1:
+                continue
+
+            m = masks[num]
+
+            for state in range((1 << 10) - 1, -1, -1):
+
+                if state & m:
+                    continue
+
+                dp[state | m] = (
+                    dp[state | m] +
+                    dp[state] * freq[num]
+                ) % MOD
+
+        ans = sum(dp[1:]) % MOD
+
+        ans = ans * pow(2, freq[1], MOD)
+
+        return ans % MOD
+```
+
+---
+
+# Complete Dry Run
+
+Input
+
+```
+[1,2,3,4]
+```
+
+Frequency
+
+```
+1→1
+
+2→1
+
+3→1
+
+4→1
+```
+
+Ignore
+
+```
+4
+
+because
+
+2²
+```
+
+Initial
+
+```
+dp[0]=1
+```
+
+---
+
+Process
+
+```
+2
+
+mask=0000000001
+```
+
+```
+dp[1]=1
+```
+
+---
+
+Process
+
+```
+3
+
+mask=0000000010
+```
+
+From
+
+```
+dp[0]
+
+↓
+
+dp[2]=1
+```
+
+From
+
+```
+dp[1]
+
+↓
+
+dp[3]=1
+```
+
+Now
+
+```
+mask0=1
+
+mask1=1
+
+mask2=1
+
+mask3=1
+```
+
+---
+
+Sum except mask0
+
+```
+1+1+1
+
+=3
+```
+
+There is
+
+```
+one 1
+```
+
+Multiply
+
+```
+2¹
+
+=2
+```
+
+Final
+
+```
+3×2
+
+=6
+```
+
+Correct.
+
+---
+
+# Why Multiply by Frequency?
+
+Suppose
+
+```
+arr
+
+[2,2,3]
+```
+
+Frequency
+
+```
+2→2
+
+3→1
+```
+
+For number
+
+```
+2
+```
+
+there are
+
+```
+2
+
+different indices
+```
+
+Choosing first
+
+or
+
+second
+
+produces different subsets.
+
+Hence
+
+```
+dp[new]+=dp[old]*freq[num]
+```
+
+---
+
+Example
+
+```
+{2(first)}
+
+{2(second)}
+```
+
+Both counted separately.
+
+---
+
+# Why Backward DP?
+
+Suppose
+
+```
+dp
+```
+
+is updated left-to-right.
+
+Current number
+
+```
+2
+```
+
+might be added twice in one iteration.
+
+Backward iteration guarantees that each occurrence value (represented by its frequency multiplier) is considered only once per transition, preserving the 0/1 subset property for each distinct value.
+
+---
+
+# Time Complexity
+
+## Brute Force
+
+Generating subsets:
+
+```
+O(2^N)
+```
+
+Checking each subset:
+
+```
+O(N)
+```
+
+Overall:
+
+```
+O(2^N × N)
+```
+
+Space:
+
+```
+O(1)
+```
+
+(ignoring recursion/temporary storage)
+
+---
+
+## Optimal
+
+* Count frequencies: **O(N)**
+* Build masks for numbers 2..30: **O(30 × 10)** = **O(1)**
+* DP: There are only **30 values** and **2¹⁰ = 1024** states.
+
+So:
+
+```
+O(N + 30 × 1024)
+≈ O(N)
+```
+
+Since 30 and 1024 are constants, this easily satisfies the expected **O(n log n)** (and is effectively linear for the given constraints).
+
+Space:
+
+```
+Frequency array : O(31)
+DP array        : O(1024)
+Masks           : O(31)
+
+Total = O(1)
+```
+
+because all auxiliary arrays have fixed size independent of `N`.
+
+---
+
+## Pattern to Remember
+
+This problem is a classic example of **DP on Prime Factor Bitmasks**.
+
+Whenever you see:
+
+* `arr[i]` is very small (like ≤ 30 or ≤ 70),
+* the condition depends on **prime factors**,
+* primes must be **distinct / non-overlapping**,
+
+think of this approach:
+
+1. Ignore numbers with repeated prime factors (square-free check).
+2. Convert each valid number into a **prime bitmask**.
+3. Use `dp[mask]` where `mask` represents the set of primes already used.
+4. Transition only if `(mask & newMask) == 0`.
+5. Handle `1`s separately by multiplying the final answer by `2^(count of 1s)`.
