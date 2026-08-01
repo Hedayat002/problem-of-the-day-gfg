@@ -1,0 +1,1035 @@
+# Max After m Range Increments (GFG)
+
+## Problem Understanding
+
+You are given an array `arr` of size `n`.
+
+Initially,
+
+```text
+arr = [0, 0, 0, ..., 0]
+```
+
+You are also given `m` operations.
+
+Each operation is:
+
+```text
+Increment(a[i], b[i], k[i])
+
+Meaning:
+
+Add k[i] to every index from a[i] to b[i] (inclusive).
+```
+
+After performing **all operations**, return the **maximum value** present in the array.
+
+---
+
+## Example
+
+```
+n = 5
+
+a = [0,1,2]
+b = [1,4,3]
+k = [100,100,100]
+```
+
+Initially
+
+```
+0 0 0 0 0
+```
+
+Operation 1
+
+```
+add 100 from index 0 to 1
+
+100 100 0 0 0
+```
+
+Operation 2
+
+```
+add 100 from index 1 to 4
+
+100 200 100 100 100
+```
+
+Operation 3
+
+```
+add 100 from index 2 to 3
+
+100 200 200 200 100
+```
+
+Maximum = **200**
+
+---
+
+# Brute Force Solution
+
+## Idea
+
+For every operation,
+
+```
+Increment(a,b,k)
+
+visit every index from a to b
+
+arr[index] += k
+```
+
+Finally,
+
+find the maximum element.
+
+---
+
+## Step-by-Step Logic
+
+Suppose
+
+```
+arr
+
+0 0 0 0 0
+```
+
+Operation
+
+```
+(1,4,100)
+```
+
+Loop
+
+```
+for j = 1 to 4
+
+arr[1]+=100
+arr[2]+=100
+arr[3]+=100
+arr[4]+=100
+```
+
+Do this for every query.
+
+Finally,
+
+```
+return max(arr)
+```
+
+Very straightforward.
+
+---
+
+# Brute Force Code (Python)
+
+```python
+class Solution:
+    def maxValue(self, n, a, b, k):
+
+        arr = [0] * n
+
+        m = len(a)
+
+        for i in range(m):
+
+            for j in range(a[i], b[i] + 1):
+                arr[j] += k[i]
+
+        return max(arr)
+```
+
+---
+
+# Code Explanation
+
+### Create array
+
+```python
+arr = [0] * n
+```
+
+Initially
+
+```
+0 0 0 0 0
+```
+
+---
+
+### Traverse every operation
+
+```python
+for i in range(m):
+```
+
+Suppose
+
+```
+a = [0,1,2]
+b = [1,4,3]
+```
+
+Loop
+
+```
+Operation 1
+
+Operation 2
+
+Operation 3
+```
+
+---
+
+### Visit complete range
+
+```python
+for j in range(a[i], b[i] + 1):
+```
+
+If
+
+```
+a=1
+b=4
+```
+
+Loop becomes
+
+```
+j=1
+j=2
+j=3
+j=4
+```
+
+---
+
+### Increment
+
+```python
+arr[j] += k[i]
+```
+
+Example
+
+Before
+
+```
+100 100 0 0 0
+```
+
+Operation
+
+```
+(1,4,100)
+```
+
+After
+
+```
+100 200 100 100 100
+```
+
+---
+
+### Return answer
+
+```python
+return max(arr)
+```
+
+---
+
+# Complete Dry Run (Brute Force)
+
+Example
+
+```
+n=5
+
+a=[0,1,2]
+b=[1,4,3]
+k=[100,100,100]
+```
+
+Initially
+
+```
+arr
+
+0 0 0 0 0
+```
+
+---
+
+Operation 1
+
+```
+0 ->1
+```
+
+Index 0
+
+```
+100 0 0 0 0
+```
+
+Index1
+
+```
+100 100 0 0 0
+```
+
+---
+
+Operation2
+
+```
+1->4
+```
+
+Index1
+
+```
+100 200 0 0 0
+```
+
+Index2
+
+```
+100 200 100 0 0
+```
+
+Index3
+
+```
+100 200 100 100 0
+```
+
+Index4
+
+```
+100 200 100 100 100
+```
+
+---
+
+Operation3
+
+```
+2->3
+```
+
+Index2
+
+```
+100 200 200 100 100
+```
+
+Index3
+
+```
+100 200 200 200 100
+```
+
+Maximum
+
+```
+200
+```
+
+Correct.
+
+---
+
+# Problem with Brute Force
+
+Suppose
+
+```
+n = 1000000
+m = 1000000
+```
+
+Each operation may update almost all elements.
+
+Worst case
+
+```
+10^6 × 10^6
+
+=10^12 operations
+```
+
+Impossible.
+
+Need something smarter.
+
+---
+
+# Optimal Solution (Difference Array / Prefix Sum)
+
+This is a classic **Difference Array** problem.
+
+## Key Observation
+
+Instead of updating every element in the range,
+
+we only mark:
+
+* where the increment **starts**
+* where the increment **ends**
+
+Later, one prefix sum reconstructs the final array.
+
+---
+
+## Difference Array Concept
+
+Suppose
+
+```
+arr
+
+0 0 0 0 0
+```
+
+Need
+
+```
+Add 100 from 1 to 3
+```
+
+Instead of
+
+```
+100 updates
+```
+
+(or multiple element updates)
+
+Do
+
+```
+diff[1]+=100
+diff[4]-=100
+```
+
+because
+
+```
+4 = end + 1
+```
+
+Difference array becomes
+
+```
+0 100 0 0 -100
+```
+
+Now take prefix sum.
+
+```
+Index0
+
+0
+```
+
+Index1
+
+```
+0+100=100
+```
+
+Index2
+
+```
+100+0=100
+```
+
+Index3
+
+```
+100+0=100
+```
+
+Index4
+
+```
+100-100=0
+```
+
+Final
+
+```
+0 100 100 100 0
+```
+
+Exactly same answer.
+
+---
+
+# Why does this work?
+
+Think of it like turning a water tap on and off.
+
+Suppose
+
+```
++100 starts at index 2
+```
+
+Write
+
+```
+diff[2]+=100
+```
+
+Meaning
+
+> From here onward, every prefix should contain +100.
+
+Now,
+
+where should it stop?
+
+Suppose range ends at
+
+```
+5
+```
+
+Then at
+
+```
+6
+```
+
+subtract it.
+
+```
+diff[6]-=100
+```
+
+So prefix automatically removes it after index 5.
+
+---
+
+# Algorithm
+
+For every operation
+
+```
+(l,r,val)
+```
+
+Do
+
+```
+diff[l]+=val
+
+if r+1<n:
+      diff[r+1]-=val
+```
+
+After processing every query,
+
+take prefix sum.
+
+During prefix,
+
+track maximum.
+
+Done.
+
+---
+
+# Optimal Code (Python)
+
+```python
+class Solution:
+    def maxValue(self, n, a, b, k):
+
+        diff = [0] * (n + 1)
+
+        m = len(a)
+
+        for i in range(m):
+
+            diff[a[i]] += k[i]
+
+            if b[i] + 1 < n:
+                diff[b[i] + 1] -= k[i]
+
+        curr = 0
+        ans = 0
+
+        for i in range(n):
+            curr += diff[i]
+            ans = max(ans, curr)
+
+        return ans
+```
+
+---
+
+# Code Explanation
+
+## Step 1
+
+```python
+diff = [0] * (n + 1)
+```
+
+Difference array.
+
+Extra space avoids out-of-bound when checking `b[i] + 1`.
+
+---
+
+## Step 2
+
+Process every operation
+
+```python
+for i in range(m):
+```
+
+---
+
+### Start increment
+
+```python
+diff[a[i]] += k[i]
+```
+
+Example
+
+```
+(1,4,100)
+```
+
+becomes
+
+```
+diff[1]+=100
+```
+
+---
+
+### Stop increment
+
+```python
+if b[i]+1<n:
+    diff[b[i]+1]-=k[i]
+```
+
+Suppose
+
+```
+1→4
+```
+
+Then
+
+```
+diff[5]-=100
+```
+
+If index exists.
+
+---
+
+## Step 3
+
+Create prefix sum
+
+```python
+curr += diff[i]
+```
+
+Current prefix value equals the final value of `arr[i]`.
+
+---
+
+## Step 4
+
+Track maximum
+
+```python
+ans = max(ans, curr)
+```
+
+No need to build the actual array separately.
+
+---
+
+## Step 5
+
+Return answer
+
+```python
+return ans
+```
+
+---
+
+# Full Dry Run (Optimal)
+
+Input
+
+```
+n=5
+
+a=[0,1,2]
+b=[1,4,3]
+k=[100,100,100]
+```
+
+Difference array
+
+```
+0 0 0 0 0 0
+```
+
+(Size = n+1)
+
+---
+
+Operation1
+
+```
+0→1 +100
+```
+
+Start
+
+```
+diff[0]+=100
+```
+
+```
+100 0 0 0 0 0
+```
+
+Stop
+
+```
+diff[2]-=100
+```
+
+```
+100 0 -100 0 0 0
+```
+
+---
+
+Operation2
+
+```
+1→4 +100
+```
+
+Start
+
+```
+diff[1]+=100
+```
+
+```
+100 100 -100 0 0 0
+```
+
+Stop
+
+```
+r+1=5
+
+5<n ?
+
+No
+
+Nothing.
+```
+
+---
+
+Operation3
+
+```
+2→3 +100
+```
+
+Start
+
+```
+diff[2]+=100
+```
+
+```
+100 100 0 0 0 0
+```
+
+Stop
+
+```
+diff[4]-=100
+```
+
+```
+100 100 0 0 -100 0
+```
+
+Final Difference Array
+
+```
+Index
+
+0 1 2 3 4
+
+Diff
+
+100 100 0 0 -100
+```
+
+---
+
+## Prefix Sum Construction
+
+Start
+
+```
+curr=0
+ans=0
+```
+
+### i=0
+
+```
+curr=100
+
+ans=100
+```
+
+Array becomes
+
+```
+100
+```
+
+---
+
+### i=1
+
+```
+curr=200
+
+ans=200
+```
+
+Array
+
+```
+100 200
+```
+
+---
+
+### i=2
+
+```
+curr=200
+
+ans=200
+```
+
+Array
+
+```
+100 200 200
+```
+
+---
+
+### i=3
+
+```
+curr=200
+
+ans=200
+```
+
+Array
+
+```
+100 200 200 200
+```
+
+---
+
+### i=4
+
+```
+curr=100
+
+ans=200
+```
+
+Array
+
+```
+100 200 200 200 100
+```
+
+Final array
+
+```
+100 200 200 200 100
+```
+
+Maximum
+
+```
+200
+```
+
+Correct.
+
+---
+
+# Visualization
+
+Suppose
+
+```
+Range
+
+2 -------- 6
+```
+
+Instead of
+
+```
+0 0 5 5 5 5 5 0
+```
+
+Store only
+
+```
+Index
+
+2     7
+
++5   -5
+```
+
+```
+0 0 +5 0 0 0 0 -5
+```
+
+Prefix automatically expands it into
+
+```
+0 0 5 5 5 5 5 0
+```
+
+This is the power of the **Difference Array**.
+
+---
+
+# Why is the Difference Array Efficient?
+
+The naive approach touches **every element** in each range. If a range has length (L), that operation costs **O(L)**.
+
+With a difference array, every range update always performs only **two assignments**:
+
+* `diff[l] += val`
+* `diff[r + 1] -= val` (if `r + 1` is inside the array)
+
+So **each update is O(1)**, regardless of the range length.
+
+After all updates, a **single prefix sum** reconstructs the final values in **O(n)**.
+
+---
+
+# Time & Space Complexity
+
+## Brute Force
+
+### Time Complexity
+
+For each of the `m` operations, you may update up to `n` elements.
+
+**Worst Case:** `O(m × n)`
+
+### Space Complexity
+
+The array of size `n` is stored.
+
+**Space:** `O(n)`
+
+---
+
+## Optimal (Difference Array)
+
+### Time Complexity
+
+* Process all `m` updates: **O(m)**
+* Prefix sum over `n` elements: **O(n)**
+
+**Total:** `O(n + m)`
+
+### Space Complexity
+
+Difference array of size `n + 1`.
+
+**Space:** `O(n)`
+
+---
+
+# Comparison
+
+| Approach         |       Range Update | Build Final Array |                Total Time | Space |
+| ---------------- | -----------------: | ----------------: | ------------------------: | ----: |
+| Brute Force      | O(length of range) |     Already built | **O(m × n)** (worst case) |  O(n) |
+| Difference Array |               O(1) |   O(n) prefix sum |              **O(n + m)** |  O(n) |
+
+---
+
+# Pattern to Remember
+
+Whenever you see:
+
+* Many **range increment/decrement** operations
+* Final array required after all updates
+* Maximum/minimum/sum after all updates
+
+think of the **Difference Array + Prefix Sum** technique.
+
+Typical pattern:
+
+```python
+# Start the effect
+diff[l] += val
+
+# End the effect
+if r + 1 < n:
+    diff[r + 1] -= val
+
+# Build the final values
+curr = 0
+for i in range(n):
+    curr += diff[i]
+```
+
+This is a standard and very common optimization for range update problems.
