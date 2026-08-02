@@ -1,0 +1,825 @@
+## 1. Problem Understanding (Simple Words)
+
+We need to create an array of size **n**.
+
+Each element can be any number from **1 to m**.
+
+The condition is:
+
+For every adjacent pair,
+
+* `Ai` divides `Ai+1`
+  **OR**
+* `Ai+1` divides `Ai`
+
+In other words,
+
+```
+Ai % Ai+1 == 0
+OR
+Ai+1 % Ai == 0
+```
+
+We have to count **all possible valid arrays**.
+
+---
+
+## Example
+
+```
+n = 3
+m = 3
+```
+
+Possible numbers are
+
+```
+1 2 3
+```
+
+Valid array
+
+```
+[2,1,3]
+
+2 and 1
+2 % 1 == 0 ✓
+
+1 and 3
+3 % 1 == 0 ✓
+
+Valid
+```
+
+Invalid array
+
+```
+[2,3,2]
+
+2 and 3
+
+2 % 3 !=0
+3 % 2 !=0
+
+Fails immediately.
+```
+
+---
+
+# Brute Force Approach (Recursion)
+
+## Intuition
+
+Generate **every possible array**.
+
+Whenever we choose a new element,
+
+check whether it satisfies the divisibility condition with the previous element.
+
+If yes
+
+continue recursion.
+
+Otherwise
+
+ignore that branch.
+
+No memoization is used.
+
+---
+
+## Logic
+
+At every index
+
+```
+Try every number from 1 to m.
+```
+
+If
+
+```
+curr divides prev
+OR
+prev divides curr
+```
+
+then
+
+```
+move to next index.
+```
+
+When
+
+```
+index == n
+```
+
+one valid array has been formed.
+
+Return 1.
+
+---
+
+## Brute Force Code (Without DP)
+
+```python
+class Solution:
+    def count(self, n: int, m: int) -> int:
+
+        def solve(idx, prev):
+
+            # Completed one valid array
+            if idx == n:
+                return 1
+
+            ans = 0
+
+            # Try every possible number
+            for curr in range(1, m + 1):
+
+                if curr % prev == 0 or prev % curr == 0:
+                    ans += solve(idx + 1, curr)
+
+            return ans
+
+        ans = 0
+
+        # Choose first element
+        for first in range(1, m + 1):
+            ans += solve(1, first)
+
+        return ans
+```
+
+---
+
+# Code Explanation
+
+Initially
+
+```
+first = 1
+```
+
+Now recursion becomes
+
+```
+solve(1,1)
+```
+
+Meaning
+
+```
+Current index = 1
+Previous number = 1
+```
+
+Now choose every possible next element.
+
+```
+1
+2
+3
+...
+m
+```
+
+Whenever condition satisfies
+
+continue recursion.
+
+When
+
+```
+idx == n
+```
+
+one valid array is completed.
+
+Return
+
+```
+1
+```
+
+All returned ones are added together.
+
+---
+
+# Complete Dry Run
+
+Take
+
+```
+n = 3
+m = 3
+```
+
+Available numbers
+
+```
+1 2 3
+```
+
+---
+
+### Start
+
+```
+ans = 0
+```
+
+Choose first element
+
+---
+
+## First = 1
+
+Current array
+
+```
+[1]
+```
+
+Call
+
+```
+solve(1,1)
+```
+
+Possible second elements
+
+```
+1
+2
+3
+```
+
+All are valid because
+
+```
+1 divides every number
+```
+
+---
+
+### Choose second = 1
+
+Array
+
+```
+[1,1]
+```
+
+Third element
+
+```
+1
+2
+3
+```
+
+All valid
+
+Arrays
+
+```
+[1,1,1]
+[1,1,2]
+[1,1,3]
+```
+
+Return
+
+```
+3
+```
+
+---
+
+### Choose second = 2
+
+Array
+
+```
+[1,2]
+```
+
+Third choices
+
+```
+1 ✓
+2 ✓
+3 ✗
+```
+
+Arrays
+
+```
+[1,2,1]
+[1,2,2]
+```
+
+Return
+
+```
+2
+```
+
+---
+
+### Choose second = 3
+
+Array
+
+```
+[1,3]
+```
+
+Third choices
+
+```
+1 ✓
+2 ✗
+3 ✓
+```
+
+Arrays
+
+```
+[1,3,1]
+[1,3,3]
+```
+
+Return
+
+```
+2
+```
+
+Total from first element
+
+```
+3+2+2=7
+```
+
+---
+
+## First = 2
+
+Current
+
+```
+[2]
+```
+
+Second choices
+
+```
+1 ✓
+2 ✓
+3 ✗
+```
+
+---
+
+Second=1
+
+Third
+
+```
+1
+2
+3
+```
+
+All valid
+
+```
+3 arrays
+```
+
+---
+
+Second=2
+
+Third
+
+```
+1 ✓
+2 ✓
+3 ✗
+```
+
+```
+2 arrays
+```
+
+Total
+
+```
+5
+```
+
+---
+
+## First = 3
+
+Similarly
+
+```
+5 arrays
+```
+
+---
+
+Final
+
+```
+7+5+5
+
+=17
+```
+
+Answer
+
+```
+17
+```
+
+Matches output.
+
+---
+
+# Why is this Slow?
+
+Suppose
+
+```
+n = 10
+m = 10
+```
+
+Every level
+
+tries
+
+```
+10 choices
+```
+
+Tree looks like
+
+```
+            10
+         / / | \
+       10 10 10...
+      / / |
+    10...
+```
+
+Worst case
+
+```
+10 × 10 × 10 × ...
+
+=10^10 possibilities
+```
+
+Huge.
+
+Also,
+
+the same recursive state gets solved repeatedly.
+
+Example
+
+```
+solve(2,3)
+```
+
+may be reached from multiple different paths, and each time it recomputes all its descendants.
+
+---
+
+# Optimal Approach (DP + Memoization)
+
+## Observation
+
+Notice that the future only depends on:
+
+* current index (`idx`)
+* previous value (`prev`)
+
+It **does not depend on how we reached this state**.
+
+So if we have already computed:
+
+```
+solve(idx, prev)
+```
+
+we can store the result and reuse it.
+
+This is exactly what memoization (DP) does.
+
+---
+
+## DP State
+
+```
+dp[idx][prev]
+```
+
+Meaning:
+
+> Number of valid arrays that can be formed starting from position `idx`, when the previous chosen value is `prev`.
+
+If `dp[idx][prev]` is already computed, return it directly instead of exploring again.
+
+---
+
+## Optimal Code
+
+```python
+class Solution:
+    def count(self, n: int, m: int) -> int:
+        if n == 1:
+            return m
+
+        dp = [[-1] * (m + 1) for _ in range(n + 1)]
+
+        def solve(idx, prev):
+
+            if idx == n:
+                return 1
+
+            if dp[idx][prev] != -1:
+                return dp[idx][prev]
+
+            ans = 0
+
+            for curr in range(1, m + 1):
+                if curr % prev == 0 or prev % curr == 0:
+                    ans += solve(idx + 1, curr)
+
+            dp[idx][prev] = ans
+            return ans
+
+        ans = 0
+
+        for first in range(1, m + 1):
+            ans += solve(1, first)
+
+        return ans
+```
+
+---
+
+# DP Code Explanation
+
+Initially
+
+```
+first = 1
+```
+
+Call
+
+```
+solve(1,1)
+```
+
+Suppose during recursion we compute
+
+```
+solve(2,2)
+```
+
+Later another path also reaches
+
+```
+solve(2,2)
+```
+
+Without DP
+
+```
+Compute again.
+```
+
+With DP
+
+```
+Return dp[2][2].
+```
+
+So each `(idx, prev)` state is solved only once.
+
+---
+
+# DP Dry Run (Key Memoization)
+
+Take
+
+```
+n = 3
+m = 3
+```
+
+From
+
+```
+[1,2]
+```
+
+we call
+
+```
+solve(2,2)
+```
+
+It computes
+
+```
+2
+```
+
+Store
+
+```
+dp[2][2]=2
+```
+
+Later another path also reaches
+
+```
+solve(2,2)
+```
+
+Instead of exploring:
+
+```
+2→1
+2→2
+```
+
+again,
+
+it simply returns
+
+```
+dp[2][2]
+
+=2
+```
+
+This eliminates repeated work.
+
+---
+
+# Time Complexity
+
+## Brute Force
+
+At every position, we try up to `m` values.
+
+Worst case:
+
+```
+Time = O(m^n)
+```
+
+For `n = 11`, `m = 11`, that's about `11^11`, which is infeasible.
+
+Space (recursion stack):
+
+```
+O(n)
+```
+
+---
+
+## DP + Memoization
+
+There are at most:
+
+* `n` possible indices
+* `m` possible previous values
+
+So the number of states is:
+
+```
+n × m
+```
+
+For each state, we try all `m` possible current values.
+
+Time:
+
+```
+O(n × m × m)
+```
+
+With the given constraints (`m ≤ 11`), this is very fast. The expected complexity is often written as `O(n × m × log m)` when valid transitions are precomputed efficiently, but **for the code shown above**, the actual complexity is:
+
+```
+O(n × m²)
+```
+
+Space:
+
+```
+DP table : O(n × m)
+Recursion stack : O(n)
+
+Total : O(n × m)
+```
+
+---
+
+# Comparison
+
+| Feature                  | Brute Force | DP + Memoization                    |
+| ------------------------ | ----------- | ----------------------------------- |
+| Recomputes states        | Yes         | No                                  |
+| Uses DP table            | No          | Yes                                 |
+| Time Complexity          | `O(m^n)`    | `O(n × m²)` for this implementation |
+| Space Complexity         | `O(n)`      | `O(n × m)`                          |
+| Suitable for large input | ❌           | ✅                                   |
+
+---
+
+# Edge Cases
+
+1. **`n = 1`**
+
+   ```
+   n = 1
+   m = 10
+   ```
+
+   Every single-element array is valid.
+
+   Answer:
+
+   ```
+   10
+   ```
+
+2. **`m = 1`**
+
+   Only one number exists.
+
+   ```
+   [1,1,1,...]
+   ```
+
+   Answer:
+
+   ```
+   1
+   ```
+
+3. **All elements equal**
+
+   ```
+   [4,4,4]
+   ```
+
+   Always valid because every number divides itself.
+
+4. **Prime numbers**
+
+   For example:
+
+   ```
+   2 and 3
+   ```
+
+   Neither divides the other, so this adjacent pair is invalid.
+
+---
+
+# Common Interview Mistakes
+
+* Forgetting that a number divides itself (`x % x == 0`).
+* Checking only `prev % curr == 0` and forgetting `curr % prev == 0`.
+* Starting recursion from index `0` while also choosing the first element inside the recursion, causing duplicate counting.
+* Not memoizing `(idx, prev)`, leading to exponential time.
+
+---
+
+# Pattern
+
+This problem is a classic **Dynamic Programming on Sequences (Top-Down Memoization)** problem.
+
+The key idea is:
+
+* Build the array one element at a time.
+* The future depends only on the **current position** and the **previous value**.
+* Cache each `(idx, prev)` state to avoid recomputation.
+
+This "position + previous state" pattern appears frequently in sequence-construction DP problems.
