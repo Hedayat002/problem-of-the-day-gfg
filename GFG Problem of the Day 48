@@ -1,0 +1,473 @@
+# 🚀 Max Sum Subarray of Size at least K (GFG)
+
+## 🧠 Problem Statement (Simple Explanation)
+
+You are given an array and an integer **k**.
+
+Find the **maximum sum of any contiguous subarray whose length is at least k**.
+
+Unlike Kadane's Algorithm (which allows any length), here the subarray **must contain at least k elements**.
+
+---
+
+# Brute Force Approach
+
+## 💡 Idea
+
+Generate every possible subarray.
+
+For each subarray,
+
+* Check if its length ≥ k.
+* Compute its sum.
+* Keep the maximum.
+
+---
+
+## Python Code
+
+```python
+class Solution:
+    def maxSumWithK(self, arr, k):
+        n = len(arr)
+        ans = float('-inf')
+
+        for i in range(n):
+            curr = 0
+            for j in range(i, n):
+                curr += arr[j]
+
+                if j - i + 1 >= k:
+                    ans = max(ans, curr)
+
+        return ans
+```
+
+---
+
+## Dry Run
+
+```
+arr = [1,-2,2,-3]
+k = 3
+
+Subarrays
+
+[1] ❌
+[1,-2] ❌
+[1,-2,2] = 1 ✅
+
+[1,-2,2,-3] = -2
+
+[-2,2,-3] = -3
+
+Maximum = 1
+```
+
+---
+
+## Complexity
+
+**Time:** O(N²)
+
+**Space:** O(1)
+
+---
+
+# Optimal Approach
+
+## 💡 Intuition
+
+This problem combines:
+
+* **Sliding Window** (to maintain exactly k elements)
+* **Kadane's Idea** (to extend the window when previous prefix is positive)
+
+### Step 1
+
+Take the first **k elements**.
+
+```
+sum = sum(first k elements)
+```
+
+This is the minimum valid window.
+
+---
+
+### Step 2
+
+Now move forward.
+
+Every new element can either
+
+* simply extend the current subarray
+* or we can remove a **negative prefix** because removing negative numbers always increases the total sum.
+
+Instead of storing the whole prefix, we maintain
+
+```
+last
+```
+
+which is the sum of elements before the current k-window.
+
+Whenever
+
+```
+last < 0
+```
+
+we discard it.
+
+This is exactly Kadane's principle.
+
+---
+
+# Understanding the Variables
+
+Suppose
+
+```
+arr = [2, -5, 6, 3, 4]
+k = 2
+```
+
+Initially
+
+```
+window
+
+2 -5
+
+sum = -3
+```
+
+After adding 6
+
+```
+2 -5 6
+
+sum = 3
+
+last = 2
+```
+
+After adding 3
+
+```
+2 -5 6 3
+
+sum = 6
+
+last = 2 + (-5)
+     = -3
+```
+
+Now
+
+```
+last < 0
+```
+
+Removing it increases the answer.
+
+```
+sum = 6 - (-3)
+    = 9
+```
+
+Now the subarray becomes
+
+```
+6 3
+```
+
+and future elements can extend it.
+
+---
+
+# Algorithm
+
+1. Compute first window of size k.
+2. Store its sum.
+3. Move forward.
+4. Maintain prefix sum (`last`).
+5. If prefix becomes negative,
+   remove it.
+6. Update answer every time.
+
+---
+
+# Code
+
+```python
+class Solution:
+    def maxSumWithK(self, arr, k):
+        # Sum of first k elements
+        window_sum = sum(arr[:k])
+
+        last = 0          # Prefix sum before current window
+        j = 0
+        ans = window_sum
+
+        for i in range(k, len(arr)):
+
+            # Extend current subarray
+            window_sum += arr[i]
+
+            # Accumulate prefix
+            last += arr[j]
+            j += 1
+
+            ans = max(ans, window_sum)
+
+            # Remove negative prefix if beneficial
+            if last < 0:
+                window_sum -= last
+                ans = max(ans, window_sum)
+                last = 0
+
+        return ans
+```
+
+---
+
+# Complete Dry Run
+
+```
+arr = [1,-2,2,-3]
+k = 3
+```
+
+### Initial window
+
+```
+1 -2 2
+
+sum = 1
+
+last = 0
+
+ans = 1
+```
+
+---
+
+### Add -3
+
+```
+sum = 1 + (-3)
+
+sum = -2
+```
+
+Update prefix
+
+```
+last += 1
+
+last = 1
+```
+
+```
+ans = max(1,-2)
+
+=1
+```
+
+```
+last < 0 ?
+
+No
+```
+
+Finish.
+
+Answer
+
+```
+1
+```
+
+---
+
+## Another Dry Run
+
+```
+arr = [2,-5,6,3,4]
+k=2
+```
+
+Initial
+
+```
+2 -5
+
+sum = -3
+
+ans=-3
+
+last=0
+```
+
+---
+
+### Add 6
+
+```
+sum=3
+
+last=2
+
+ans=3
+```
+
+---
+
+### Add 3
+
+```
+sum=6
+
+last=2+(-5)
+
+=-3
+```
+
+Since
+
+```
+last<0
+```
+
+Remove it
+
+```
+sum = 6-(-3)
+
+=9
+
+last=0
+
+ans=9
+```
+
+Current best subarray
+
+```
+6 3
+```
+
+---
+
+### Add 4
+
+```
+sum=13
+
+last=6
+
+ans=13
+```
+
+Answer
+
+```
+13
+```
+
+Subarray
+
+```
+6 3 4
+```
+
+---
+
+# Why Does Removing a Negative Prefix Work?
+
+Suppose the current sum is
+
+```
+prefix + remaining
+```
+
+If
+
+```
+prefix = -8
+```
+
+then
+
+```
+remaining = 20
+
+Total = 12
+```
+
+Removing the negative prefix gives
+
+```
+20
+```
+
+which is always larger.
+
+So whenever the accumulated prefix becomes negative, it should be discarded.
+
+This is the same principle behind **Kadane's Algorithm**.
+
+---
+
+# Complexity Analysis
+
+### Brute Force
+
+* **Time:** O(N²)
+* **Space:** O(1)
+
+### Optimal
+
+* **Time:** O(N)
+* **Space:** O(1)
+
+---
+
+# Edge Cases
+
+* ✅ `k = 1` → Same as Kadane's Algorithm.
+* ✅ All elements are negative.
+* ✅ Entire array is the answer.
+* ✅ Window never removes any prefix.
+* ✅ Prefix becomes negative multiple times.
+
+---
+
+# Common Mistakes
+
+1. Forgetting to initialize the answer with the first window sum.
+2. Removing the prefix before updating the answer.
+3. Resetting `last` even when it is positive.
+4. Confusing `last` (prefix sum) with the sliding window sum.
+
+---
+
+# Interview Insight
+
+The key observation is that every valid subarray has:
+
+* a mandatory **window of at least `k` elements**, and
+* an optional **prefix** before that window.
+
+If the optional prefix contributes a negative sum, dropping it can only increase the total. This combines a fixed-size sliding window with Kadane's "discard negative prefix" idea, yielding an **O(N)** solution with **O(1)** extra space.
+
+---
+
+# Pattern
+
+* ✅ Sliding Window
+* ✅ Kadane's Algorithm
+* ✅ Prefix Sum
+* ✅ Greedy Optimization
