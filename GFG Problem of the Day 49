@@ -1,0 +1,513 @@
+# Pairs with Less Than K Diff (GFG)
+
+## Problem Understanding (Simple Words)
+
+You are given an array and an integer `k`.
+
+You need to count **how many unique pairs** `(i, j)` (`i < j`) satisfy
+
+[
+|arr[i] - arr[j]| < k
+]
+
+Only count each pair once.
+
+---
+
+# Brute Force Approach
+
+## Intuition
+
+The simplest idea is to check **every possible pair**.
+
+* Pick the first element.
+* Compare it with every element after it.
+* If the absolute difference is less than `k`, increase the answer.
+
+Since every pair is checked exactly once, this always gives the correct answer.
+
+---
+
+## Algorithm
+
+1. Initialize `count = 0`.
+
+2. Traverse every pair `(i, j)` where `i < j`.
+
+3. Compute
+
+   ```
+   abs(arr[i] - arr[j])
+   ```
+
+4. If it is smaller than `k`, increment count.
+
+5. Return count.
+
+---
+
+## Python Code
+
+```python
+class Solution:
+    def countPairs(self, arr: list[int], k: int) -> int:
+        n = len(arr)
+        cnt = 0
+
+        for i in range(n):
+            for j in range(i + 1, n):
+                if abs(arr[i] - arr[j]) < k:
+                    cnt += 1
+
+        return cnt
+```
+
+---
+
+## Code Explanation
+
+Outer loop selects the first element.
+
+```python
+for i in range(n):
+```
+
+Inner loop selects every remaining element.
+
+```python
+for j in range(i+1, n):
+```
+
+Check the absolute difference.
+
+```python
+abs(arr[i]-arr[j])
+```
+
+If valid,
+
+```python
+cnt += 1
+```
+
+Finally return the total count.
+
+---
+
+## Dry Run
+
+### Input
+
+```text
+arr = [1,10,4,2]
+k = 3
+```
+
+Pairs checked:
+
+| Pair   | Difference | Valid?            |
+| ------ | ---------- | ----------------- |
+| (1,10) | 9          | ❌                 |
+| (1,4)  | 3          | ❌ (strictly less) |
+| (1,2)  | 1          | ✅                 |
+| (10,4) | 6          | ❌                 |
+| (10,2) | 8          | ❌                 |
+| (4,2)  | 2          | ✅                 |
+
+Answer
+
+```
+2
+```
+
+---
+
+## Complexity
+
+**Time**
+
+[
+O(n^2)
+]
+
+**Space**
+
+[
+O(1)
+]
+
+---
+
+# Optimal Approach (Sorting + Two Pointers)
+
+## Intuition
+
+Checking every pair is expensive.
+
+Notice something important:
+
+If the array is sorted,
+
+```
+1 2 4 10
+```
+
+Suppose we're at index `right`.
+
+If
+
+```
+arr[right] - arr[left] < k
+```
+
+then every element between `left` and `right-1` also forms a valid pair with `right`.
+
+Why?
+
+Because the array is sorted.
+
+If
+
+```
+arr[right]-arr[left] < k
+```
+
+then
+
+```
+arr[right]-arr[left+1]
+arr[right]-arr[left+2]
+...
+```
+
+are even smaller.
+
+So instead of counting one-by-one, we can count
+
+```
+right-left
+```
+
+pairs in one step.
+
+---
+
+## Algorithm
+
+1. Sort the array.
+
+2. Keep two pointers:
+
+   * `left`
+   * `right`
+
+3. Expand `right`.
+
+4. If difference becomes too large,
+
+   move `left`.
+
+5. Otherwise,
+
+   add
+
+   ```
+   right-left
+   ```
+
+   because every element between `left` and `right-1` forms a valid pair.
+
+6. Continue until the end.
+
+---
+
+## Python Code
+
+```python
+class Solution:
+    def countPairs(self, arr: list[int], k: int) -> int:
+        arr.sort()
+
+        left = 0
+        ans = 0
+
+        for right in range(len(arr)):
+            while arr[right] - arr[left] >= k:
+                left += 1
+
+            ans += right - left
+
+        return ans
+```
+
+---
+
+## Code Explanation
+
+Sort first.
+
+```python
+arr.sort()
+```
+
+Maintain a sliding window.
+
+```python
+left = 0
+```
+
+Move `right`.
+
+```python
+for right in range(len(arr)):
+```
+
+If difference becomes invalid,
+
+```python
+while arr[right]-arr[left] >= k:
+    left += 1
+```
+
+Now every index between
+
+```
+left ... right-1
+```
+
+forms a valid pair with `right`.
+
+So,
+
+```python
+ans += right-left
+```
+
+---
+
+## Complete Dry Run
+
+### Input
+
+```
+arr = [1,10,4,2]
+k = 3
+```
+
+Sort
+
+```
+[1,2,4,10]
+```
+
+Initially
+
+```
+left=0
+ans=0
+```
+
+---
+
+### right = 0
+
+Window
+
+```
+[1]
+```
+
+Pairs
+
+```
+0
+```
+
+Answer
+
+```
+0
+```
+
+---
+
+### right = 1
+
+Difference
+
+```
+2-1 =1 <3
+```
+
+Valid.
+
+Add
+
+```
+1-0 =1
+```
+
+Answer
+
+```
+1
+```
+
+(Window pair: (1,2))
+
+---
+
+### right = 2
+
+Difference
+
+```
+4-1 =3
+```
+
+Not valid.
+
+Move left.
+
+```
+left=1
+```
+
+Difference
+
+```
+4-2 =2
+```
+
+Valid.
+
+Add
+
+```
+2-1 =1
+```
+
+Answer
+
+```
+2
+```
+
+(New pair: (2,4))
+
+---
+
+### right = 3
+
+Difference
+
+```
+10-2 =8
+```
+
+Move left.
+
+```
+left=2
+```
+
+Difference
+
+```
+10-4=6
+```
+
+Move left.
+
+```
+left=3
+```
+
+Now
+
+```
+10-10=0
+```
+
+Valid.
+
+Add
+
+```
+3-3=0
+```
+
+Final answer
+
+```
+2
+```
+
+---
+
+## Why `ans += right - left` Works
+
+Suppose the sorted window is
+
+```
+left                 right
+
+2   3   5   6   7
+```
+
+If
+
+```
+7-2 < k
+```
+
+then automatically
+
+```
+7-3 < k
+7-5 < k
+7-6 < k
+```
+
+Hence all previous elements inside the window form valid pairs with `7`.
+
+Number of such elements:
+
+```
+right-left
+```
+
+So we count them all together.
+
+---
+
+## Complexity Comparison
+
+| Approach               | Time       | Space                                   |
+| ---------------------- | ---------- | --------------------------------------- |
+| Brute Force            | O(n²)      | O(1)                                    |
+| Sorting + Two Pointers | O(n log n) | O(1) (excluding sorting implementation) |
+
+---
+
+# Edge Cases
+
+* `k = 0` → No pair can satisfy `difference < 0`, answer is `0`.
+* Array size = `1` → Answer is `0`.
+* All elements equal and `k > 0` → Every pair is valid.
+* Large input (`n = 10^5`) → Brute force gives TLE; optimal approach passes.
+
+---
+
+# Common Mistakes
+
+1. Using `<= k` instead of `< k`.
+2. Forgetting to sort before applying two pointers.
+3. Counting `(i, j)` and `(j, i)` separately.
+4. Using `if` instead of `while` when shrinking the window.
+
+---
+
+# Interview Insight
+
+This is a classic **Sort + Sliding Window (Two Pointers)** problem. The key observation is that after sorting, all elements within the current valid window automatically satisfy the difference condition with the current `right` element, allowing you to count multiple pairs at once instead of checking each individually.
