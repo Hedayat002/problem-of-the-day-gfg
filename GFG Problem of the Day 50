@@ -1,0 +1,581 @@
+# 🚀 temppro — Subarrays with Sum in Range
+
+## 1. Problem Explanation (Simple)
+
+We are given an array of **positive integers** and two numbers `l` and `r`.
+
+We need to count all contiguous subarrays whose sum is between
+
+[
+l \le \text{subarray sum} \le r
+]
+
+Since all elements are **positive**, the sliding window technique works.
+
+---
+
+# 2. Brute Force Approach
+
+## Idea
+
+Generate every possible subarray and compute its sum.
+
+If the sum lies in `[l, r]`, increase the answer.
+
+---
+
+## Your Brute Force Code has a Bug ❌
+
+You wrote
+
+```python
+sum += arr[i] + arr[j]
+```
+
+This **does not compute the subarray sum**.
+
+For example
+
+```
+arr = [2,3,5]
+```
+
+For subarray
+
+```
+[2,3,5]
+```
+
+Your code computes
+
+```
+2+3
+then +2+5
+
+=12
+```
+
+Actual sum is
+
+```
+2+3+5=10
+```
+
+Also `sum` is never reset for each `i`.
+
+---
+
+## Correct Brute Force Code
+
+```python
+class Solution:
+    def countSubarray(self, arr, l, r):
+        n = len(arr)
+        ans = 0
+
+        for i in range(n):
+            curr = 0
+            for j in range(i, n):
+                curr += arr[j]
+
+                if l <= curr <= r:
+                    ans += 1
+
+        return ans
+```
+
+---
+
+## Dry Run
+
+```
+arr=[2,3,5]
+
+i=0
+
+curr=2
+
+curr=5 ✔
+
+curr=10 ✔
+
+i=1
+
+curr=3
+
+curr=8 ✔
+
+i=2
+
+curr=5 ✔
+
+Answer=4
+```
+
+---
+
+## Complexity
+
+Time
+
+[
+O(n^2)
+]
+
+Space
+
+[
+O(1)
+]
+
+---
+
+# 3. Optimal Approach (Sliding Window)
+
+## Key Observation
+
+The array contains **only positive numbers**.
+
+That means
+
+* expanding window → sum increases
+* shrinking window → sum decreases
+
+This monotonic behavior makes Sliding Window possible.
+
+---
+
+## Main Trick
+
+Instead of directly counting
+
+```
+l <= sum <= r
+```
+
+Count
+
+```
+sum <= r
+```
+
+and subtract
+
+```
+sum <= (l-1)
+```
+
+So,
+
+```
+Answer =
+count(sum <= r)
+-
+count(sum <= l-1)
+```
+
+---
+
+# Why?
+
+Suppose
+
+```
+l=5
+r=10
+```
+
+```
+sum<=10
+contains
+
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+```
+
+```
+sum<=4
+
+contains
+
+1
+2
+3
+4
+```
+
+Subtracting removes the unwanted sums.
+
+Remaining
+
+```
+5
+6
+7
+8
+9
+10
+```
+
+Exactly our answer.
+
+---
+
+# Helper Function
+
+We create
+
+```python
+count(x)
+```
+
+which returns
+
+```
+number of subarrays
+whose sum <= x
+```
+
+---
+
+## Sliding Window Logic
+
+Maintain
+
+```
+left
+right
+windowSum
+```
+
+Whenever
+
+```
+windowSum > x
+```
+
+shrink from left.
+
+After fixing,
+
+every subarray ending at
+
+```
+right
+```
+
+starting from
+
+```
+left...right
+```
+
+is valid.
+
+Number of such subarrays
+
+```
+right-left+1
+```
+
+---
+
+# Dry Run
+
+```
+arr=[2,3,5]
+x=5
+```
+
+Initially
+
+```
+left=0
+sum=0
+ans=0
+```
+
+---
+
+### right=0
+
+```
+sum=2
+
+<=5
+```
+
+Valid windows
+
+```
+[2]
+```
+
+Count
+
+```
+1
+```
+
+ans=1
+
+---
+
+### right=1
+
+```
+sum=5
+```
+
+Valid
+
+```
+[2,3]
+
+[3]
+```
+
+Count
+
+```
+2
+```
+
+ans=3
+
+---
+
+### right=2
+
+```
+sum=10
+```
+
+Too big.
+
+Remove left
+
+```
+sum=8
+
+left=1
+```
+
+Still big
+
+Remove
+
+```
+3
+
+sum=5
+
+left=2
+```
+
+Now valid.
+
+Only
+
+```
+[5]
+```
+
+Count
+
+```
+1
+```
+
+ans=4
+
+So
+
+```
+count(5)=4
+```
+
+---
+
+Suppose
+
+```
+l=4
+r=8
+```
+
+```
+Answer
+
+=
+count(8)-count(3)
+```
+
+---
+
+# Optimal Code
+
+```python
+class Solution:
+    def countSubarray(self, arr, l, r):
+
+        def count(x):
+            left = 0
+            curr = 0
+            ans = 0
+
+            for right in range(len(arr)):
+                curr += arr[right]
+
+                while curr > x:
+                    curr -= arr[left]
+                    left += 1
+
+                ans += (right - left + 1)
+
+            return ans
+
+        return count(r) - count(l - 1)
+```
+
+---
+
+# Complete Dry Run
+
+Example
+
+```
+arr=[1,4,6]
+
+l=3
+r=8
+```
+
+Compute
+
+```
+count(8)
+```
+
+Valid subarrays
+
+```
+[1]
+[1,4]
+[4]
+[6]
+```
+
+```
+count(8)=4
+```
+
+Now
+
+```
+count(2)
+```
+
+Valid
+
+```
+[1]
+```
+
+```
+count(2)=1
+```
+
+Answer
+
+```
+4-1=3
+```
+
+Subarrays
+
+```
+[1,4]
+
+[4]
+
+[6]
+```
+
+Correct ✅
+
+---
+
+# Why `ans += (right - left + 1)`?
+
+Suppose
+
+```
+left=2
+right=5
+```
+
+Window
+
+```
+2 3 4 5
+```
+
+Since the whole window sum is already `<= x`, and all numbers are **positive**, removing elements from the left only decreases the sum. Therefore, all these subarrays ending at `right` are also valid:
+
+```
+[2..5]
+[3..5]
+[4..5]
+[5..5]
+```
+
+Number of valid subarrays ending at `right`:
+
+```
+5 - 2 + 1 = 4
+```
+
+So we add:
+
+```python
+ans += right - left + 1
+```
+
+---
+
+# Complexity Comparison
+
+| Approach       | Time     | Space    |
+| -------------- | -------- | -------- |
+| Brute Force    | O(n²)    | O(1)     |
+| Sliding Window | **O(n)** | **O(1)** |
+
+---
+
+# Edge Cases
+
+* Single element array.
+* Every element is within `[l, r]`.
+* No valid subarray.
+* `l = 1`.
+* Large array (`n = 10^5`).
+* Works because **all array elements are positive**. If negative numbers were allowed, this sliding window approach would not be correct.
+
+---
+
+# Interview Pattern
+
+This is a classic application of the pattern:
+
+> **Count subarrays in a range = Count(≤ upper bound) − Count(≤ lower bound − 1)**
+
+You'll see the same idea in problems involving subarray sums, prefix constraints, and "at most K" versus "exactly K" counts.
