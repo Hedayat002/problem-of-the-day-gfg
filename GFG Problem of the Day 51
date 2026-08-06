@@ -4,103 +4,57 @@
 
 Work **backwards** from the target array to all zeros.
 
-* If an element is odd, its last operation must have been **+1**, so decrement it.
-* If all remaining elements are even, the previous operation could have been a **double**, so divide all elements by 2.
+* If an element is odd, it **must have come from an increment operation**, so decrement it.
+* If **all elements are even**, they could have resulted from one global doubling, so divide every element by 2.
 
 Repeat until every element becomes 0.
 
 ```python
 class Solution:
     def minOperation(self, arr):
-        arr = arr[:]
-        operations = 0
-
-        while True:
-            if all(x == 0 for x in arr):
-                return operations
-
-            # Remove all odd values
-            for i in range(len(arr)):
-                if arr[i] & 1:
-                    arr[i] -= 1
-                    operations += 1
-
-            if all(x == 0 for x in arr):
-                return operations
-
-            # If every remaining value is even, undo one doubling
-            if all(x % 2 == 0 for x in arr):
-                for i in range(len(arr)):
-                    arr[i] //= 2
-                operations += 1
-```
-
-**Time Complexity:** `O(n * log(MaxValue))`
-**Space Complexity:** `O(1)` (ignoring input copy)
-
----
-
-# 2. Better Solution
-
-### Idea
-
-Same reverse process, but avoid repeatedly checking the entire array for completion by maintaining the current values efficiently.
-
-```python
-class Solution:
-    def minOperation(self, arr):
-        arr = arr[:]
         ans = 0
 
         while True:
-            zero = True
+            if all(x == 0 for x in arr):
+                break
 
+            # Remove increment operations
             for i in range(len(arr)):
-                if arr[i]:
-                    zero = False
-                if arr[i] & 1:
+                if arr[i] % 2:
                     arr[i] -= 1
                     ans += 1
 
-            if zero:
-                return ans
+            # If all are zero now
+            if all(x == 0 for x in arr):
+                break
 
-            can_divide = True
-            for x in arr:
-                if x and (x & 1):
-                    can_divide = False
-                    break
-
-            if can_divide:
+            # Global divide (reverse of doubling)
+            if all(x % 2 == 0 for x in arr):
                 for i in range(len(arr)):
                     arr[i] //= 2
                 ans += 1
+
+        return ans
 ```
 
-**Time Complexity:** `O(n * log(MaxValue))`
+**Time Complexity:** `O(N * log(MaxValue))`
 **Space Complexity:** `O(1)`
 
 ---
 
-# 3. Optimal Solution
+# 2. Better Solution (Observation)
 
 ### Idea
 
-Observe:
+Instead of modifying the array repeatedly:
 
-* Every **1 bit** in the binary representation of an element requires one **increment**.
-* Every **bit shift** (except the last) corresponds to one **double** operation shared by all elements.
-* Therefore:
+* Every **set bit (1)** in the binary representation corresponds to one **increment**.
+* The number of **doubling operations** equals the maximum number of bits needed among all elements, minus one.
 
-  * Total `+1` operations = **sum of set bits of all elements**
-  * Total `double` operations = **maximum bit length − 1**
+So,
 
-Formula:
-
-```
-Answer = (sum of set bits of all numbers)
-       + (maximum bit length among all numbers - 1)
-```
+* Increment operations = total count of set bits of all numbers.
+* Doubling operations = maximum bit length − 1.
 
 ```python
 class Solution:
@@ -113,8 +67,108 @@ class Solution:
             if x:
                 max_bits = max(max_bits, x.bit_length())
 
-        return increments + max(0, max_bits - 1)
+        doubles = max(0, max_bits - 1)
+        return increments + doubles
 ```
 
-**Time Complexity:** `O(n)`
+**Time Complexity:** `O(N)`
 **Space Complexity:** `O(1)`
+
+---
+
+# 3. Optimal Solution
+
+### Idea
+
+Same observation as above.
+
+* `bit_count()` → number of increment operations.
+* `bit_length() - 1` of the largest element → number of doubling operations.
+
+```python
+class Solution:
+    def minOperation(self, arr):
+        inc = 0
+        max_shift = 0
+
+        for num in arr:
+            inc += num.bit_count()
+            if num:
+                max_shift = max(max_shift, num.bit_length() - 1)
+
+        return inc + max_shift
+```
+
+**Time Complexity:** `O(N)`
+**Space Complexity:** `O(1)`
+
+---
+
+# 4. Algorithm Flow
+
+```text
+                Start
+                  |
+                  v
+        Initialize inc = 0
+        Initialize maxShift = 0
+                  |
+                  v
+        For each number in array
+                  |
+        +---------+---------+
+        |                   |
+        v                   v
+inc += number of      maxShift =
+ set bits             max(maxShift,
+                         bit_length-1)
+        +-------------------+
+                  |
+                  v
+      Answer = inc + maxShift
+                  |
+                  v
+               Return
+                  |
+                  v
+                 End
+```
+
+---
+
+### Why does this observation work?
+
+For every number:
+
+* Every `1` bit must have been created by an **increment**.
+* Every left shift in binary corresponds to one **global doubling**.
+
+Example:
+
+`arr = [2, 3]`
+
+```
+2 = 10   -> set bits = 1
+3 = 11   -> set bits = 2
+
+Total increments = 3
+
+Largest bit length = 2
+Doublings = 2 - 1 = 1
+
+Answer = 3 + 1 = 4
+```
+
+Example:
+
+`arr = [16,16,16]`
+
+```
+16 = 10000
+
+Set bits = 1 + 1 + 1 = 3
+Largest bit length = 5
+Doublings = 4
+
+Answer = 3 + 4 = 7
+```
