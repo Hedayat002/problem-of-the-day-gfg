@@ -1,0 +1,120 @@
+# 1. Brute Force / First Possible Solution
+
+### Idea
+
+Work **backwards** from the target array to all zeros.
+
+* If an element is odd, its last operation must have been **+1**, so decrement it.
+* If all remaining elements are even, the previous operation could have been a **double**, so divide all elements by 2.
+
+Repeat until every element becomes 0.
+
+```python
+class Solution:
+    def minOperation(self, arr):
+        arr = arr[:]
+        operations = 0
+
+        while True:
+            if all(x == 0 for x in arr):
+                return operations
+
+            # Remove all odd values
+            for i in range(len(arr)):
+                if arr[i] & 1:
+                    arr[i] -= 1
+                    operations += 1
+
+            if all(x == 0 for x in arr):
+                return operations
+
+            # If every remaining value is even, undo one doubling
+            if all(x % 2 == 0 for x in arr):
+                for i in range(len(arr)):
+                    arr[i] //= 2
+                operations += 1
+```
+
+**Time Complexity:** `O(n * log(MaxValue))`
+**Space Complexity:** `O(1)` (ignoring input copy)
+
+---
+
+# 2. Better Solution
+
+### Idea
+
+Same reverse process, but avoid repeatedly checking the entire array for completion by maintaining the current values efficiently.
+
+```python
+class Solution:
+    def minOperation(self, arr):
+        arr = arr[:]
+        ans = 0
+
+        while True:
+            zero = True
+
+            for i in range(len(arr)):
+                if arr[i]:
+                    zero = False
+                if arr[i] & 1:
+                    arr[i] -= 1
+                    ans += 1
+
+            if zero:
+                return ans
+
+            can_divide = True
+            for x in arr:
+                if x and (x & 1):
+                    can_divide = False
+                    break
+
+            if can_divide:
+                for i in range(len(arr)):
+                    arr[i] //= 2
+                ans += 1
+```
+
+**Time Complexity:** `O(n * log(MaxValue))`
+**Space Complexity:** `O(1)`
+
+---
+
+# 3. Optimal Solution
+
+### Idea
+
+Observe:
+
+* Every **1 bit** in the binary representation of an element requires one **increment**.
+* Every **bit shift** (except the last) corresponds to one **double** operation shared by all elements.
+* Therefore:
+
+  * Total `+1` operations = **sum of set bits of all elements**
+  * Total `double` operations = **maximum bit length − 1**
+
+Formula:
+
+```
+Answer = (sum of set bits of all numbers)
+       + (maximum bit length among all numbers - 1)
+```
+
+```python
+class Solution:
+    def minOperation(self, arr):
+        increments = 0
+        max_bits = 0
+
+        for x in arr:
+            increments += x.bit_count()
+            if x:
+                max_bits = max(max_bits, x.bit_length())
+
+        return increments + max(0, max_bits - 1)
+```
+
+**Time Complexity:** `O(n)`
+**Space Complexity:** `O(1)`
