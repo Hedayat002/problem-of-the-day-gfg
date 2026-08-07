@@ -1,0 +1,398 @@
+## 1. Brute Force / First Possible Solution (Recursion)
+
+### 💡 Idea
+
+For the **nth friend**, there are only **2 choices**:
+
+1. **Stay single**
+
+   * Then solve for remaining `n-1` friends.
+
+2. **Pair with one of the remaining `(n-1)` friends**
+
+   * Choose one friend from `(n-1)` possibilities.
+   * Solve for remaining `n-2` friends.
+
+Therefore,
+
+[
+f(n)=f(n-1)+(n-1)\times f(n-2)
+]
+
+### Python Code
+
+```python
+class Solution:
+    def countFriendsPairings(self, n):
+        if n <= 2:
+            return n
+
+        single = self.countFriendsPairings(n - 1)
+        pair = (n - 1) * self.countFriendsPairings(n - 2)
+
+        return single + pair
+```
+
+### Time Complexity
+
+* **O(2ⁿ)**
+
+### Space Complexity
+
+* **O(n)** (recursion stack)
+
+---
+
+## 2. Better Solution (Memoization)
+
+### 💡 Idea
+
+Many recursive calls repeat.
+
+Example:
+
+```
+f(5)
+├── f(4)
+│   ├── f(3)
+│   └── f(2)
+└── f(3)
+```
+
+`f(3)` is calculated twice.
+
+Store answers in a DP array.
+
+---
+
+### Python Code
+
+```python
+class Solution:
+    def countFriendsPairings(self, n: int) -> int:
+        self.dp = [0] * (n + 1)
+        return self.solve(n)
+
+    def solve(self, n):
+        if n <= 2:
+            return n
+
+        if self.dp[n] != 0:
+            return self.dp[n]
+
+        single = self.solve(n - 1)
+        pair = (n - 1) * self.solve(n - 2)
+
+        self.dp[n] = single + pair
+        return self.dp[n]
+```
+
+### Time Complexity
+
+* **O(n)**
+
+### Space Complexity
+
+* **O(n)**
+
+---
+
+## 3. Optimal Solution (Space Optimized DP)
+
+### 💡 Idea
+
+The recurrence only depends on the previous two values.
+
+Instead of storing the whole DP array, keep only:
+
+* `prev2 = f(n-2)`
+* `prev1 = f(n-1)`
+
+---
+
+### Python Code
+
+```python
+class Solution:
+    def countFriendsPairings(self, n):
+        if n <= 2:
+            return n
+
+        prev2 = 1   # f(1)
+        prev1 = 2   # f(2)
+
+        for i in range(3, n + 1):
+            curr = prev1 + (i - 1) * prev2
+            prev2 = prev1
+            prev1 = curr
+
+        return prev1
+```
+
+### Time Complexity
+
+* **O(n)**
+
+### Space Complexity
+
+* **O(1)**
+
+---
+
+# 4. Algorithm Flow
+
+```
+                Start
+                  │
+                  ▼
+          Is n <= 2 ?
+            │        │
+          Yes        No
+            │         │
+        Return n      │
+                      ▼
+          Friend n has two choices
+          ┌──────────────┬──────────────┐
+          │              │
+          ▼              ▼
+     Stay Single      Make Pair
+      solve(n-1)   (n-1)*solve(n-2)
+          │              │
+          └──────┬───────┘
+                 ▼
+          Add both answers
+                 │
+                 ▼
+            Return result
+```
+
+---
+
+# Dry Run (Memoization)
+
+Take **n = 4**
+
+We know
+
+```
+f(1)=1
+f(2)=2
+```
+
+Need `f(4)`.
+
+```
+f(4)
+= f(3) + 3*f(2)
+```
+
+First compute `f(3)`.
+
+```
+f(3)
+= f(2) + 2*f(1)
+
+= 2 + 2×1
+
+= 4
+```
+
+Now
+
+```
+f(4)
+
+= 4 + 3×2
+
+= 10
+```
+
+Answer:
+
+```
+10
+```
+
+Possible arrangements:
+
+```
+1 2 3 4
+
+All single
+
+(1,2)
+
+(1,3)
+
+(1,4)
+
+(2,3)
+
+(2,4)
+
+(3,4)
+
+(1,2)(3,4)
+
+(1,3)(2,4)
+
+(1,4)(2,3)
+```
+
+Total = **10**
+
+---
+
+# Code Explanation (Line by Line)
+
+```python
+self.dp = [0] * (n + 1)
+```
+
+Create a DP array where `dp[i]` stores the answer for `i` friends.
+
+---
+
+```python
+return self.solve(n)
+```
+
+Start recursion.
+
+---
+
+```python
+if n <= 2:
+    return n
+```
+
+Base cases:
+
+```
+1 friend → 1 way
+
+2 friends → 2 ways
+```
+
+---
+
+```python
+if self.dp[n] != 0:
+    return self.dp[n]
+```
+
+If already computed, return it directly.
+
+---
+
+```python
+single = self.solve(n - 1)
+```
+
+Case 1:
+
+Current friend stays single.
+
+---
+
+```python
+pair = (n - 1) * self.solve(n - 2)
+```
+
+Case 2:
+
+Current friend pairs with one of the remaining `(n-1)` friends, then solve for the remaining `n-2`.
+
+---
+
+```python
+self.dp[n] = single + pair
+```
+
+Store the computed answer.
+
+---
+
+```python
+return self.dp[n]
+```
+
+Return the cached result.
+
+---
+
+# Why the Formula Works
+
+Suppose there are **n friends**.
+
+Take the **last friend**.
+
+### Case 1: Last friend stays single
+
+Remaining friends:
+
+```
+n-1
+```
+
+Ways:
+
+```
+f(n-1)
+```
+
+---
+
+### Case 2: Last friend makes a pair
+
+He can pair with
+
+```
+1
+2
+3
+...
+n-1
+```
+
+Total choices:
+
+```
+n-1
+```
+
+After making one pair,
+
+Remaining friends:
+
+```
+n-2
+```
+
+Ways:
+
+```
+f(n-2)
+```
+
+Total:
+
+```
+(n-1) × f(n-2)
+```
+
+Hence,
+
+[
+\boxed{f(n)=f(n-1)+(n-1)\times f(n-2)}
+]
+
+---
+
+# Final Complexity Comparison
+
+| Approach           | Time  | Space |
+| ------------------ | ----- | ----- |
+| Recursion          | O(2ⁿ) | O(n)  |
+| Memoization        | O(n)  | O(n)  |
+| Space Optimized DP | O(n)  | O(1)  |
