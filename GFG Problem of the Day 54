@@ -1,0 +1,131 @@
+## 1. Recursion
+
+```python
+class Solution:
+    def findMaxZigzagSum(self, mat, row, prevCol):
+        if row < 0:
+            return 0
+
+        res = 0
+
+        for col in range(len(mat)):
+            if col != prevCol:
+                res = max(
+                    res,
+                    mat[row][col] +
+                    self.findMaxZigzagSum(mat, row - 1, col)
+                )
+
+        return res
+
+    def zigzagSequence(self, mat):
+        n = len(mat)
+        return self.findMaxZigzagSum(mat, n - 1, -1)
+```
+
+**TC:** O(nⁿ)
+**SC:** O(n)
+
+---
+
+## 2. Memoization (Top-Down)
+
+```python
+class Solution:
+    def findMaxZigzagSum(self, mat, row, prevCol, dp):
+        if row < 0:
+            return 0
+
+        if dp[row][prevCol + 1] != -1:
+            return dp[row][prevCol + 1]
+
+        res = 0
+
+        for col in range(len(mat)):
+            if col != prevCol:
+                res = max(
+                    res,
+                    mat[row][col] +
+                    self.findMaxZigzagSum(mat, row - 1, col, dp)
+                )
+
+        dp[row][prevCol + 1] = res
+        return res
+
+    def zigzagSequence(self, mat):
+        n = len(mat)
+        dp = [[-1] * (n + 1) for _ in range(n)]
+
+        return self.findMaxZigzagSum(mat, n - 1, -1, dp)
+```
+
+**TC:** O(n³)
+**SC:** O(n²)
+
+---
+
+## 3. Tabulation (Bottom-Up)
+
+```python
+class Solution:
+    def zigzagSequence(self, mat):
+        n = len(mat)
+
+        dp = [[0] * n for _ in range(n)]
+
+        for col in range(n):
+            dp[0][col] = mat[0][col]
+
+        for row in range(1, n):
+            for col in range(n):
+                best = 0
+
+                for prevCol in range(n):
+                    if prevCol != col:
+                        best = max(best, dp[row - 1][prevCol])
+
+                dp[row][col] = mat[row][col] + best
+
+        return max(dp[n - 1])
+```
+
+**TC:** O(n³)
+**SC:** O(n²)
+
+---
+
+## 4. Tabulation (Space Optimization)
+
+```python
+class Solution:
+    def zigzagSequence(self, mat):
+        n = len(mat)
+
+        prev = mat[0][:]
+
+        for row in range(1, n):
+            max1 = -1
+            max2 = -1
+            maxCol = -1
+
+            for col in range(n):
+                if prev[col] > max1:
+                    max2 = max1
+                    max1 = prev[col]
+                    maxCol = col
+                elif prev[col] > max2:
+                    max2 = prev[col]
+
+            curr = [0] * n
+
+            for col in range(n):
+                best = max2 if col == maxCol else max1
+                curr[col] = mat[row][col] + best
+
+            prev = curr
+
+        return max(prev)
+```
+
+**TC:** O(n²)
+**SC:** O(n)
