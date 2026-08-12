@@ -1,10 +1,14 @@
 
 
 
+
+## 1. Recursion
+
+```python
 class Solution:
     def solve(self, i, j, grid, n):
         if i >= n or j >= n:
-            return (0, float("-inf"))
+            return (0, 0)
 
         if i == n - 1 and j == n - 1:
             return (1, grid[i][j])
@@ -23,14 +27,198 @@ class Solution:
             adventure = max(right_adventure, down_adventure)
 
         if paths == 0:
-            return (0, float("-inf"))
+            return (0, 0)
 
         return (paths, adventure + grid[i][j])
-    def findWays(self, grid):
-        # code here
-        n = len(grid)
 
+    def findWays(self, grid):
+        n = len(grid)
         paths, max_adventure = self.solve(0, 0, grid, n)
 
         return [paths % (10**9 + 7), max_adventure]
-        
+```
+
+**TC:** O(2ⁿ)  
+**SC:** O(n)
+
+---
+
+## 2. Memoization (Top-Down)
+
+```python
+class Solution:
+    def solve(self, i, j, grid, n, dp):
+        if i >= n or j >= n:
+            return (0, 0)
+
+        if i == n - 1 and j == n - 1:
+            return (1, grid[i][j])
+
+        if dp[i][j] != (-1, -1):
+            return dp[i][j]
+
+        if grid[i][j] == 1:
+            paths, adventure = self.solve(i, j + 1, grid, n, dp)
+
+        elif grid[i][j] == 2:
+            paths, adventure = self.solve(i + 1, j, grid, n, dp)
+
+        else:
+            right_paths, right_adventure = self.solve(
+                i, j + 1, grid, n, dp
+            )
+            down_paths, down_adventure = self.solve(
+                i + 1, j, grid, n, dp
+            )
+
+            paths = right_paths + down_paths
+            adventure = max(right_adventure, down_adventure)
+
+        if paths == 0:
+            dp[i][j] = (0, 0)
+        else:
+            dp[i][j] = (paths, adventure + grid[i][j])
+
+        return dp[i][j]
+
+    def findWays(self, grid):
+        n = len(grid)
+        dp = [[(-1, -1) for _ in range(n)] for _ in range(n)]
+
+        paths, max_adventure = self.solve(0, 0, grid, n, dp)
+
+        return [paths % (10**9 + 7), max_adventure]
+```
+
+**TC:** O(n²)  
+**SC:** O(n²)
+
+---
+
+## 3. Tabulation (Bottom-Up)
+
+```python
+class Solution:
+    def findWays(self, grid):
+        n = len(grid)
+        MOD = 10**9 + 7
+
+        paths = [[0] * n for _ in range(n)]
+        adventure = [[0] * n for _ in range(n)]
+
+        paths[n - 1][n - 1] = 1
+        adventure[n - 1][n - 1] = grid[n - 1][n - 1]
+
+        for i in range(n - 1, -1, -1):
+            for j in range(n - 1, -1, -1):
+
+                if i == n - 1 and j == n - 1:
+                    continue
+
+                if grid[i][j] == 1:
+                    if j + 1 < n and paths[i][j + 1] > 0:
+                        paths[i][j] = paths[i][j + 1]
+                        adventure[i][j] = (
+                            grid[i][j] + adventure[i][j + 1]
+                        )
+
+                elif grid[i][j] == 2:
+                    if i + 1 < n and paths[i + 1][j] > 0:
+                        paths[i][j] = paths[i + 1][j]
+                        adventure[i][j] = (
+                            grid[i][j] + adventure[i + 1][j]
+                        )
+
+                else:
+                    if j + 1 < n:
+                        paths[i][j] += paths[i][j + 1]
+                        adventure[i][j] = max(
+                            adventure[i][j],
+                            adventure[i][j + 1]
+                        )
+
+                    if i + 1 < n:
+                        paths[i][j] += paths[i + 1][j]
+                        adventure[i][j] = max(
+                            adventure[i][j],
+                            adventure[i + 1][j]
+                        )
+
+                    if paths[i][j] > 0:
+                        adventure[i][j] += grid[i][j]
+
+                    paths[i][j] %= MOD
+
+        return [paths[0][0], adventure[0][0]]
+```
+
+**TC:** O(n²)  
+**SC:** O(n²)
+
+---
+
+## 4. Space Optimization
+
+```python
+class Solution:
+    def findWays(self, grid):
+        n = len(grid)
+        MOD = 10**9 + 7
+
+        prev_paths = [0] * n
+        prev_adventure = [0] * n
+
+        for i in range(n - 1, -1, -1):
+            curr_paths = [0] * n
+            curr_adventure = [0] * n
+
+            for j in range(n - 1, -1, -1):
+
+                if i == n - 1 and j == n - 1:
+                    curr_paths[j] = 1
+                    curr_adventure[j] = grid[i][j]
+                    continue
+
+                right_paths = 0
+                right_adventure = 0
+
+                if j + 1 < n:
+                    right_paths = curr_paths[j + 1]
+                    right_adventure = curr_adventure[j + 1]
+
+                down_paths = prev_paths[j]
+                down_adventure = prev_adventure[j]
+
+                if grid[i][j] == 1:
+                    if right_paths > 0:
+                        curr_paths[j] = right_paths
+                        curr_adventure[j] = (
+                            grid[i][j] + right_adventure
+                        )
+
+                elif grid[i][j] == 2:
+                    if down_paths > 0:
+                        curr_paths[j] = down_paths
+                        curr_adventure[j] = (
+                            grid[i][j] + down_adventure
+                        )
+
+                else:
+                    curr_paths[j] = (
+                        right_paths + down_paths
+                    ) % MOD
+
+                    if curr_paths[j] > 0:
+                        curr_adventure[j] = (
+                            grid[i][j]
+                            + max(right_adventure, down_adventure)
+                        )
+
+            prev_paths = curr_paths
+            prev_adventure = curr_adventure
+
+        return [prev_paths[0], prev_adventure[0]]
+```
+
+**TC:** O(n²)  
+**SC:** O(n)
