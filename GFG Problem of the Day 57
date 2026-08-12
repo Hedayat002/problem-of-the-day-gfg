@@ -1,0 +1,36 @@
+
+
+
+class Solution:
+    def solve(self, i, j, grid, n):
+        if i >= n or j >= n:
+            return (0, float("-inf"))
+
+        if i == n - 1 and j == n - 1:
+            return (1, grid[i][j])
+
+        if grid[i][j] == 1:
+            paths, adventure = self.solve(i, j + 1, grid, n)
+
+        elif grid[i][j] == 2:
+            paths, adventure = self.solve(i + 1, j, grid, n)
+
+        else:
+            right_paths, right_adventure = self.solve(i, j + 1, grid, n)
+            down_paths, down_adventure = self.solve(i + 1, j, grid, n)
+
+            paths = right_paths + down_paths
+            adventure = max(right_adventure, down_adventure)
+
+        if paths == 0:
+            return (0, float("-inf"))
+
+        return (paths, adventure + grid[i][j])
+    def findWays(self, grid):
+        # code here
+        n = len(grid)
+
+        paths, max_adventure = self.solve(0, 0, grid, n)
+
+        return [paths % (10**9 + 7), max_adventure]
+        
