@@ -100,44 +100,49 @@ class Solution:
 
 ```python
 class Solution:
+    # ---------- DFS for topological sort ----------
+    def dfs(self, node, stack, visited, adj_list):
+        visited[node] = 1
+        for adjNode, _ in adj_list[node]:         # ignore weight during DFS
+            if visited[adjNode] == 0:
+                self.dfs(adjNode, stack, visited, adj_list)
+        stack.append(node)                        # post-order push
     def maxDistance(self, V, src, edges):
-        adj = [[] for _ in range(V)]
+        # code here
+        # 1. Build adjacency list
+        adj_list = [[] for _ in range(V)]
+        for u, v, w in edges:                     # directed edge u -> v (weight w)
+            adj_list[u].append([v, w])
 
-        for u, v, w in edges:
-            adj[u].append((v, w))
-
-        def dfs(node):
-            visited[node] = 1
-
-            for nxt, _ in adj[node]:
-                if not visited[nxt]:
-                    dfs(nxt)
-
-            stack.append(node)
-
+        # 2. Topological sort by DFS
+        stack   = []
         visited = [0] * V
-        stack = []
-
         for i in range(V):
-            if not visited[i]:
-                dfs(i)
+            if visited[i] == 0:
+                self.dfs(i, stack, visited, adj_list)
 
+        # 3. Initialise distance array
         distance = [float("-inf")] * V
-        distance[src] = 0
+        distance[src] = 0                           # source vertex
 
-        while stack:
+        # 4. Relax edges following topological order
+        while stack:                              # pop = left-to-right order
             node = stack.pop()
-
-            if distance[node] == float("-inf"):
+            if distance[node] == float("-inf"):    # unreachable so far
                 continue
+            for adjNode, w in adj_list[node]:
+                new_d = distance[node] + w
+                if new_d > distance[adjNode]:
+                    distance[adjNode] = new_d
 
-            for nxt, w in adj[node]:
-                distance[nxt] = max(
-                    distance[nxt],
-                    distance[node] + w
-                )
-
+        
+        for i in range(V):
+            if distance[i] == float("-inf"):
+                distance[i] = "INF"
         return distance
+ 
+
+
 ```
 
 **TC:** O(V + E)
