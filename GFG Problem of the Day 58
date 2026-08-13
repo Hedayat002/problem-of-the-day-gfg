@@ -1,0 +1,185 @@
+# 1. Brute Force
+
+```python
+class Solution:
+    def maxDistance(self, V, src, edges):
+        adj = [[] for _ in range(V)]
+
+        for u, v, w in edges:
+            adj[u].append((v, w))
+
+        distance = [float("-inf")] * V
+        distance[src] = 0
+
+        def dfs(node, dist):
+            distance[node] = max(distance[node], dist)
+
+            for nxt, w in adj[node]:
+                dfs(nxt, dist + w)
+
+        dfs(src, 0)
+
+        return distance
+```
+
+**TC:** O(2^V)
+**SC:** O(V)
+
+---
+
+# 2. Better — Memoization
+
+```python
+class Solution:
+    def maxDistance(self, V, src, edges):
+        adj = [[] for _ in range(V)]
+
+        for u, v, w in edges:
+            adj[u].append((v, w))
+
+        dp = [float("-inf")] * V
+        dp[src] = 0
+
+        def dfs(node):
+            if dp[node] != float("-inf"):
+                return dp[node]
+
+            return dp[node]
+
+        visited = [0] * V
+
+        def solve(node):
+            visited[node] = 1
+
+            for nxt, w in adj[node]:
+                if not visited[nxt]:
+                    solve(nxt)
+
+                if dp[nxt] != float("-inf"):
+                    dp[node] = max(dp[node], dp[nxt] + w)
+
+        # Use reverse graph to compute longest distance from src
+        rev = [[] for _ in range(V)]
+
+        for u, v, w in edges:
+            rev[v].append((u, w))
+
+        dp = [float("-inf")] * V
+        dp[src] = 0
+
+        def dfs(node):
+            if node == src:
+                return 0
+
+            if dp[node] != float("-inf"):
+                return dp[node]
+
+            best = float("-inf")
+
+            for prev, w in rev[node]:
+                val = dfs(prev)
+
+                if val != float("-inf"):
+                    best = max(best, val + w)
+
+            dp[node] = best
+            return best
+
+        for i in range(V):
+            dfs(i)
+
+        return dp
+```
+
+**TC:** O(V + E)
+**SC:** O(V + E)
+
+---
+
+# 3. Optimal — Topological Sort + Relaxation
+
+```python
+class Solution:
+    def maxDistance(self, V, src, edges):
+        adj = [[] for _ in range(V)]
+
+        for u, v, w in edges:
+            adj[u].append((v, w))
+
+        def dfs(node):
+            visited[node] = 1
+
+            for nxt, _ in adj[node]:
+                if not visited[nxt]:
+                    dfs(nxt)
+
+            stack.append(node)
+
+        visited = [0] * V
+        stack = []
+
+        for i in range(V):
+            if not visited[i]:
+                dfs(i)
+
+        distance = [float("-inf")] * V
+        distance[src] = 0
+
+        while stack:
+            node = stack.pop()
+
+            if distance[node] == float("-inf"):
+                continue
+
+            for nxt, w in adj[node]:
+                distance[nxt] = max(
+                    distance[nxt],
+                    distance[node] + w
+                )
+
+        return distance
+```
+
+**TC:** O(V + E)
+**SC:** O(V + E)
+
+---
+
+### ASCII Algorithm
+
+```text
+Start
+  |
+  v
+Build Adjacency List
+  |
+  v
+Topological Sort
+  |
+  v
+distance = -INF
+distance[src] = 0
+  |
+  v
+Pop nodes in Topological Order
+  |
+  v
+Reachable?
+ / \
+No  Yes
+ |    |
+Skip  Relax
+      |
+      v
+dist[v] = max(dist[v], dist[u] + w)
+      |
+      v
+   All nodes?
+    /    \
+   No     Yes
+   |       |
+   +-------+
+       |
+       v
+     Return
+```
