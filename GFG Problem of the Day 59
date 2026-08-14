@@ -1,0 +1,111 @@
+## Brute Force
+
+```python
+class Solution:
+    def isSubsetSum(self, arr, s, x):
+        seq = [s]
+        total = s
+
+        for num in arr:
+            total += seq[-1] + num
+            seq.append(total)
+
+        n = len(seq)
+
+        def dfs(i, target):
+            if target == 0:
+                return True
+            if i == n or target < 0:
+                return False
+
+            return dfs(i + 1, target) or dfs(i + 1, target - seq[i])
+
+        return dfs(0, x)
+```
+
+**TC:** O(2^n)
+**SC:** O(n)
+
+---
+
+## Better
+
+```python
+class Solution:
+    def isSubsetSum(self, arr, s, x):
+        seq = [s]
+        total = s
+
+        for num in arr:
+            total += seq[-1] + num
+            seq.append(total)
+
+        dp = [False] * (x + 1)
+        dp[0] = True
+
+        for num in seq:
+            if num > x:
+                continue
+
+            for target in range(x, num - 1, -1):
+                dp[target] |= dp[target - num]
+
+        return dp[x]
+```
+
+**TC:** O(n × x)
+**SC:** O(x)
+
+---
+
+## Optimal — Greedy
+
+```python
+class Solution:
+    def isSubsetSum(self, arr, s, x):
+        if x == 0:
+            return True
+
+        seq = [s]
+        total = s
+
+        for num in arr:
+            nxt = total + num
+            total += nxt
+            seq.append(nxt)
+
+            if nxt > x:
+                break
+
+        for num in reversed(seq):
+            if num <= x:
+                x -= num
+
+            if x == 0:
+                return True
+
+        return False
+```
+
+**TC:** O(n)
+**SC:** O(n)
+
+### Algorithm
+
+```text
+Start
+  ↓
+Generate sequence
+  ↓
+Each new value > sum(all previous values)
+  ↓
+Start from largest value
+  ↓
+If value ≤ x → subtract it
+  ↓
+x == 0 ?
+ ├── Yes → True
+ └── No  → Continue
+  ↓
+False
+```
