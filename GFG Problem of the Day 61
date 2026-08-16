@@ -1,0 +1,86 @@
+## Brute Force
+
+```python
+class Solution:
+    def minProductSubset(self, arr):
+        n = len(arr)
+        products = []
+
+        for mask in range(1, 1 << n):
+            product = 1
+
+            for i in range(n):
+                if mask & (1 << i):
+                    product *= arr[i]
+
+            products.append(product)
+
+        return min(products)
+```
+
+**TC:** `O(n × 2ⁿ)`
+**SC:** `O(2ⁿ)`
+
+## Optimal — Mathematical Observation
+
+```python
+class Solution:
+    def minProductSubset(self, arr):
+        neg_count = 0
+        zero_count = 0
+        min_positive = float('inf')
+        min_abs_negative = float('inf')
+
+        product = 1
+
+        for num in arr:
+            if num == 0:
+                zero_count += 1
+            elif num < 0:
+                neg_count += 1
+                product *= num
+                min_abs_negative = min(min_abs_negative, abs(num))
+            else:
+                product *= num
+                min_positive = min(min_positive, num)
+
+        if neg_count == 0:
+            if zero_count > 0:
+                return 0
+            return min_positive
+
+        if neg_count % 2 == 0:
+            product //= -min_abs_negative
+
+        return product
+```
+
+**TC:** `O(n)`
+**SC:** `O(1)`
+
+### Mathematical Observation
+
+```text
+Start
+  ↓
+Count negative & zero
+  ↓
+No negative?
+  ├── Zero exists → 0
+  └── Otherwise → smallest positive
+  ↓
+Negative exists
+  ↓
+Odd negatives?
+  ├── Yes → multiply all non-zero elements
+  └── No  → exclude negative with smallest |value|
+  ↓
+Minimum Product
+```
+
+**Key idea:** To get the smallest product, we want a **negative product with maximum magnitude**.
+
+* Odd number of negatives → use all non-zero elements.
+* Even number of negatives → remove the negative closest to `0`.
+* No negatives → choose `0` if available; otherwise choose the smallest positive.
+
