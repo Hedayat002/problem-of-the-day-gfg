@@ -84,3 +84,19 @@ Minimum Product
 * Even number of negatives → remove the negative closest to `0`.
 * No negatives → choose `0` if available; otherwise choose the smallest positive.
 
+                    Negative numbers?
+                         |
+                +--------+--------+
+                |                 |
+               No                Yes
+                |                 |
+             Zero?          Count negatives
+             /   \               |
+           Yes   No          Odd / Even
+            |     |             |
+            0   min positive   |
+                              /   \
+                            Odd   Even
+                             |      |
+                       all elements  remove
+                       participate   smallest |negative|
