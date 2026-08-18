@@ -1,0 +1,52 @@
+
+1.sol
+
+class Solution:
+    def compress(self, s):
+        # code here
+        n = len(s)
+
+        stack = []
+
+        # Traverse the prefixes from right to left
+        i = n - 1
+        while i > 0:
+
+            length = i + 1
+
+            # Odd-length prefixes cannot be divided into two equal halves
+            if length % 2 == 1:
+                stack.append(s[i])
+                i -= 1
+                continue
+
+            half = length // 2
+            same = True
+
+            # Compare both halves character by character
+            for j in range(half):
+                if s[j] != s[j + half]:
+                    same = False
+                    break
+
+            if same:
+
+                # Replace the second half by '*'
+                stack.append('*')
+
+                # Continue processing only the first half
+                i = half - 1
+            else:
+                stack.append(s[i])
+                i -= 1
+
+        # The first character is always present
+        ans = [s[0]]
+
+        # Reverse the constructed answer
+        while stack:
+            ans.append(stack.pop())
+
+        return "".join(ans)
+
+  O(n ^ 2) Time and O(n) Space
