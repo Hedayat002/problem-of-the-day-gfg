@@ -1,20 +1,49 @@
+## Brute Force
 
-1.sol
-
+```python
 class Solution:
     def compress(self, s):
-        # code here
-        n = len(s)
+        def solve(i):
+            if i >= len(s):
+                return ""
 
-        stack = []
-
-        # Traverse the prefixes from right to left
-        i = n - 1
-        while i > 0:
+            ans = s[i] + solve(i + 1)
 
             length = i + 1
+            if length % 2 == 0:
+                half = length // 2
 
-            # Odd-length prefixes cannot be divided into two equal halves
+                if s[:half] == s[half:length]:
+                    candidate = solve(half - 1)
+
+                    if candidate:
+                        candidate = "*" + candidate
+
+                    ans = min(ans, candidate)
+
+            return ans
+
+        return s[0] + solve(1)
+```
+
+**TC:** O(2ⁿ · n)
+**SC:** O(n)
+
+---
+
+## Better — Your Stack Approach
+
+```python
+class Solution:
+    def compress(self, s):
+        n = len(s)
+        stack = []
+
+        i = n - 1
+
+        while i > 0:
+            length = i + 1
+
             if length % 2 == 1:
                 stack.append(s[i])
                 i -= 1
@@ -23,30 +52,122 @@ class Solution:
             half = length // 2
             same = True
 
-            # Compare both halves character by character
             for j in range(half):
                 if s[j] != s[j + half]:
                     same = False
                     break
 
             if same:
-
-                # Replace the second half by '*'
                 stack.append('*')
-
-                # Continue processing only the first half
                 i = half - 1
             else:
                 stack.append(s[i])
                 i -= 1
 
-        # The first character is always present
         ans = [s[0]]
 
-        # Reverse the constructed answer
         while stack:
             ans.append(stack.pop())
 
         return "".join(ans)
+```
 
-  O(n ^ 2) Time and O(n) Space
+**TC:** O(n²)
+**SC:** O(n)
+
+> Your logic is correct for the intended transformation. The main problem is the repeated character comparison, which can make it **O(n²)** for `n = 10⁵`.
+
+---
+
+## Optimal — Z-Algorithm + Stack
+
+```python
+class Solution:
+    def compress(self, s):
+        n = len(s)
+
+        z = [0] * n
+        left = right = 0
+
+        for i in range(1, n):
+            if i <= right:
+                z[i] = min(right - i + 1, z[i - left])
+
+            while i + z[i] < n and s[z[i]] == s[i + z[i]]:
+                z[i] += 1
+
+            if i + z[i] - 1 > right:
+                left = i
+                right = i + z[i] - 1
+
+        stack = []
+        i = n - 1
+
+        while i > 0:
+            length = i + 1
+
+            if length % 2 == 0:
+                half = length // 2
+
+                if z[half] >= half:
+                    stack.append('*')
+                    i = half - 1
+                    continue
+
+            stack.append(s[i])
+            i -= 1
+
+        ans = [s[0]]
+
+        while stack:
+            ans.append(stack.pop())
+
+        return "".join(ans)
+```
+
+**TC:** O(n)
+**SC:** O(n)
+
+### ASCII Algorithm
+
+```text
+Start
+  |
+  v
+Build Z-array
+  |
+  v
+i = n - 1
+  |
+  v
+Is prefix length even?
+  |
+  +---- No ----> push s[i] -> i--
+  |
+ Yes
+  |
+  v
+half = length / 2
+  |
+  v
+Z[half] >= half ?
+  |
+  +---- No ----> push s[i] -> i--
+  |
+ Yes
+  |
+  v
+push '*'
+i = half - 1
+  |
+  v
+Repeat
+  |
+  v
+Reverse stack + s[0]
+  |
+  v
+Answer
+```
+
+**Key improvement:** your `for j in range(half)` comparison is replaced by `z[half] >= half`, making each prefix check **O(1)** after the **O(n)** Z-array preprocessing.
