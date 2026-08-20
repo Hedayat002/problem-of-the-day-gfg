@@ -1,0 +1,63 @@
+
+
+1.brute force using Dfs 
+''' Structure of Binary Tree Node
+class Node:
+    def __init__(self,val):
+        self.data = val
+        self.left = None
+        self.right = None
+'''
+class Solution:
+    def dfs(self, node, start):
+        if node is None:
+            return float('-inf')
+    
+        ans = start - node.data
+    
+        start = min(start, node.data)
+    
+        left = self.dfs(node.left, start)
+        right = self.dfs(node.right, start)
+    
+        return max(ans, left, right)
+    def maxDiff(self, root):
+        # code here
+        return self.dfs(root, root.data)
+
+
+TC = O(n)
+SC = O(h) → O(n) worst case
+
+optimal sol :
+''' Structure of Binary Tree Node
+class Node:
+    def __init__(self,val):
+        self.data = val
+        self.left = None
+        self.right = None
+'''
+class Solution:
+    def dfs(self, node):
+        if node is None:
+            return float('inf')
+    
+        left_min = self.dfs(node.left)
+        right_min = self.dfs(node.right)
+    
+        self.ans = max(
+            self.ans,
+            node.data - left_min,
+            node.data - right_min
+        )
+    
+        return min(node.data, left_min, right_min)
+    def maxDiff(self, root):
+        # code here
+        self.ans = float('-inf')
+        self.dfs(root)
+        return self.ans
+Time:  O(n)
+Space: O(h)
+
+        
