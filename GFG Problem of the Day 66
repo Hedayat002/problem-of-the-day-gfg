@@ -1,0 +1,121 @@
+## Brute Force
+
+```python
+class Solution:
+    def transform(self, s1, s2):
+        if len(s1) != len(s2):
+            return -1
+
+        n = len(s1)
+
+        if sorted(s1) != sorted(s2):
+            return -1
+
+        for k in range(n + 1):
+            # Keep suffix of s1 and move remaining chars to front
+            if s1[k:] == s2[:n-k]:
+                return k
+
+        return -1
+```
+
+**TC:** O(n² log n)
+**SC:** O(n)
+
+---
+
+## Better
+
+```python
+class Solution:
+    def transform(self, s1, s2):
+        if len(s1) != len(s2):
+            return -1
+
+        freq = {}
+
+        for ch in s1:
+            freq[ch] = freq.get(ch, 0) + 1
+
+        for ch in s2:
+            if ch not in freq:
+                return -1
+            freq[ch] -= 1
+            if freq[ch] < 0:
+                return -1
+
+        n = len(s1)
+        i = n - 1
+        j = n - 1
+
+        while i >= 0:
+            if s1[i] == s2[j]:
+                j -= 1
+                if j < 0:
+                    break
+            i -= 1
+
+        return j + 1
+```
+
+**TC:** O(n)
+**SC:** O(k), where `k` = number of distinct characters
+
+---
+
+## Optimal
+
+```python
+class Solution:
+    def transform(self, s1, s2): 
+        #code here
+        n = len(s1)
+        if len(s1) != len(s2):
+            return -1
+
+        freq = {}
+
+        for ch in s1:
+            freq[ch] = freq.get(ch, 0) + 1
+
+        for ch in s2:
+            if ch not in freq:
+                return -1
+            freq[ch] -= 1
+            if freq[ch] < 0:
+                return -1
+
+        i = n - 1
+        j = n - 1
+
+        while i >= 0 and j >= 0:
+            if s1[i] == s2[j]:
+                j -= 1
+            i -= 1
+
+        return j + 1
+**TC:** O(n)
+**SC:** O(1)
+
+### ASCII Algorithm
+
+```text
+Start
+  ↓
+Check len(s1) == len(s2)
+  ↓ No → -1
+  ↓ Yes
+Check character frequencies
+  ↓
+Mismatch → -1
+  ↓
+Compare from right to left
+  ↓
+Keep matching suffix
+  ↓
+Unmatched characters = operations
+  ↓
+Return j + 1
+```
+
+**Optimal:** `O(n)` Time, `O(1)` Auxiliary Space.
