@@ -1,0 +1,206 @@
+
+
+Brute Force using DFS :
+
+class Solution:
+    def dfs(self, i, j, up, down, mat, n, m, u, d, visited):
+
+        # Out of bounds
+        if i < 0 or i >= n or j < 0 or j >= m:
+            return
+
+        # Obstacle
+        if mat[i][j] == '#':
+            return
+
+        # Limits exceeded
+        if up > u or down > d:
+            return
+
+        # Already visited
+        if visited[i][j]:
+            return
+
+        visited[i][j] = True
+        # Move UP
+        self.dfs(i - 1, j,up + 1,down,mat,n,m,u,d,visited)
+    
+        # Move DOWN
+        self.dfs(i + 1,j,up,down + 1,mat, n,m,u,d,visited)
+    
+        # Move LEFT
+        self.dfs(i,j - 1,up,down,mat,n, m,u,d,visited)
+    
+        # Move RIGHT
+        self.dfs(i,j + 1,up,down,mat,n,m,u,d,visited
+        )
+
+    def numberOfCells(self, r: int, c: int, u: int, d: int, mat: list[list[int]]) -> int:
+        # code here
+        n = len(mat)
+        m = len(mat[0])
+
+        if mat[r][c] == '#':
+            return 0
+
+        # 2D visited array
+        visited = [[False] * m for _ in range(n)]
+
+        self.dfs(r,c,0,0,mat,n,m,u,d,visited)
+
+        # A cell may have been visited with multiple
+        # (up, down) states, so extract only (row, col).
+        ans = 0
+
+        for i in range(n):
+            for j in range(m):
+                if visited[i][j]:
+                    ans += 1
+
+        return ans
+Time Complexity:  O(n × m × u × d)
+Space Complexity: O(n × m × u × d)
+
+
+BFS idea
+
+For every move:
+
+UP    → cost 1
+DOWN  → cost 0
+LEFT  → cost 0
+RIGHT → cost 0
+
+Since costs are 0 and 1, this is technically 0-1 BFS, not ordinary BFS.
+
+from collections import deque
+
+class Solution:
+    def numberOfCells(self, r, c, u, d, mat):
+
+        n = len(mat)
+        m = len(mat[0])
+
+        if mat[r][c] == '#':
+            return 0
+
+        INF = float('inf')
+
+        # dist[i][j] = minimum UP moves required
+        # to reach (i, j)
+        dist = [[INF] * m for _ in range(n)]
+
+        dist[r][c] = 0
+
+        dq = deque()
+        dq.append((r, c))
+
+        directions = [
+            (-1, 0),   # UP
+            (1, 0),    # DOWN
+            (0, -1),   # LEFT
+            (0, 1)     # RIGHT
+        ]
+
+        while dq:
+
+            i, j = dq.popleft()
+
+            for di, dj in directions:
+
+                ni = i + di
+                nj = j + dj
+
+                # Out of bounds
+                if ni < 0 or ni >= n or nj < 0 or nj >= m:
+                    continue
+
+                # Obstacle
+                if mat[ni][nj] == '#':
+                    continue
+
+                # UP costs 1
+                if di == -1:
+                    cost = 1
+                else:
+                    cost = 0
+
+                new_dist = dist[i][j] + cost
+
+                if new_dist < dist[ni][nj]:
+
+                    dist[ni][nj] = new_dist
+
+                    if cost == 0:
+                        dq.appendleft((ni, nj))
+                    else:
+                        dq.append((ni, nj))
+
+        ans = 0
+
+        for i in range(n):
+            for j in range(m):
+
+                if dist[i][j] == INF:
+                    continue
+
+                # Minimum UP moves
+                up_used = dist[i][j]
+
+                # From:
+                #
+                # i = r - up + down
+                #
+                # therefore:
+                #
+                # down = up + i - r
+
+                down_used = up_used + i - r
+
+                if up_used <= u and down_used <= d:
+                    ans += 1
+
+        return ans
+How your DFS transformed
+
+Your DFS:
+
+DFS
+ |
+ ├── UP
+ ├── DOWN
+ ├── LEFT
+ └── RIGHT
+
+becomes:
+
+0-1 BFS
+   |
+   ├── UP    → cost 1 → append right
+   ├── DOWN  → cost 0 → append left
+   ├── LEFT  → cost 0 → append left
+   └── RIGHT → cost 0 → append left
+
+The key replacement is:
+
+visited[i][j]
+
+with:
+
+dist[i][j]
+
+because we need to know the minimum UP moves used to reach each cell, rather than merely whether we have seen the cell.
+
+Complexity
+Time:  O(n × m)
+Space: O(n × m)
+
+So this is substantially better than your DFS state-space solution:
+
+DFS:
+O(n × m × u × d)
+
+0-1 BFS:
+O(n × m)
+
+And it handles the large constraints much more appropriately.
