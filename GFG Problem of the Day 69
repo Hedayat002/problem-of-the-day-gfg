@@ -1,0 +1,108 @@
+1. Recursion
+
+class Solution:
+    def solve(self,ones, zeros):
+    
+        if ones == 0 and zeros == 0:
+            return 1
+    
+        ans = 0
+    
+        if ones > 0:
+            ans += self.solve(ones - 1, zeros)
+    
+        if zeros > ones:
+            ans += self.solve(ones, zeros - 1)
+    
+        return ans
+    def prefixStrings(self, n: int) -> int:
+        # code here
+        return self.solve(n, n)
+TC: O(2^(2n))
+SC: O(n)
+
+2. Memoization (Top-Down)
+class Solution:
+    def solve(self,ones, zeros,dp):
+    
+        if ones == 0 and zeros == 0:
+            return 1
+    
+        ans = 0
+        if dp[ones][zeros] != -1:
+            return dp[ones][zeros]
+    
+        if ones > 0:
+            ans += self.solve(ones - 1, zeros,dp)
+    
+        if zeros > ones:
+            ans += self.solve(ones, zeros - 1,dp)
+            
+        dp[ones][zeros] = ans
+    
+        return dp[ones][zeros]
+    def prefixStrings(self, n: int) -> int:
+        # code here
+        dp = [[-1] * (n + 1) for _ in range(n + 1)]
+        return self.solve(n, n,dp)
+TC: O(n²)
+SC: O(n²)
+
+3. Tabulation (Bottom-Up)
+
+class Solution:
+   
+    def prefixStrings(self, n: int) -> int:
+        # code here
+        MOD = 10**9 + 7
+        dp = [[0] * (n + 1) for _ in range(n + 1)]
+        dp[0][0] = 1
+        
+        for ones in range(n + 1):
+            for zeros in range(n + 1):
+                if ones == 0 and zeros == 0:
+                            continue
+
+                if ones > 0:
+                    dp[ones][zeros] += dp[ones - 1][zeros]
+
+                if zeros > ones:
+                    dp[ones][zeros] += dp[ones][zeros - 1]
+
+                dp[ones][zeros] %= MOD
+
+        return dp[n][n]
+            
+TC: O(n²)
+SC: O(n²)
+
+4. Space Optimization
+
+class Solution:
+   
+    def prefixStrings(self, n: int) -> int:
+        # code here
+        MOD = 10**9 + 7
+        prev = [0] * (n + 1) 
+        prev[0] = 1
+        
+        for ones in range(n + 1):
+            curr = [0] * (n + 1) 
+            for zeros in range(n + 1):
+                if ones == 0 and zeros == 0:
+                    curr[zeros] = 1
+                    continue
+
+                if ones > 0:
+                    curr[zeros] += prev[zeros]
+
+                if zeros > ones:
+                    curr[zeros] += curr[zeros - 1]
+
+                curr[zeros] %= MOD
+            prev = curr
+
+        return prev[n]
+            
+TC: O(n²)
+SC: O(n)
