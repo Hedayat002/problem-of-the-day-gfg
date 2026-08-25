@@ -1,0 +1,105 @@
+### ASCII Algorithm / Pattern
+
+```text
+Start
+  ↓
+n = length(arr)
+  ↓
+Build pos[value] = index
+  ↓
+Find longest consecutive values
+whose positions are increasing
+  ↓
+maxLen = longest such sequence
+  ↓
+Answer = n - maxLen
+  ↓
+End
+```
+
+### Brute Force
+
+```python
+class Solution:
+    def minMoves(self, arr):
+        n = len(arr)
+        ans = n
+
+        def check(k):
+            # Keep k consecutive values and move the rest
+            for start in range(1, n - k + 2):
+                expected = list(range(start, start + k))
+                positions = [arr.index(x) for x in expected]
+
+                if positions == sorted(positions):
+                    return True
+            return False
+
+        for k in range(n, 0, -1):
+            if check(k):
+                return n - k
+
+        return n
+```
+
+**TC:** O(n³)
+**SC:** O(n)
+
+### Better
+
+```python
+class Solution:
+    def minMoves(self, arr):
+        n = len(arr)
+        pos = [0] * (n + 1)
+
+        for i in range(n):
+            pos[arr[i]] = i
+
+        max_len = 1
+
+        for start in range(1, n + 1):
+            length = 1
+
+            while start + length <= n:
+                if pos[start + length] > pos[start + length - 1]:
+                    length += 1
+                else:
+                    break
+
+            max_len = max(max_len, length)
+
+        return n - max_len
+```
+
+**TC:** O(n²)
+**SC:** O(n)
+
+### Optimal
+
+```python
+class Solution:
+    def minMoves(self, arr):
+        n = len(arr)
+
+        pos = [0] * (n + 1)
+
+        for i in range(n):
+            pos[arr[i]] = i
+
+        max_len = 1
+        cur_len = 1
+
+        for val in range(2, n + 1):
+            if pos[val] > pos[val - 1]:
+                cur_len += 1
+            else:
+                cur_len = 1
+
+            max_len = max(max_len, cur_len)
+
+        return n - max_len
+```
+
+**TC:** O(n)
+**SC:** O(n)
