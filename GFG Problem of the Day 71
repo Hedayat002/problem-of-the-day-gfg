@@ -1,0 +1,123 @@
+## Brute Force
+
+```python
+class Solution:
+    def isNegativeWeightCycle(self, V: int, edges: list[list[int]]) -> bool:
+        from itertools import permutations
+
+        graph = [[] for _ in range(V)]
+
+        for u, v, w in edges:
+            graph[u].append((v, w))
+
+        for start in range(V):
+            for length in range(1, V + 1):
+                for path in permutations(
+                    [x for x in range(V) if x != start],
+                    length - 1
+                ):
+                    cycle = (start,) + path
+
+                    total = 0
+                    valid = True
+
+                    for i in range(len(cycle)):
+                        u = cycle[i]
+                        v = cycle[(i + 1) % len(cycle)]
+
+                        found = False
+                        for to, w in graph[u]:
+                            if to == v:
+                                total += w
+                                found = True
+                                break
+
+                        if not found:
+                            valid = False
+                            break
+
+                    if valid and total < 0:
+                        return True
+
+        return False
+```
+
+**TC:** `O(V!)`
+**SC:** `O(V + E)`
+
+---
+
+## Better — Bellman-Ford From Every Vertex
+
+```python
+class Solution:
+    def isNegativeWeightCycle(self, V: int, edges: list[list[int]]) -> bool:
+        for src in range(V):
+            dist = [float("inf")] * V
+            dist[src] = 0
+
+            for _ in range(V - 1):
+                updated = False
+
+                for u, v, w in edges:
+                    if dist[u] != float("inf") and dist[u] + w < dist[v]:
+                        dist[v] = dist[u] + w
+                        updated = True
+
+                if not updated:
+                    break
+
+            for u, v, w in edges:
+                if dist[u] != float("inf") and dist[u] + w < dist[v]:
+                    return True
+
+        return False
+```
+
+**TC:** `O(V² × E)`
+**SC:** `O(V)`
+
+---
+
+## Optimal — Bellman-Ford With All Distances Initialized to 0
+
+```python
+class Solution:
+    def isNegativeWeightCycle(self, V: int, edges: list[list[int]]) -> bool:
+        dist = [0] * V
+
+        for _ in range(V - 1):
+            updated = False
+
+            for u, v, w in edges:
+                if dist[u] + w < dist[v]:
+                    dist[v] = dist[u] + w
+                    updated = True
+
+            if not updated:
+                return False
+
+        for u, v, w in edges:
+            if dist[u] + w < dist[v]:
+                return True
+
+        return False
+```
+
+**TC:** `O(V × E)`
+**SC:** `O(V)`
+
+### Algorithm Pattern
+
+```text
+Start
+  ↓
+dist = [0] * V
+  ↓
+Relax all edges V - 1 times
+  ↓
+Can any edge still be relaxed?
+  ↓
+Yes → Negative Cycle → True
+No  → No Negative Cycle → False
+```
