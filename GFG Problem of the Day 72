@@ -1,0 +1,108 @@
+## 1. Brute Force
+
+```python
+class Solution:
+    def maxArea(self, mat):
+        n = len(mat)
+        m = len(mat[0])
+        ans = 0
+
+        for top in range(n):
+            height = [1] * m
+
+            for bottom in range(top, n):
+                for j in range(m):
+                    if mat[bottom][j] == 0:
+                        height[j] = 0
+
+                ones = sorted(height, reverse=True)
+
+                for j in range(m):
+                    ans = max(ans, ones[j] * (j + 1))
+
+        return ans
+```
+
+**TC:** O(n² × m log m)
+**SC:** O(m)
+
+---
+
+## 2. Better
+
+```python
+class Solution:
+    def maxArea(self, mat):
+        n = len(mat)
+        m = len(mat[0])
+        ans = 0
+
+        height = [[0] * m for _ in range(n)]
+
+        for j in range(m):
+            for i in range(n):
+                if mat[i][j] == 1:
+                    height[i][j] = 1 if i == 0 else height[i - 1][j] + 1
+
+        for i in range(n):
+            row = sorted(height[i], reverse=True)
+
+            for j in range(m):
+                ans = max(ans, row[j] * (j + 1))
+
+        return ans
+```
+
+**TC:** O(n × m + n × m log m)
+**SC:** O(n × m)
+
+---
+
+## 3. Optimal
+
+```python
+class Solution:
+    def maxArea(self, mat):
+        n = len(mat)
+        m = len(mat[0])
+        ans = 0
+
+        height = [[0] * m for _ in range(n)]
+
+        for j in range(m):
+            for i in range(n):
+                if mat[i][j] == 1:
+                    height[i][j] = 1 if i == 0 else height[i - 1][j] + 1
+
+        for i in range(n):
+            row = height[i]
+            row.sort(reverse=True)
+
+            for j in range(m):
+                ans = max(ans, row[j] * (j + 1))
+
+        return ans
+```
+
+**TC:** O(n × (n + m))
+**SC:** O(n × m)
+
+### Algorithm
+
+```text
+Start
+  ↓
+Build consecutive-1 heights for every row
+  ↓
+For each row:
+  ↓
+Sort heights in descending order
+  ↓
+width = number of selected columns
+  ↓
+area = height[j] × (j + 1)
+  ↓
+Take maximum
+  ↓
+Answer
+```
