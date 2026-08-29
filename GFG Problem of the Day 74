@@ -1,0 +1,130 @@
+1. Recursion
+class Solution:
+    def solve(self, s, n, i, rem):
+        if i == len(s):
+            if rem == 0:
+                return 1
+            return 0
+    
+        digit = int(s[i])
+    
+        # Take
+        new_rem = (rem * 10 + digit) % n
+        take = self.solve(s, n, i + 1, new_rem)
+    
+        # Skip
+        skip = self.solve(s, n, i + 1, rem)
+    
+
+        return take + skip
+
+    def countSubsequences(self, s, n):
+        # code here
+        MOD = 10**9 + 7
+        m = len(s)
+
+        # Empty subsequence is counted here, so subtract 1
+        return (self.solve(s, n, 0, 0) - 1) % MOD
+        
+
+        
+TC: O(2ⁿ)
+SC: O(n)
+2. Memoization (Top-Down)
+class Solution:
+    def solve(self, s, n, i, rem,dp):
+        if i == len(s):
+            if rem == 0:
+                return 1
+            return 0
+        if dp[i][rem] != -1:
+            return dp[i][rem]
+    
+        digit = int(s[i])
+    
+        # Take
+        new_rem = (rem * 10 + digit) % n
+        take = self.solve(s, n, i + 1, new_rem,dp)
+    
+        # Skip
+        skip = self.solve(s, n, i + 1, rem,dp)
+        
+        dp[i][rem] = take + skip
+    
+
+        return dp[i][rem]
+
+    def countSubsequences(self, s, n):
+        # code here
+        MOD = 10**9 + 7
+        m = len(s)
+        dp = [[-1] * n for _ in range(m)]
+
+        # Empty subsequence is counted here, so subtract 1
+        return (self.solve(s, n, 0, 0,dp) - 1) % MOD
+        
+TC: O(|s|² × n)
+SC: O(|s| × n)
+
+3. Tabulation (Bottom-Up)
+class Solution:
+        
+    def countSubsequences(self, s, n):
+        # code here
+        MOD = 10**9 + 7
+        m = len(s)
+        dp = [[0] * n for _ in range(m+1)]
+
+        # Empty subsequence is counted here, so subtract 1
+        dp[0][0] = 1
+         
+        for i in range(m):
+            digit = int(s[i])
+             
+            for rem in range(n):
+                # Take
+                
+                # Skip current digit
+                dp[i + 1][rem] += dp[i][rem]
+
+                # Take current digit
+                new_rem = (rem * 10 + digit) % n
+                dp[i + 1][new_rem] += dp[i][rem]
+
+                dp[i + 1][rem] %= MOD
+                dp[i + 1][new_rem] %= MOD
+
+        # Remove empty subsequence
+        return (dp[m][0] - 1) % MOD
+             
+  
+TC: O(|s| × n)
+SC: O(|s| × n)
+
+4. Space Optimization
+class Solution:
+    def countSubsequences(self, s, n):
+        # code here
+        MOD = 10**9 + 7
+
+        prev = [0] * n
+
+        for ch in s:
+            digit = int(ch)
+            curr = prev[:]
+
+            # Start a new subsequence with current digit
+            curr[digit % n] += 1
+
+            for rem in range(n):
+                new_rem = (rem * 10 + digit) % n
+                curr[new_rem] += prev[rem]
+                curr[new_rem] %= MOD
+
+            prev = curr
+
+        return prev[0] % MOD
+        
+
+TC: O(|s| × n)
+SC: O(n)
