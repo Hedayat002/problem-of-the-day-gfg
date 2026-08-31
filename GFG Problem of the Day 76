@@ -1,0 +1,124 @@
+## 1. Recursion
+
+```python
+class Solution:
+    def solve(self, n, i, d, c):
+        if n == 0:
+            return 0
+
+        if n == 1:
+            return i
+
+        ans = self.solve(n - 1, i, d, c) + i
+
+        if n % 2 == 0:
+            ans = min(ans, self.solve(n // 2, i, d, c) + c)
+        else:
+            ans = min(ans, self.solve(n // 2, i, d, c) + c + i)
+            ans = min(ans, self.solve((n + 1) // 2, i, d, c) + c + d)
+
+        return ans
+
+    def minCost(self, n, i, d, c):
+        return self.solve(n, i, d, c)
+```
+
+**TC:** O(3ⁿ)
+**SC:** O(n)
+
+## 2. Memoization (Top-Down)
+
+```python
+class Solution:
+    def solve(self, n, i, d, c, dp):
+        if n == 0:
+            return 0
+
+        if n == 1:
+            return i
+
+        if dp[n] != -1:
+            return dp[n]
+
+        ans = self.solve(n - 1, i, d, c, dp) + i
+
+        if n % 2 == 0:
+            ans = min(
+                ans,
+                self.solve(n // 2, i, d, c, dp) + c
+            )
+        else:
+            ans = min(
+                ans,
+                self.solve(n // 2, i, d, c, dp) + c + i
+            )
+
+            ans = min(
+                ans,
+                self.solve((n + 1) // 2, i, d, c, dp) + c + d
+            )
+
+        dp[n] = ans
+        return dp[n]
+
+    def minCost(self, n, i, d, c):
+        dp = [-1] * (n + 1)
+        return self.solve(n, i, d, c, dp)
+```
+
+**TC:** O(n)
+**SC:** O(n)
+
+## 3. Tabulation (Bottom-Up)
+
+```python
+class Solution:
+    def minCost(self, n, i, d, c):
+        if n == 1:
+            return i
+
+        dp = [0] * (n + 1)
+        dp[1] = i
+
+        for x in range(2, n + 1):
+            ans = dp[x - 1] + i
+
+            if x % 2 == 0:
+                ans = min(ans, dp[x // 2] + c)
+            else:
+                ans = min(ans, dp[x // 2] + c + i)
+                ans = min(ans, dp[(x + 1) // 2] + c + d)
+
+            dp[x] = ans
+
+        return dp[n]
+```
+
+**TC:** O(n)
+**SC:** O(n)
+
+## 4. Space Optimization
+
+```python
+class Solution:
+    def minCost(self, n, i, d, c):
+        if n == 1:
+            return i
+
+        dp = [0] * (n + 1)
+        dp[1] = i
+
+        for x in range(2, n + 1):
+            dp[x] = dp[x - 1] + i
+
+            if x % 2 == 0:
+                dp[x] = min(dp[x], dp[x // 2] + c)
+            else:
+                dp[x] = min(dp[x], dp[x // 2] + c + i)
+                dp[x] = min(dp[x], dp[(x + 1) // 2] + c + d)
+
+        return dp[n]
+```
+
+**TC:** O(n)
+**SC:** O(n)
