@@ -1,0 +1,31 @@
+class Solution:
+    def solve(self, n, s):
+        # code here
+        state = [0] * 26
+
+        computers = n
+        ans = 0
+
+        for ch in s:
+            index = ord(ch) - ord('A')
+
+            # First occurrence
+            if state[index] == 0:
+                if computers > 0:
+                    computers -= 1
+                    state[index] = 1
+                else:
+                    ans += 1
+                    state[index] = 2
+
+            # Second occurrence
+            elif state[index] == 1:
+                computers += 1
+                state[index] = 0
+
+            # Second occurrence of a rejected customer
+            else:
+                state[index] = 0
+
+        return ans
+        
