@@ -1,0 +1,66 @@
+### Brute Force
+
+```python
+class Solution:
+    def maxFruits(self, arr: list[int], m: int) -> int:
+        n = len(arr)
+        max_sum = 0
+
+        for i in range(n):
+            curr_sum = 0
+
+            for j in range(m):
+                curr_sum += arr[(i + j) % n]
+
+            max_sum = max(max_sum, curr_sum)
+
+        return max_sum
+```
+
+**TC:** `O(n × m)`
+**SC:** `O(1)`
+
+### Better
+
+```python
+class Solution:
+    def maxFruits(self, arr: list[int], m: int) -> int:
+        n = len(arr)
+
+        window_sum = sum(arr[:m])
+        max_sum = window_sum
+
+        for i in range(1, n):
+            window_sum -= arr[i - 1]
+            window_sum += arr[(i + m - 1) % n]
+            max_sum = max(max_sum, window_sum)
+
+        return max_sum
+```
+
+**TC:** `O(n)`
+**SC:** `O(1)`
+
+### Optimal
+
+```python
+class Solution:
+    def maxFruits(self, arr: list[int], m: int) -> int:
+        n = len(arr)
+
+        if m == n:
+            return sum(arr)
+
+        window_sum = sum(arr[:m])
+        max_sum = window_sum
+
+        for i in range(1, n):
+            window_sum -= arr[i - 1]
+            window_sum += arr[(i + m - 1) % n]
+            max_sum = max(max_sum, window_sum)
+
+        return max_sum
+```
+
+**TC:** `O(n)`
+**SC:** `O(1)`
