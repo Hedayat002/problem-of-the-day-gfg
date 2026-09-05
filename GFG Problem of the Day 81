@@ -1,0 +1,80 @@
+## Brute Force
+
+```python
+class Solution:
+    def longestSubseq(self, arr):
+        n = len(arr)
+        dp = [1] * n
+        ans = 1
+
+        for i in range(n):
+            for j in range(i):
+                if abs(arr[i] - arr[j]) == 1:
+                    dp[i] = max(dp[i], dp[j] + 1)
+
+            ans = max(ans, dp[i])
+
+        return ans
+```
+
+**TC:** `O(n²)`
+**SC:** `O(n)`
+
+## Better
+
+```python
+class Solution:
+    def longestSubseq(self, arr):
+        dp =
+---
+
+## Optimal
+
+```python
+class Solution:
+    def longestSubseq(self, arr):
+        mp = {}
+        ans = 0
+
+        for x in arr:
+            best = max(
+                mp.get(x - 1, 0),
+                mp.get(x + 1, 0)
+            )
+
+            mp[x] = max(mp.get(x, 0), best + 1)
+            ans = max(ans, mp[x])
+
+        return ans
+```
+
+**TC:** `O(n)`
+**SC:** `O(n)`
+
+---
+
+### Algorithm / Flowchart
+
+```text
+START
+  ↓
+Initialize map, ans = 0
+  ↓
+For each x in arr
+  ↓
+Check dp[x-1] and dp[x+1]
+  ↓
+best = max(dp[x-1], dp[x+1])
+  ↓
+dp[x] = best + 1
+  ↓
+Update ans
+  ↓
+More elements?
+  ├── YES → Repeat
+  └── NO
+       ↓
+     Return ans
+       ↓
+      END
+```
