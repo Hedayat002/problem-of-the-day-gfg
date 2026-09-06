@@ -1,0 +1,83 @@
+### Brute Force
+
+```python
+class Solution:
+    def pairAndSum(self, arr):
+        n = len(arr)
+        ans = 0
+
+        for i in range(n):
+            for j in range(i + 1, n):
+                ans += arr[i] & arr[j]
+
+        return ans
+```
+
+**TC:** `O(n²)`
+**SC:** `O(1)`
+
+### Better
+
+```python
+class Solution:
+    def pairAndSum(self, arr):
+        n = len(arr)
+        ans = 0
+
+        for i in range(n):
+            for j in range(i + 1, n):
+                if arr[i] & arr[j]:
+                    ans += arr[i] & arr[j]
+
+        return ans
+```
+
+**TC:** `O(n²)`
+**SC:** `O(1)`
+
+### Optimal
+
+```python
+class Solution:
+    def pairAndSum(self, arr):
+        ans = 0
+
+        for bit in range(31):
+            count = 0
+            bitValue = 1 << bit
+
+            for num in arr:
+                if num & bitValue:
+                    count += 1
+
+            pairCount = count * (count - 1) // 2
+            ans += pairCount * bitValue
+
+        return ans
+```
+
+**TC:** `O(31n)` → `O(n)`
+**SC:** `O(1)`
+
+### Algorithm / Flowchart
+
+```text
+Start
+  ↓
+For each bit (0 → 30)
+  ↓
+Count numbers having this bit set
+  ↓
+pairCount = count × (count - 1) / 2
+  ↓
+contribution = pairCount × bitValue
+  ↓
+Add contribution to ans
+  ↓
+All bits processed?
+  ↓
+Return ans
+  ↓
+End
+```
+
