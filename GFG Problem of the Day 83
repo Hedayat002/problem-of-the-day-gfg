@@ -1,0 +1,121 @@
+1. Recursion
+class Solution:
+    def solve(self, ind, inc, dec, arr):
+       if ind < 0:
+           return 0
+
+       # Skip current element
+       ans = 1 + self.solve(ind - 1, inc, dec, arr)
+
+       # Put current element in increasing subsequence
+       if inc == -1 or arr[ind] < arr[inc]:
+           ans = min(
+               ans,
+               self.solve(ind - 1, ind, dec, arr)
+           )
+
+       # Put current element in decreasing subsequence
+       if dec == -1 or arr[ind] > arr[dec]:
+           ans = min(
+               ans,
+               self.solve(ind - 1, inc, ind, arr)
+           )
+
+       return ans
+
+    def minCount(self, arr):
+        """ code here """
+        n = len(arr)
+        return self.solve(n - 1, -1, -1, arr)
+
+
+TC: O(3ⁿ)
+SC: O(n) — recursion stack
+
+2. Memoization (Top-Down)
+class Solution:
+    def solve(self, ind, inc, dec, arr, dp):
+        if ind < 0:
+            return 0
+
+        if dp[ind][inc + 1][dec + 1] != -1:
+            return dp[ind][inc + 1][dec + 1]
+
+        ans = 1 + self.solve(ind - 1, inc, dec, arr, dp)
+
+        if inc == -1 or arr[ind] < arr[inc]:
+            ans = min(
+                ans,
+                self.solve(ind - 1, ind, dec, arr, dp)
+            )
+
+        if dec == -1 or arr[ind] > arr[dec]:
+            ans = min(
+                ans,
+                self.solve(ind - 1, inc, ind, arr, dp)
+            )
+
+        dp[ind][inc + 1][dec + 1] = ans
+        return ans
+
+    def minCount(self, arr):
+        n = len(arr)
+        dp = [[[-1] * (n + 1) for _ in range(n + 1)] for _ in range(n)]
+        return self.solve(n - 1, -1, -1, arr, dp)
+TC: O(n³)
+SC: O(n³)
+
+3. Tabulation (Bottom-Up)
+class Solution:
+    def minCount(self, arr):
+        n = len(arr)
+        dp = [[[0] * (n + 1) for _ in range(n + 1)] for _ in range(n+1)]
+        
+    
+        for ind in range(1, n + 1):
+            for inc in range(n + 1):
+                for dec in range(n + 1):
+                    ans = 1 + dp[ind-1][inc][dec]
+
+                    if inc == 0 or arr[ind-1] < arr[inc-1]:
+                        ans = min(
+                            ans,
+                            dp[ind - 1][ind][dec])
+            
+                    if dec == 0 or arr[ind-1] > arr[dec-1]:
+                        ans = min(
+                            ans,dp[ind - 1][inc][ind])
+            
+                    dp[ind][inc][dec] = ans
+        return dp[n][0][0]
+
+
+TC: O(n³)
+SC: O(n³)
+
+4. Space Optimization
+
+class Solution:
+    def minCount(self, arr):
+        n = len(arr)
+        prev = [[0] * (n + 1) for _ in range(n + 1)]
+        for ind in range(1, n + 1):
+            curr = [[n] * (n + 1) for _ in range(n + 1)]
+            for inc in range(n + 1):
+                for dec in range(n + 1):
+                    ans = 1 + prev[inc][dec]
+
+                    if inc == 0 or arr[ind-1] < arr[inc-1]:
+                        ans = min(
+                            ans,
+                            prev[ind][dec])
+            
+                    if dec == 0 or arr[ind-1] > arr[dec-1]:
+                        ans = min(
+                            ans,prev[inc][ind])
+            
+                    curr[inc][dec] = ans
+            prev = curr
+        return prev[0][0]
+TC: O(n³)
+SC: O(n²)
