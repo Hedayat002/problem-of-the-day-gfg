@@ -1,0 +1,36 @@
+class Solution:
+    def findMax(self, n):
+        # code here
+           s = str(n)
+           m = len(s)
+        
+           prefix_sum = 0
+           best_sum = sum(map(int, s))
+           answer = n
+        
+           for i in range(m):
+               digit = int(s[i])
+        
+               if digit > 0:
+                   candidate_sum = (
+                       prefix_sum
+                       + (digit - 1)
+                       + 9 * (m - i - 1)
+                   )
+        
+                   candidate = int(
+                       s[:i]
+                       + str(digit - 1)
+                       + '9' * (m - i - 1)
+                   )
+        
+                   if candidate_sum > best_sum:
+                       best_sum = candidate_sum
+                       answer = candidate
+        
+                   elif candidate_sum == best_sum:
+                       answer = max(answer, candidate)
+        
+               prefix_sum += digit
+        
+           return answer
