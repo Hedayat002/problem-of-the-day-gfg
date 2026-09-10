@@ -1,0 +1,53 @@
+Brute Force
+from math import gcd
+
+class Solution:
+    def pairCount(self, x, y):
+        count = 0
+
+
+        for a in range(1, y + 1):
+            for b in range(1, y + 1):
+
+                g = gcd(a, b)
+
+                if g == x:
+                    lcm = (a * b) // g
+
+                    if lcm == y:
+                        count += 1
+
+        return count
+
+tc:	O(y² log y)	
+sc: O(1)	Try every (a,b)
+
+
+optimal:
+
+from math import gcd
+class Solution:
+
+    def pairCount(self, x, y):
+        
+        """code here"""
+        if y % x != 0:
+            return 0
+
+        n = y // x
+        count = 0
+
+        for p in range(1, int(n ** 0.5) + 1):
+            if n % p == 0:
+                q = n // p
+
+                if gcd(p, q) == 1:
+                    count += 2
+
+        if n == 1:
+            return 1
+
+        return count
+
+Time  = O(√n log n)
+Space = O(1)
