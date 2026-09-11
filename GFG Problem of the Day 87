@@ -1,0 +1,68 @@
+Approach 1 — Brute Force
+class Solution:
+    def sameMod(self, arr):
+        max_val = max(arr)
+        count = 0
+
+        for k in range(1, max_val + 1):
+            remainder = arr[0] % k
+
+            valid = True
+
+            for i in range(1, len(arr)):
+                if arr[i] % k != remainder:
+                    valid = False
+                    break
+
+            if valid:
+                count += 1
+
+        # If all elements are equal,
+        # infinitely many k are possible
+        if len(set(arr)) == 1:
+            return -1
+
+        return count
+
+Time  = O(n × M)
+Space = O(1)
+
+Approach 2 — Optimal Solution
+class Solution:
+    def sameMod(self, arr):
+        g = 0
+
+        # Find GCD of all differences
+        for i in range(1, len(arr)):
+            diff = abs(arr[i] - arr[0])
+            g = self.gcd(g, diff)
+
+        # All elements are equal
+        if g == 0:
+            return -1
+
+        # Count divisors of g
+        count = 0
+        i = 1
+
+        while i * i <= g:
+            if g % i == 0:
+                count += 2
+
+                # i and g//i are same divisor
+                # when g is a perfect square
+                if i * i == g:
+                    count -= 1
+
+            i += 1
+
+        return count
+
+    def gcd(self, a, b):
+        while b != 0:
+            a, b = b, a % b
+
+        return a
+
+tc : O(n + √g)	
+sc: O(1)
