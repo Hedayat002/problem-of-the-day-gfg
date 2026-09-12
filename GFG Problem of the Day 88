@@ -1,0 +1,98 @@
+Recursion
+
+class Solution:
+    def maxProduct(self, arr: list[int], k: int) -> int:
+
+        max_product, min_product = self.solve(arr, 0, k)
+
+        return max_product
+
+    def solve(self, arr, index, k):
+
+        # Exactly k elements selected
+        if k == 0:
+            return 1, 1
+
+        # Not enough elements remaining
+        if len(arr) - index < k:
+            return float('-inf'), float('inf')
+
+        # Pick current element
+        take_max, take_min = self.solve(
+            arr,
+            index + 1,
+            k - 1
+        )
+
+        take1 = arr[index] * take_max
+        take2 = arr[index] * take_min
+
+        current_take_max = max(take1, take2)
+        current_take_min = min(take1, take2)
+
+        # Don't pick current element
+        skip_max, skip_min = self.solve(
+            arr,
+            index + 1,
+            k
+        )
+
+
+        # Combine both possibilities
+        maximum = max(current_take_max, skip_max)
+        minimum = min(current_take_min, skip_min)
+
+        return maximum, minimum
+
+tc:O(2^n)
+sc:O(n)
+
+optimal solution :
+class Solution:
+    def maxProduct(self, arr: list[int], k: int) -> int:
+        # code here
+           n = len(arr)
+        
+           arr.sort()
+        
+           product = 1
+        
+           # If k is odd and largest element is 0
+           # 0 is the maximum possible product
+           if arr[n - 1] == 0 and (k & 1) == 1:
+               return 0
+        
+           # If all elements are negative/zero and k is odd
+           # choose k largest elements
+           if arr[n - 1] <= 0 and (k & 1) == 1:
+               for i in range(n - 1, n - k - 1, -1):
+                   product *= arr[i]
+               return product
+        
+           left = 0
+           right = n - 1
+        
+           # If k is odd, take the largest element first
+           if (k & 1) == 1:
+               product *= arr[right]
+               right -= 1
+               k -= 1
+        
+           # Now k is even
+           # Select k/2 pairs
+           k //= 2
+        
+           for _ in range(k):
+               leftProd = arr[left] * arr[left + 1]
+               rightProd = arr[right] * arr[right - 1]
+        
+               if leftProd > rightProd:
+                   product *= leftProd
+                   left += 2
+               else:
+                   product *= rightProd
+                   right -= 2
+        
+           return product
+Time Complexity: O(n log n) due to sorting.
+Extra Space: O(1) auxiliary space (ignoring Python's sorting implementation).
