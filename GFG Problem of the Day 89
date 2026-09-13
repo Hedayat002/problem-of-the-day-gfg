@@ -1,0 +1,130 @@
+## Brute Force Solution
+
+```python
+from collections import deque
+
+class Solution:
+    def partyHouse(self, adj):
+        n = len(adj)
+        ans = float('inf')
+
+        for start in range(1, n + 1):
+            dist = [-1] * (n + 1)
+            q = deque([start])
+            dist[start] = 0
+            farthest = 0
+
+            while q:
+                node = q.popleft()
+
+                for nxt in adj[node - 1]:
+                    if dist[nxt] == -1:
+                        dist[nxt] = dist[node] + 1
+                        farthest = max(farthest, dist[nxt])
+                        q.append(nxt)
+
+            ans = min(ans, farthest)
+
+        return ans
+```
+
+**Algorithm Flowchart:**
+`Start → Choose each house → BFS from house → Find farthest distance → Update minimum → Repeat → Return answer`
+
+**TC:** `O(n²)`
+**SC:** `O(n)`
+
+---
+
+## Better Solution
+
+```python
+from collections import deque
+
+class Solution:
+    def bfs(self, adj, start):
+        n = len(adj)
+        dist = [-1] * (n + 1)
+        q = deque([start])
+        dist[start] = 0
+
+        farthest_node = start
+        farthest_distance = 0
+
+        while q:
+            node = q.popleft()
+
+            for nxt in adj[node - 1]:
+                if dist[nxt] == -1:
+                    dist[nxt] = dist[node] + 1
+                    q.append(nxt)
+
+                    if dist[nxt] > farthest_distance:
+                        farthest_distance = dist[nxt]
+                        farthest_node = nxt
+
+        return farthest_node, farthest_distance
+
+    def partyHouse(self, adj):
+        n = len(adj)
+
+        if n == 1:
+            return 0
+
+        a, _ = self.bfs(adj, 1)
+        _, diameter = self.bfs(adj, a)
+
+        return (diameter + 1) // 2
+```
+
+**Algorithm Flowchart:**
+`Start → BFS from any house → Find diameter endpoint → BFS from endpoint → Find diameter → Compute ceil(diameter/2) → End`
+
+**TC:** `O(n)`
+**SC:** `O(n)`
+
+---
+
+## Optimal Solution
+
+```python
+from collections import deque
+
+class Solution:
+    def partyHouse(self, adj):
+        n = len(adj)
+
+        if n == 1:
+            return 0
+
+        def bfs(start):
+            dist = [-1] * (n + 1)
+            q = deque([start])
+            dist[start] = 0
+
+            farthest = start
+
+            while q:
+                node = q.popleft()
+
+                for nxt in adj[node - 1]:
+                    if dist[nxt] == -1:
+                        dist[nxt] = dist[node] + 1
+                        q.append(nxt)
+
+                        if dist[nxt] > dist[farthest]:
+                            farthest = nxt
+
+            return farthest, dist[farthest]
+
+        a, _ = bfs(1)
+        _, diameter = bfs(a)
+
+        return (diameter + 1) // 2
+```
+
+**Algorithm Flowchart:**
+`Start → BFS(1) → Diameter endpoint A → BFS(A) → Diameter D → (D+1)//2 → Return minimum distance → End`
+
+**TC:** `O(n)`
+**SC:** `O(n)`
