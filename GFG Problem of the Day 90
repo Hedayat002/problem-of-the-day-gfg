@@ -1,0 +1,249 @@
+
+# 1. BFS Approach — Recommended
+
+### Idea
+
+**Step 1:** Find all `0`s.
+
+For every `0`, mark:
+
+* itself
+* up
+* down
+* left
+* right
+
+as unsafe.
+
+**Step 2:** Put **all safe cells of the first column** into the BFS queue with distance `1`.
+
+**Step 3:** BFS until we reach the last column.
+
+```python
+from collections import deque
+
+class Solution:
+    def findShortestPath(self, mat):
+        n = len(mat)
+        m = len(mat[0])
+
+        # safe[i][j] = True means we can use this cell
+        safe = [[True] * m for _ in range(n)]
+
+        directions = [
+            (-1, 0),  # up
+            (1, 0),   # down
+            (0, -1),  # left
+            (0, 1)    # right
+        ]
+
+        # Step 1: Mark landmines and their neighbours unsafe
+        for i in range(n):
+            for j in range(m):
+                if mat[i][j] == 0:
+                    safe[i][j] = False
+
+                    for di, dj in directions:
+                        ni = i + di
+                        nj = j + dj
+
+                        if 0 <= ni < n and 0 <= nj < m:
+                            safe[ni][nj] = False
+
+        # Step 2: Multi-source BFS
+        queue = deque()
+        visited = [[False] * m for _ in range(n)]
+
+        for i in range(n):
+            if safe[i][0]:
+                queue.append((i, 0, 1))
+                visited[i][0] = True
+
+        # Step 3: BFS
+        while queue:
+            i, j, distance = queue.popleft()
+
+            # Reached last column
+            if j == m - 1:
+                return distance
+
+            for di, dj in directions:
+                ni = i + di
+                nj = j + dj
+
+                if (
+                    0 <= ni < n and
+                    0 <= nj < m
+                    and safe[ni][nj]
+                    and not visited[ni][nj]
+                ):
+                    visited[ni][nj] = True
+                    queue.append((ni, nj, distance + 1))
+
+        return -1
+```
+
+### Why `distance = 1`?
+
+The problem counts **cells in the route**, which is why the example's answer is `6`.
+
+For example:
+
+```text
+S → A → B → C → D → E
+```
+
+There are **6 cells**, so the answer is `6`.
+
+If your interpretation/version counts moves between cells instead, you'd initialize distance differently. For the GFG version, the route length is generally counted as the number of cells.
+
+---
+
+# 2. DFS Approach
+
+DFS can also solve it, but there is an important difference.
+
+DFS does **not guarantee the shortest path** simply because it reaches the destination first.
+
+Therefore, DFS must explore possible paths and maintain the **minimum distance found**.
+
+```python
+class Solution:
+    def findShortestPath(self, mat):
+        n = len(mat)
+        m = len(mat[0])
+
+        safe = [[True] * m for _ in range(n)]
+
+        directions = [
+            (-1, 0),
+            (1, 0),
+            (0, -1),
+            (0, 1)
+        ]
+
+        # Step 1: Mark unsafe cells
+        for i in range(n):
+            for j in range(m):
+                if mat[i][j] == 0:
+                    safe[i][j] = False
+
+                    for di, dj in directions:
+                        ni = i + di
+                        nj = j + dj
+
+                        if 0 <= ni < n and 0 <= nj < m:
+                            safe[ni][nj] = False
+
+        # visited is used for current DFS path
+        visited = [[False] * m for _ in range(n)]
+
+        self.answer = float('inf')
+
+        def dfs(i, j, distance):
+
+            # Reached last column
+            if j == m - 1:
+                self.answer = min(self.answer, distance)
+                return
+
+            # Try all 4 directions
+            for di, dj in directions:
+                ni = i + di
+                nj = j + dj
+
+                if (
+                    0 <= ni < n
+                    and 0 <= nj < m
+                    and safe[ni][nj]
+                    and not visited[ni][nj]
+                ):
+                    visited[ni][nj] = True
+
+                    dfs(ni, nj, distance + 1)
+
+                    # Backtrack
+                    visited[ni][nj] = False
+
+        # Start DFS from every safe cell in first column
+        for i in range(n):
+            if safe[i][0]:
+                visited[i][0] = True
+
+                dfs(i, 0, 1)
+
+                visited[i][0] = False
+
+        if self.answer == float('inf'):
+            return -1
+
+        return self.answer
+```
+
+---
+
+# Why DFS needs backtracking
+
+Suppose the grid allows:
+
+```text
+        A → B → C
+       /
+Start
+       \
+        D → E → F → C
+```
+
+DFS might first find:
+
+```text
+Start → A → B → C
+```
+
+with distance `4`.
+
+But there could be another route with distance `3`.
+
+So DFS has to continue searching:
+
+```text
+First path  → distance 4
+Second path → distance 3  ← better
+Third path  → distance 5
+...
+```
+
+Finally:
+
+```python
+self.answer = min(self.answer, distance)
+```
+
+gives the shortest route.
+
+---
+
+# BFS vs DFS
+
+| Feature                       | BFS            | DFS               |
+| ----------------------------- | -------------- | ----------------- |
+| Finds shortest path naturally | ✅ Yes          | ❌ No              |
+| Need backtracking             | ❌ No           | ✅ Yes             |
+| Multi-source possible         | ✅ Very natural | ✅ Possible        |
+| Time                          | O(n × m)       | Can be much worse |
+| Space                         | O(n × m)       | O(n × m)          |
+| Best choice here              | ⭐⭐⭐            | ⭐                 |
+
+### Most important point
+
+For a **shortest path in an unweighted grid**, think:
+
+```text
+Shortest Path
+      ↓
+    BFS
+```
+
+So in an interview/GFG solution, I would strongly recommend the **BFS approach**.
+
+One more optimization is possible: instead of creating `safe`, we can modify/use another matrix to mark dangerous cells directly. But the above version is much easier to understand and debug.
