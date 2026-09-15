@@ -1,0 +1,80 @@
+## Brute Force Solution
+
+```python
+class Solution:
+    def getCount(self, root, k):
+        costs = []
+
+        def dfs(node, level):
+            if node is None:
+                return
+
+            if node.left is None and node.right is None:
+                costs.append(level)
+                return
+
+            dfs(node.left, level + 1)
+            dfs(node.right, level + 1)
+
+        dfs(root, 1)
+
+        costs.sort()
+
+        ans = 0
+        budget = k
+
+        for cost in costs:
+            if budget < cost:
+                break
+            budget -= cost
+            ans += 1
+
+        return ans
+```
+
+**Algorithm Flowchart:**
+
+`Start → DFS Tree → Store Leaf Levels → Sort Costs → Pick Cheapest Leaves → Budget < Cost? → Yes: End / No: Visit Leaf → Repeat`
+
+**TC:** `O(n log n)`
+**SC:** `O(n)`
+
+---
+
+## Optimal Solution
+
+```python
+class Solution:
+    def dfs(self, node, level, k, freq):
+        if node is None or level > k:
+            return
+
+        if node.left is None and node.right is None:
+            freq[level] += 1
+            return
+
+        self.dfs(node.left, level + 1, k, freq)
+        self.dfs(node.right, level + 1, k, freq)
+
+    def getCount(self, root, k):
+        freq = [0] * (k + 1)
+
+        self.dfs(root, 1, k, freq)
+
+        ans = 0
+        budget = k
+
+        for level in range(1, k + 1):
+            count = min(freq[level], budget // level)
+            ans += count
+            budget -= count * level
+
+        return ans
+```
+
+**Algorithm Flowchart:**
+
+`Start → DFS Tree → Count Leaves by Level → Process Levels from Cheapest → Calculate Visitable Leaves → Update Budget → Repeat → End`
+
+**TC:** `O(n + k)` → `O(n)` since `k ≤ 10⁴`
+**SC:** `O(n + k)` → `O(n)` overall
