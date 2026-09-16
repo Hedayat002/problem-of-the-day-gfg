@@ -1,0 +1,79 @@
+## Brute Force Solution
+
+```python
+class Solution:
+    def dominantPairs(self, arr: list[int]) -> int:
+        n = len(arr)
+        half = n // 2
+        count = 0
+
+        for i in range(half):
+            for j in range(half, n):
+                if arr[i] >= 5 * arr[j]:
+                    count += 1
+
+        return count
+```
+
+**Flowchart:**
+`Start → Split array into two halves → Check every (i, j) pair → arr[i] ≥ 5×arr[j]? → Count pair → Repeat → End`
+
+**TC:** O(n²)
+**SC:** O(1)
+
+## Better Solution
+
+```python
+class Solution:
+    def dominantPairs(self, arr: list[int]) -> int:
+        n = len(arr)
+        half = n // 2
+
+        left = sorted(arr[:half])
+        right = sorted(arr[half:])
+
+        count = 0
+        j = 0
+
+        for x in left:
+            while j < half and 5 * right[j] <= x:
+                j += 1
+            count += j
+
+        return count
+```
+
+**Flowchart:**
+`Start → Sort both halves → For each left value → Move right pointer while condition holds → Add valid count → Repeat → End`
+
+**TC:** O(n log n)
+**SC:** O(n)
+
+## Optimal Solution
+
+```python
+class Solution:
+    def dominantPairs(self, arr: list[int]) -> int:
+        n = len(arr)
+        half = n // 2
+
+        arr[:half] = sorted(arr[:half])
+        arr[half:] = sorted(arr[half:])
+
+        j = half
+        count = 0
+
+        for i in range(half):
+            while j < n and 5 * arr[j] <= arr[i]:
+                j += 1
+
+            count += j - half
+
+        return count
+```
+
+**Flowchart:**
+`Start → Sort first half → Sort second half → Move pointer j while 5×arr[j] ≤ arr[i] → Add j-half → Repeat → End`
+
+**TC:** O(n log n)
+**SC:** O(1) auxiliary space
