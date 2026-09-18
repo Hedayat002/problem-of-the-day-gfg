@@ -1,0 +1,87 @@
+Better Solution — Sort + Adjacent Comparison
+class Solution:
+
+    def inOrder(self, node, res):
+        if not node:
+            return
+
+        self.inOrder(node.left, res)
+        res.append(node.data)
+        self.inOrder(node.right, res)
+
+    def absDiff(self, root):
+        res = []
+
+        self.inOrder(root, res)
+
+        # Sort the values
+        res.sort()
+
+        ans = float('inf')
+
+        # Compare adjacent elements
+        for i in range(1, len(res)):
+            ans = min(ans, res[i] - res[i - 1])
+
+        return ans
+Time  = O(N log N)
+Space = O(N)
+
+Optimal Solution — Inorder + Adjacent Difference
+class Solution:
+
+    def inOrder(self, node, res):
+        if not node:
+            return
+
+        self.inOrder(node.left, res)
+
+        res.append(node.data)
+
+        self.inOrder(node.right, res)
+
+    def absDiff(self, root):
+        res = []
+
+        self.inOrder(root, res)
+
+        ans = float('inf')
+
+        for i in range(1, len(res)):
+            ans = min(ans, abs(res[i] - res[i - 1]))
+
+        return ans
+
+
+Time Complexity:  O(N)
+Space Complexity: O(N)
+
+space optimize solution:
+class Solution:
+
+    def inOrder(self, node):
+        if not node:
+            return
+
+        self.inOrder(node.left)
+
+        if self.prev is not None:
+            self.ans = min(
+                self.ans,
+                node.data - self.prev
+            )
+
+        self.prev = node.data
+
+        self.inOrder(node.right)
+
+    def absDiff(self, root):
+        self.prev = None
+        self.ans = float('inf')
+
+        self.inOrder(root)
+
+        return self.ans
+
+Time  = O(N)
+Space = O(H)
