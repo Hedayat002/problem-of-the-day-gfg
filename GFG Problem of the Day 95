@@ -1,0 +1,172 @@
+1. Recursion
+class Solution:
+    def solve(self, s1, s2, i, j, costS1, costS2):
+        if i == len(s1):
+            return (len(s2) - j) * costS2
+
+        if j == len(s2):
+            return (len(s1) - i) * costS1
+
+        if s1[i] == s2[j]:
+            return self.solve(s1, s2, i + 1, j + 1, costS1, costS2)
+
+        delete_s1 = costS1 + self.solve(
+            s1, s2, i + 1, j, costS1, costS2
+        )
+
+        delete_s2 = costS2 + self.solve(
+            s1, s2, i, j + 1, costS1, costS2
+        )
+
+        return min(delete_s1, delete_s2)
+
+    def findMinCost(self, s1: str, s2: str, costS1: int, costS2: int) -> int:
+        return self.solve(s1, s2, 0, 0, costS1, costS2)
+
+TC: O(2^(n+m))
+SC: O(n+m)
+
+2. Memoization (Top-Down)
+
+class Solution:
+    def solve(self, s1, s2, i, j, costS1, costS2,dp):
+
+        # s1 is completely processed
+        if i == len(s1):
+            return (len(s2) - j) * costS2
+
+        # s2 is completely processed
+        if j == len(s2):
+            return (len(s1) - i) * costS1
+        if dp[i][j] != -1:
+            return dp[i][j]
+
+        # Characters are same
+        if s1[i] == s2[j]:
+            return self.solve(
+                s1, s2, i + 1, j + 1, costS1, costS2,dp
+            )
+
+        # Characters are different
+        delete_s1 = costS1 + self.solve(
+            s1, s2, i + 1, j, costS1, costS2,dp
+        )
+
+        delete_s2 = costS2 + self.solve(
+            s1, s2, i, j + 1, costS1, costS2,dp
+        )
+        dp[i][j] = min(delete_s1, delete_s2)
+        
+        
+
+        return dp[i][j]
+    def findMinCost(self, s1: str, s2: str, costS1: int, costS2: int) -> int:
+        # code here
+        n, m = len(s1), len(s2)
+        dp = [[-1] * m for _ in range(n)]
+        return self.solve(
+                   s1, s2,
+                   0, 0,
+                   costS1, costS2,dp
+               )
+        
+
+TC: O(n × m)
+SC: O(n × m) + O(n + m)
+
+3. Tabulation (Bottom-Up)
+class Solution:
+
+    def findMinCost(self, s1: str, s2: str, costS1: int, costS2: int) -> int:
+        # code here
+        n, m = len(s1), len(s2)
+        dp = [[0] * (m+1) for _ in range(n+1)]
+        for i in range(n - 1, -1, -1):
+            dp[i][m] = (n - i) * costS1
+
+        for j in range(m - 1, -1, -1):
+            dp[n][j] = (m - j) * costS2
+        
+        for i in range(n - 1, -1, -1):
+            for j in range(m - 1, -1, -1):
+                if s1[i] == s2[j]:
+                    dp[i][j] = dp[i + 1][j + 1]
+                else:
+                    dp[i][j] = min(
+                        costS1 + dp[i + 1][j],
+                        costS2 + dp[i][j + 1]
+                    )
+
+        return dp[0][0]
+
+TC: O(n × m)
+SC: O(n × m)
+
+4. Tabulation (Space Optimization)
+class Solution:
+    def findMinCost(self, s1: str, s2: str, costS1: int, costS2: int) -> int:
+        # code here
+       n, m = len(s1), len(s2)
+
+       if m > n:
+           s1, s2 = s2, s1
+           costS1, costS2 = costS2, costS1
+           n, m = m, n
+
+       prev = [(m - j) * costS2 for j in range(m + 1)]
+
+       for i in range(n - 1, -1, -1):
+           curr = [0] * (m + 1)
+           curr[m] = (n - i) * costS1
+
+           for j in range(m - 1, -1, -1):
+               if s1[i] == s2[j]:
+                   curr[j] = prev[j + 1]
+               else:
+                   curr[j] = min(
+                       costS1 + prev[j],
+                       costS2 + curr[j + 1]
+                   )
+
+           prev = curr
+
+       return prev[0]
+
+TC: O(n*m)
+SC: O(min(n,m))
+                 a    c    d    b    ""
+                 ↓    ↓    ↓    ↓    ↓
+
+i=4          prev = [80, 60, 40, 20,  0]
+                  ↓
+             calculate i=3
+                  ↓
+i=3          curr = [60, 40, 20, 30, 10]
+                  ↓
+             prev = curr
+                  ↓
+i=3          prev = [60, 40, 20, 30, 10]
+                  ↓
+             calculate i=2
+                  ↓
+i=2          curr = [40, 20, 30, 40, 20]
+                  ↓
+             prev = curr
+                  ↓
+i=2          prev = [40, 20, 30, 40, 20]
+                  ↓
+             calculate i=1
+                  ↓
+i=1          curr = [40, 20, 30, 40, 30]
+                  ↓
+             prev = curr
+                  ↓
+i=1          prev = [40, 20, 30, 40, 30]
+                  ↓
+             calculate i=0
+                  ↓
+i=0          curr = [30, 20, 40, 50, 40]
+                  ↓
+             prev = curr
+                  ↓
+FINAL        prev = [30, 20, 40, 50, 40]
