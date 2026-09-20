@@ -1,0 +1,125 @@
+## Brute Force Solution
+
+```python
+class Solution:
+    def largestSubsquare(self, mat):
+        n = len(mat)
+        ans = 0
+
+        for i in range(n):
+            for j in range(n):
+                for size in range(1, n - max(i, j) + 1):
+                    if size <= ans:
+                        continue
+
+                    ok = True
+
+                    for k in range(j, j + size):
+                        if mat[i][k] != 'X' or mat[i + size - 1][k] != 'X':
+                            ok = False
+                            break
+
+                    if not ok:
+                        continue
+
+                    for k in range(i, i + size):
+                        if mat[k][j] != 'X' or mat[k][j + size - 1] != 'X':
+                            ok = False
+                            break
+
+                    if ok:
+                        ans = size
+
+        return ans
+```
+
+**TC:** O(n⁴)
+**SC:** O(1)
+
+**Flowchart:**
+`Start → Choose Top-Left → Choose Square Size → Check 4 Boundaries → All X? → Update Answer → Repeat → End`
+
+---
+
+## Better Solution
+
+```python
+class Solution:
+    def largestSubsquare(self, mat):
+        n = len(mat)
+
+        right = [[0] * n for _ in range(n)]
+        down = [[0] * n for _ in range(n)]
+
+        for i in range(n - 1, -1, -1):
+            for j in range(n - 1, -1, -1):
+                if mat[i][j] == 'X':
+                    right[i][j] = 1 + (right[i][j + 1] if j + 1 < n else 0)
+                    down[i][j] = 1 + (down[i + 1][j] if i + 1 < n else 0)
+
+        ans = 0
+
+        for i in range(n):
+            for j in range(n):
+                max_size = min(right[i][j], down[i][j])
+
+                for size in range(max_size, ans, -1):
+                    bottom = i + size - 1
+                    last_col = j + size - 1
+
+                    if (right[bottom][j] >= size and
+                            down[i][last_col] >= size):
+                        ans = size
+                        break
+
+        return ans
+```
+
+**TC:** O(n³)
+**SC:** O(n²)
+
+**Flowchart:**
+`Start → Build Right-X & Down-X Tables → Choose Top-Left → Find Maximum Possible Size → Check Bottom & Right Boundaries → Valid? → Update Answer → Repeat → End`
+
+---
+
+## Optimal Solution
+
+```python
+class Solution:
+    def largestSubsquare(self, mat):
+        n = len(mat)
+
+        right = [[0] * (n + 1) for _ in range(n)]
+        down = [[0] * n for _ in range(n + 1)]
+
+        for i in range(n - 1, -1, -1):
+            for j in range(n - 1, -1, -1):
+                if mat[i][j] == 'X':
+                    right[i][j] = right[i][j + 1] + 1
+                    down[i][j] = down[i + 1][j] + 1
+
+        ans = 0
+
+        for i in range(n):
+            for j in range(n):
+                size = min(right[i][j], down[i][j])
+
+                while size > ans:
+                    bottom = i + size - 1
+                    last_col = j + size - 1
+
+                    if right[bottom][j] >= size and down[i][last_col] >= size:
+                        ans = size
+                        break
+
+                    size -= 1
+
+        return ans
+```
+
+**TC:** O(n³)
+**SC:** O(n²)
+
+**Flowchart:**
+`Start → Precompute Consecutive X Right/Down → Choose Top-Left → Get Maximum Possible Size → Check Bottom/Right Edges → Valid? → Update Answer → Decrease Size → Repeat → End`
