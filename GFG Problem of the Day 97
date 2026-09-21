@@ -1,0 +1,170 @@
+## Brute Force Solution
+
+```python
+from collections import deque
+
+class Solution:
+    def areAnagrams(self, root1, root2):
+        if root1 is None and root2 is None:
+            return True
+
+        if root1 is None or root2 is None:
+            return False
+
+        q1 = deque([root1])
+        q2 = deque([root2])
+
+        while q1 or q2:
+            if len(q1) != len(q2):
+                return False
+
+            level1 = []
+            level2 = []
+
+            for _ in range(len(q1)):
+                node1 = q1.popleft()
+                node2 = q2.popleft()
+
+                level1.append(node1.data)
+                level2.append(node2.data)
+
+                if node1.left:
+                    q1.append(node1.left)
+                if node1.right:
+                    q1.append(node1.right)
+
+                if node2.left:
+                    q2.append(node2.left)
+                if node2.right:
+                    q2.append(node2.right)
+
+            level1.sort()
+            level2.sort()
+
+            if level1 != level2:
+                return False
+
+        return True
+```
+
+**TC:** `O(N log N)`
+**SC:** `O(N)`
+
+**Algorithm Flowchart:**
+
+`Start → BFS both trees level-by-level → Collect values → Sort both levels → Compare → Different? Return False → More levels? Repeat → End → Return True`
+
+---
+
+## Better Solution
+
+```python
+from collections import deque, Counter
+
+class Solution:
+    def areAnagrams(self, root1, root2):
+        if root1 is None and root2 is None:
+            return True
+
+        if root1 is None or root2 is None:
+            return False
+
+        q1 = deque([root1])
+        q2 = deque([root2])
+
+        while q1 or q2:
+            if len(q1) != len(q2):
+                return False
+
+            freq1 = Counter()
+            freq2 = Counter()
+
+            size = len(q1)
+
+            for _ in range(size):
+                node1 = q1.popleft()
+                node2 = q2.popleft()
+
+                freq1[node1.data] += 1
+                freq2[node2.data] += 1
+
+                if node1.left:
+                    q1.append(node1.left)
+                if node1.right:
+                    q1.append(node1.right)
+
+                if node2.left:
+                    q2.append(node2.left)
+                if node2.right:
+                    q2.append(node2.right)
+
+            if freq1 != freq2:
+                return False
+
+        return True
+```
+
+**TC:** `O(N)` average
+**SC:** `O(N)`
+
+**Algorithm Flowchart:**
+
+`Start → BFS both trees → Count frequency of values at current level → Compare frequency maps → Different? Return False → More levels? Repeat → End → Return True`
+
+---
+
+## Optimal Solution
+
+```python
+from collections import deque
+
+class Solution:
+    def areAnagrams(self, root1, root2):
+        if root1 is None and root2 is None:
+            return True
+
+        if root1 is None or root2 is None:
+            return False
+
+        q1 = deque([root1])
+        q2 = deque([root2])
+
+        while q1 and q2:
+            size1 = len(q1)
+            size2 = len(q2)
+
+            if size1 != size2:
+                return False
+
+            freq = {}
+
+            for _ in range(size1):
+                node1 = q1.popleft()
+                node2 = q2.popleft()
+
+                freq[node1.data] = freq.get(node1.data, 0) + 1
+                freq[node2.data] = freq.get(node2.data, 0) - 1
+
+                if node1.left:
+                    q1.append(node1.left)
+                if node1.right:
+                    q1.append(node1.right)
+
+                if node2.left:
+                    q2.append(node2.left)
+                if node2.right:
+                    q2.append(node2.right)
+
+            for count in freq.values():
+                if count != 0:
+                    return False
+
+        return not q1 and not q2
+```
+
+**TC:** `O(N)` average
+**SC:** `O(W + K)`, where `W` is maximum width and `K` is the number of distinct values at a level.
+
+**Algorithm Flowchart:**
+
+`Start → BFS both trees → Same level size? → No: False → Update one shared frequency map (+root1, −root2) → All counts zero? → No: False → More levels? Repeat → Both queues empty → True`
