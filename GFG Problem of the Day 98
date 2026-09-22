@@ -1,0 +1,53 @@
+from typing import List
+
+
+class Solution:
+    def findLongestWord(self, s: str, d: List[str]) -> str:
+        # Store positions of every character
+        pos = [[] for _ in range(26)]
+
+        for i, ch in enumerate(s):
+            pos[ord(ch) - ord('a')].append(i)
+
+        ans = ""
+
+        for word in d:
+            if self.isSubsequence(word, pos):
+                if len(word) > len(ans):
+                    ans = word
+                elif len(word) == len(ans) and word < ans:
+                    ans = word
+
+        return ans
+
+    def isSubsequence(self, word: str, pos: List[List[int]]) -> bool:
+        prev = -1
+
+        for ch in word:
+            lst = pos[ord(ch) - ord('a')]
+
+            # Find first position > prev
+            index = self.binarySearch(lst, prev)
+
+            if index == len(lst):
+                return False
+
+            prev = lst[index]
+
+        return True
+
+    def binarySearch(self, lst: List[int], target: int) -> int:
+        low, high = 0, len(lst)
+
+        while low < high:
+            mid = low + (high - low) // 2
+
+            if lst[mid] <= target:
+                low = mid + 1
+            else:
+                high = mid
+
+        return low
+
+Time: O(n + m × k × log n)
+Space: O(n)
