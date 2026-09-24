@@ -1,0 +1,131 @@
+## 1. Recursion
+
+```python
+class Solution:
+    def solve(self, i, prev, discs, n):
+        if i == n:
+            return 0
+
+        not_take = self.solve(i + 1, prev, discs, n)
+
+        take = 0
+        if prev == -1 or (
+            discs[i][0] > discs[prev][0]
+            and discs[i][1] > discs[prev][1]
+        ):
+            take = discs[i][1] + self.solve(i + 1, i, discs, n)
+
+        return max(take, not_take)
+
+    def maxStackHeight(self, r, h):
+        discs = sorted(zip(r, h))
+        return self.solve(0, -1, discs, len(discs))
+```
+
+**TC:** O(2ⁿ)
+**SC:** O(n)
+
+---
+
+## 2. Memoization (Top-Down)
+
+```python
+class Solution:
+    def solve(self, i, prev, discs, n, dp):
+        if i == n:
+            return 0
+
+        if dp[i][prev + 1] != -1:
+            return dp[i][prev + 1]
+
+        not_take = self.solve(i + 1, prev, discs, n, dp)
+
+        take = 0
+        if prev == -1 or (
+            discs[i][0] > discs[prev][0]
+            and discs[i][1] > discs[prev][1]
+        ):
+            take = discs[i][1] + self.solve(i + 1, i, discs, n, dp)
+
+        dp[i][prev + 1] = max(take, not_take)
+        return dp[i][prev + 1]
+
+    def maxStackHeight(self, r, h):
+        discs = sorted(zip(r, h))
+        n = len(discs)
+        dp = [[-1] * (n + 1) for _ in range(n)]
+
+        return self.solve(0, -1, discs, n, dp)
+```
+
+**TC:** O(n²)
+**SC:** O(n²)
+
+---
+
+## 3. Tabulation (Bottom-Up)
+
+```python
+class Solution:
+    def maxStackHeight(self, r, h):
+        discs = sorted(zip(r, h))
+        n = len(discs)
+
+        dp = [0] * n
+        ans = 0
+
+        for i in range(n):
+            dp[i] = discs[i][1]
+
+            for j in range(i):
+                if (
+                    discs[j][0] < discs[i][0]
+                    and discs[j][1] < discs[i][1]
+                ):
+                    dp[i] = max(dp[i], dp[j] + discs[i][1])
+
+            ans = max(ans, dp[i])
+
+        return ans
+```
+
+**TC:** O(n²)
+**SC:** O(n)
+
+---
+
+## 4. Tabulation (Space Optimization) — O(n log n)
+
+```python
+class Solution:
+    def maxStackHeight(self, r, h):
+        discs = sorted(zip(r, h), key=lambda x: (x[0], -x[1]))
+
+        max_h = max(h)
+        bit = [0] * (max_h + 2)
+
+        def query(x):
+            ans = 0
+            while x > 0:
+                ans = max(ans, bit[x])
+                x -= x & -x
+            return ans
+
+        def update(x, val):
+            while x < len(bit):
+                bit[x] = max(bit[x], val)
+                x += x & -x
+
+        ans = 0
+
+        for radius, height in discs:
+            best = query(height - 1)
+            curr = best + height
+            update(height, curr)
+            ans = max(ans, curr)
+
+        return ans
+```
+
+**TC:** O(n log n)
+**SC:** O(n)
