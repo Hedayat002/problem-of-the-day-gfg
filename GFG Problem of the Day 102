@@ -1,0 +1,59 @@
+1. Recursion
+class Solution:
+    def solve(self, x, s, m, l, cs, cm, cl):
+        if x <= 0:
+            return 0
+
+        small = cs + self.solve(x - s, s, m, l, cs, cm, cl)
+        medium = cm + self.solve(x - m, s, m, l, cs, cm, cl)
+        large = cl + self.solve(x - l, s, m, l, cs, cm, cl)
+
+        return min(small, medium, large)
+
+    def minimumCost(self, x, s, m, l, cs, cm, cl):
+        return self.solve(x, s, m, l, cs, cm, cl)
+
+TC: O(3^x)
+SC: O(x)
+
+2. Memoization (Top-Down)
+class Solution:
+    def solve(self, x, s, m, l, cs, cm, cl, dp):
+        if x <= 0:
+            return 0
+
+        if dp[x] != -1:
+            return dp[x]
+
+        small = cs + self.solve(x - s, s, m, l, cs, cm, cl, dp)
+        medium = cm + self.solve(x - m, s, m, l, cs, cm, cl, dp)
+        large = cl + self.solve(x - l, s, m, l, cs, cm, cl, dp)
+
+        dp[x] = min(small, medium, large)
+        return dp[x]
+
+    def minimumCost(self, x, s, m, l, cs, cm, cl):
+        dp = [-1] * (x + 1)
+        return self.solve(x, s, m, l, cs, cm, cl, dp)
+
+TC: O(x)
+SC: O(x)
+
+3. Tabulation (Bottom-Up)
+class Solution:
+    
+    def minimumCost(self, x, s, m, l, cs, cm, cl):
+        # code here
+        dp = [0] * (x + 1)
+        for i in range(1,x+1):
+            small = cs + (dp[i - s] if i >= s else 0)
+            medium = cm + (dp[i - m] if i >= m else 0)
+            large = cl + (dp[i - l] if i >= l else 0)
+                
+            dp[i] = min(small,medium,large)
+        
+        return dp[x]
+            
+TC: O(x)
+SC: O(x)
+
