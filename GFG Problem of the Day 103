@@ -1,0 +1,372 @@
+
+## 1. Recursion
+
+```python
+class Solution:
+    def dfs(self, u, p, adj, s, ans):
+        best1 = best2 = 1
+
+        for v in adj[u]:
+            if v == p or s[v] != s[u]:
+                continue
+
+            x = self.dfs(v, u, adj, s, ans) + 1
+
+            if x > best1:
+                best1, best2 = x, best1
+            elif x > best2:
+                best2 = x
+
+        ans[0] = max(ans[0], best1 + best2 - 1)
+        return best1
+
+    def longestPath(self, s, edges):
+        n = len(s)
+        adj = [[] for _ in range(n)]
+
+        for u, v in edges:
+            u -= 1
+            v -= 1
+            adj[u].append(v)
+            adj[v].append(u)
+
+        ans = [1]
+
+        self.dfs(0, -1, adj, s, ans)
+
+        down = [1] * n
+        parent = [-1] * n
+        order = [0]
+
+        for u in order:
+            for v in adj[u]:
+                if v != parent[u]:
+                    parent[v] = u
+                    order.append(v)
+
+        for u in order[::-1]:
+            for v in adj[u]:
+                if parent[v] == u and s[v] == s[u]:
+                    down[u] = max(down[u], down[v] + 1)
+
+        up = [1] * n
+
+        for u in order:
+            first = second = 1
+
+            for v in adj[u]:
+                if v == parent[u] or s[v] != s[u]:
+                    continue
+
+                x = down[v] + 1
+
+                if x > first:
+                    first, second = x, first
+                elif x > second:
+                    second = x
+
+            if parent[u] != -1 and s[parent[u]] == s[u]:
+                x = up[u]
+                first = max(first, x)
+
+            for v in adj[u]:
+                if parent[v] != u or s[v] != s[u]:
+                    continue
+
+                x = down[v] + 1
+                use = second if x == first else first
+                up[v] = use + 1
+
+        for u, v in edges:
+            u -= 1
+            v -= 1
+
+            if s[u] == s[v]:
+                continue
+
+            if s[u] == 'R':
+                r = max(up[u], down[u])
+                b = max(up[v], down[v])
+                ans[0] = max(ans[0], r + b)
+
+            else:
+                r = max(up[v], down[v])
+                b = max(up[u], down[u])
+                ans[0] = max(ans[0], r + b)
+
+        return ans[0]
+```
+
+**TC:** `O(n)`
+**SC:** `O(n)`
+
+---
+
+## 2. Memoization (Top-Down)
+
+```python
+class Solution:
+    def dfs(self, u, p, adj, s, dp):
+        if dp[u] != -1:
+            return dp[u]
+
+        best = 1
+
+        for v in adj[u]:
+            if v == p or s[v] != s[u]:
+                continue
+
+            best = max(best, self.dfs(v, u, adj, s, dp) + 1)
+
+        dp[u] = best
+        return best
+
+    def longestPath(self, s, edges):
+        n = len(s)
+        adj = [[] for _ in range(n)]
+
+        for u, v in edges:
+            u -= 1
+            v -= 1
+            adj[u].append(v)
+            adj[v].append(u)
+
+        parent = [-1] * n
+        order = [0]
+
+        for u in order:
+            for v in adj[u]:
+                if v != parent[u]:
+                    parent[v] = u
+                    order.append(v)
+
+        dp = [-1] * n
+
+        for u in order[::-1]:
+            self.dfs(u, parent[u], adj, s, dp)
+
+        up = [1] * n
+        ans = max(dp)
+
+        for u in order:
+            best1 = best2 = 1
+            id1 = -1
+
+            if parent[u] != -1 and s[parent[u]] == s[u]:
+                best1 = up[u]
+                id1 = parent[u]
+
+            for v in adj[u]:
+                if parent[v] != u or s[v] != s[u]:
+                    continue
+
+                x = dp[v] + 1
+
+                if x > best1:
+                    best2 = best1
+                    best1 = x
+                    id1 = v
+                elif x > best2:
+                    best2 = x
+
+            ans = max(ans, best1 + best2 - 1)
+
+            for v in adj[u]:
+                if parent[v] != u or s[v] != s[u]:
+                    continue
+
+                x = dp[v] + 1
+
+                if id1 == v:
+                    use = best2
+                else:
+                    use = best1
+
+                up[v] = use + 1
+
+        for u, v in edges:
+            u -= 1
+            v -= 1
+
+            if s[u] == s[v]:
+                continue
+
+            if s[u] == 'R':
+                ans = max(ans, max(dp[u], up[u]) + max(dp[v], up[v]))
+            else:
+                ans = max(ans, max(dp[v], up[v]) + max(dp[u], up[u]))
+
+        return ans
+```
+
+**TC:** `O(n)`
+**SC:** `O(n)`
+
+---
+
+## 3. Tabulation (Bottom-Up)
+
+```python
+class Solution:
+    def dfs(self, u, p, adj, parent, order):
+        parent[u] = p
+
+        for v in adj[u]:
+            if v != p:
+                self.dfs(v, u, adj, parent, order)
+
+        order.append(u)
+
+    def longestPath(self, s, edges):
+        n = len(s)
+        adj = [[] for _ in range(n)]
+
+        for u, v in edges:
+            u -= 1
+            v -= 1
+            adj[u].append(v)
+            adj[v].append(u)
+
+        parent = [-1] * n
+        order = []
+
+        self.dfs(0, -1, adj, parent, order)
+
+        down = [1] * n
+
+        for u in order:
+            for v in adj[u]:
+                if parent[v] == u and s[u] == s[v]:
+                    down[u] = max(down[u], down[v] + 1)
+
+        up = [1] * n
+        ans = 1
+
+        for u in order[::-1]:
+            first = second = 1
+            first_id = -1
+
+            if parent[u] != -1 and s[parent[u]] == s[u]:
+                first = up[u]
+                first_id = parent[u]
+
+            for v in adj[u]:
+                if parent[v] == u and s[v] == s[u]:
+                    x = down[v] + 1
+
+                    if x > first:
+                        second = first
+                        first = x
+                        first_id = v
+                    elif x > second:
+                        second = x
+
+            ans = max(ans, first + second - 1)
+
+            for v in adj[u]:
+                if parent[v] == u and s[v] == s[u]:
+                    x = down[v] + 1
+
+                    if first_id == v:
+                        use = second
+                    else:
+                        use = first
+
+                    up[v] = use + 1
+
+        for u, v in edges:
+            u -= 1
+            v -= 1
+
+            if s[u] != s[v]:
+                ans = max(
+                    ans,
+                    max(down[u], up[u]) + max(down[v], up[v])
+                )
+
+        return ans
+```
+
+**TC:** `O(n)`
+**SC:** `O(n)`
+
+---
+
+## 4. Tabulation (Space Optimization)
+
+```python
+class Solution:
+    def dfs(self, u, p, adj, parent, order):
+        parent[u] = p
+
+        for v in adj[u]:
+            if v != p:
+                self.dfs(v, u, adj, parent, order)
+
+        order.append(u)
+
+    def longestPath(self, s, edges):
+        n = len(s)
+        adj = [[] for _ in range(n)]
+
+        for u, v in edges:
+            u -= 1
+            v -= 1
+            adj[u].append(v)
+            adj[v].append(u)
+
+        parent = [-1] * n
+        order = []
+
+        self.dfs(0, -1, adj, parent, order)
+
+        down = [1] * n
+        up = [1] * n
+        ans = 1
+
+        for u in order:
+            for v in adj[u]:
+                if parent[v] == u and s[u] == s[v]:
+                    down[u] = max(down[u], down[v] + 1)
+
+        for u in order[::-1]:
+            first = second = 1
+            first_id = -1
+
+            if parent[u] != -1 and s[parent[u]] == s[u]:
+                first = up[u]
+                first_id = parent[u]
+
+            for v in adj[u]:
+                if parent[v] == u and s[v] == s[u]:
+                    x = down[v] + 1
+
+                    if x > first:
+                        second = first
+                        first = x
+                        first_id = v
+                    elif x > second:
+                        second = x
+
+            ans = max(ans, first + second - 1)
+
+            for v in adj[u]:
+                if parent[v] == u and s[v] == s[u]:
+                    x = down[v] + 1
+                    use = second if first_id == v else first
+                    up[v] = use + 1
+
+        for u, v in edges:
+            u -= 1
+            v -= 1
+
+            if s[u] != s[v]:
+                ans = max(ans, max(down[u], up[u]) + max(down[v], up[v]))
+
+        return ans
+```
+
+**TC:** `O(n)`
+**SC:** `O(n)`
+
+For `s = "BBRRB"` this gives **4**, and for `s = "BB"` it gives **2**.
