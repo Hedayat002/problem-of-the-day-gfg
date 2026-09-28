@@ -1,0 +1,110 @@
+## Brute Force Solution
+
+```python
+from math import gcd
+
+class Solution:
+    def processQueries(self, arr: list[int], queries: list[list[int]]) -> list[int]:
+        ans = []
+
+        for query in queries:
+            if query[0] == 1:
+                index, value = query[1], query[2]
+                arr[index] = value
+            else:
+                l, r = query[1], query[2]
+                g = 0
+
+                for i in range(l, r + 1):
+                    g = gcd(g, arr[i])
+
+                ans.append(g)
+
+        return ans
+```
+
+**Algorithm Flowchart:**
+`Start → Process Query → Update? → Update Array : Traverse [l,r] → Compute GCD → Store Answer → Repeat → End`
+
+**TC:** O(n + q × n × log(max_element))
+**SC:** O(1) excluding output
+
+---
+
+## Optimal Solution
+
+```python
+from math import gcd
+
+class Solution:
+    def processQueries(self, arr: list[int], queries: list[list[int]]) -> list[int]:
+        n = len(arr)
+        seg = [0] * (4 * n)
+
+        def build(node, l, r):
+            if l == r:
+                seg[node] = arr[l]
+                return
+
+            mid = (l + r) // 2
+
+            build(2 * node + 1, l, mid)
+            build(2 * node + 2, mid + 1, r)
+
+            seg[node] = gcd(
+                seg[2 * node + 1],
+                seg[2 * node + 2]
+            )
+
+        def update(node, l, r, index, value):
+            if l == r:
+                seg[node] = value
+                return
+
+            mid = (l + r) // 2
+
+            if index <= mid:
+                update(2 * node + 1, l, mid, index, value)
+            else:
+                update(2 * node + 2, mid + 1, r, index, value)
+
+            seg[node] = gcd(
+                seg[2 * node + 1],
+                seg[2 * node + 2]
+            )
+
+        def query(node, l, r, ql, qr):
+            if ql <= l and r <= qr:
+                return seg[node]
+
+            if r < ql or l > qr:
+                return 0
+
+            mid = (l + r) // 2
+
+            left_gcd = query(2 * node + 1, l, mid, ql, qr)
+            right_gcd = query(2 * node + 2, mid + 1, r, ql, qr)
+
+            return gcd(left_gcd, right_gcd)
+
+        build(0, 0, n - 1)
+
+        ans = []
+
+        for q in queries:
+            if q[0] == 1:
+                index, value = q[1], q[2]
+                arr[index] = value
+                update(0, 0, n - 1, index, value)
+            else:
+                l, r = q[1], q[2]
+                ans.append(query(0, 0, n - 1, l, r))
+
+        return ans
+```
+
+**Algorithm Flowchart:**
+`Start → Build Segment Tree → Process Query → Update? → Point Update & Recalculate GCD : Range Query → Combine GCDs → Store Answer → Repeat → End`
+
+**TC:** O(n log(max_element) + q × log n × log(max_element))
+**SC:** O(n)
