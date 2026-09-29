@@ -1,0 +1,172 @@
+1. Complete recursion + backtracking solution
+
+class Solution:
+    def solve(self,x, y, tx, ty, n, visited):
+        
+        # If target is reached
+        if x == tx and y == ty:
+            return 0
+
+        ans = float('inf')
+        
+        # All 8 possible Knight moves
+        dx = [2, 2, -2, -2, 1, 1, -1, -1]
+        dy = [1, -1, 1, -1, 2, -2, 2, -2]
+
+        for i in range(8):
+            nx = x + dx[i]
+            ny = y + dy[i]
+            # Check boundaries and visited cells
+            if (0 <= nx < n and
+                0 <= ny < n and
+                not visited[nx][ny]):
+
+                # Mark visited
+                visited[nx][ny] = True
+
+                # Recursive call
+                steps = self.solve(
+                    nx, ny, tx, ty, n, visited
+                )
+
+                # Update minimum steps
+                if steps != float('inf'):
+                    ans = min(ans, 1 + steps)
+
+                # Backtracking
+                visited[nx][ny] = False
+
+        return ans
+            
+        
+    
+        
+	def minStepToReachTarget(self, knightPos: list[int], targetPos: list[int], n: int) -> int:
+		#Code here
+        # Convert 1-based indexing to 0-based indexing
+        x = knightPos[0] - 1
+        y = knightPos[1] - 1
+        tx = targetPos[0] - 1
+        ty = targetPos[1] - 1
+        
+        visited = [[False for _ in range(n)] for _ in range(n)]
+
+        visited[x][y] = True
+        
+        return self.solve(x, y, tx, ty, n, visited)
+        
+
+
+                    START
+                      |
+                      v
+              solve(x, y, target)
+                      |
+                      v
+             Is target reached?
+                /          \
+              YES           NO
+               |             |
+               v             v
+            return 0     ans = INF
+                             |
+                             v
+                    Try all 8 moves
+                             |
+                             v
+                 +----------------------+
+                 | For each move       |
+                 +----------------------+
+                             |
+                             v
+                  Is move inside board
+                  AND not visited?
+                       /        \
+                     NO          YES
+                     |            |
+                     |            v
+                     |      visited[nx][ny]
+                     |            = True
+                     |            |
+                     |            v
+                     |      solve(nx, ny)
+                     |            |
+                     |            v
+                     |     Did path exist?
+                     |       /          \
+                     |     NO            YES
+                     |     |              |
+                     |     |              v
+                     |     |        ans = min(
+                     |     |          ans, 1 + steps
+                     |     |        )
+                     |     |              |
+                     |     +-------+------+
+                     |             |
+                     |             v
+                     |      visited[nx][ny]
+                     |            = False
+                     |             |
+                     +-------------+
+                             |
+                             v
+                       return ans
+So:
+
+TC = ((8^{n^2})
+SC = O(n2)
+
+Optimal:BFS
+
+Since every knight move has the same cost of 1, BFS finds the shortest path without exploring every possible path.
+
+
+from collections import deque
+
+class Solution:
+    def minStepToReachTarget(
+        self,
+        knightPos: list[int],
+        targetPos: list[int],
+        n: int
+    ) -> int:
+
+        x = knightPos[0] - 1
+        y = knightPos[1] - 1
+
+        tx = targetPos[0] - 1
+        ty = targetPos[1] - 1
+
+        visited = [[False] * n for _ in range(n)]
+        visited[x][y] = True
+
+        dx = [2, 2, -2, -2, 1, 1, -1, -1]
+        dy = [1, -1, 1, -1, 2, -2, 2, -2]
+
+        q = deque([(x, y, 0)])
+
+        while q:
+            x, y, steps = q.popleft()
+
+            if x == tx and y == ty:
+                return steps
+
+            for i in range(8):
+                nx = x + dx[i]
+                ny = y + dy[i]
+
+                if (0 <= nx < n and
+                    0 <= ny < n and
+                    not visited[nx][ny]):
+
+                    visited[nx][ny] = True
+                    q.append((nx, ny, steps + 1))
+
+        return -1
+Efficient solution
+
+BFS complexity
+Time: O(n2)
+Space: O(n2)
+
+BFS visits each board cell at most once and processes at most eight moves per cell.
