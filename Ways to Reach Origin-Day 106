@@ -1,0 +1,109 @@
+1. Recursion
+class Solution:
+    MOD = 10**9 + 7
+    def solve(self, x, y):
+
+           # Reached origin
+           if x == 0 and y == 0:
+               return 1
+    
+           left = 0
+           if x > 0:
+               left = self.solve(x - 1, y)
+    
+           down = 0
+           if y > 0:
+               down = self.solve(x, y - 1)
+    
+           return left + down
+
+    def ways(self, x: int, y: int) -> int:
+        # code here
+        return self.solve(x, y) %self.MOD
+TC: O(2^(x+y))
+SC: O(x+y)
+
+2. Memoization (Top-Down)
+class Solution:
+    MOD = 10**9 + 7
+
+    def solve(self, x, y, dp):
+        if x == 0 and y == 0:
+            return 1
+
+        if dp[x][y] != -1:
+            return dp[x][y]
+
+        left = 0
+        if x > 0:
+            left = self.solve(x - 1, y, dp)
+
+        down = 0
+        if y > 0:
+            down = self.solve(x, y - 1, dp)
+
+        dp[x][y] = (left + down) % self.MOD
+        return dp[x][y]
+
+    def ways(self, x: int, y: int) -> int:
+        dp = [[-1] * (y + 1) for _ in range(x + 1)]
+        return self.solve(x, y, dp)
+
+TC: O(x · y)
+SC: O(x · y)
+
+3. Tabulation (Bottom-Up)
+class Solution:
+    MOD = 10**9 + 7
+    
+
+    def ways(self, x: int, y: int) -> int:
+        # code here
+        dp = [[0] * (y + 1) for _ in range(x + 1)]
+       
+        dp[0][0] = 1
+
+        for i in range(x + 1):
+           for j in range(y + 1):
+               if i == 0 and j == 0:
+                   continue
+               left = 0
+               if x > 0:
+                   left = dp[i-1][j]
+               down = 0
+               if y > 0:
+                   down = dp[i][j-1]
+                   
+               dp[i][j] = (left + down)% self.MOD
+        return dp[x][y]
+              
+TC: O(x · y)
+SC: O(x · y)
+
+4. Tabulation (Space Optimization)
+class Solution:
+    MOD = 10**9 + 7
+
+    def ways(self, x: int, y: int) -> int:
+        prev = [0] * (y + 1)
+        prev[0] = 1
+
+        for i in range(x + 1):
+            curr = [0] * (y + 1)
+
+            for j in range(y + 1):
+                if i == 0 and j == 0:
+                    curr[j] = 1
+                    continue
+
+                left = prev[j] if i > 0 else 0
+                down = curr[j - 1] if j > 0 else 0
+
+                curr[j] = (left + down) % self.MOD
+
+            prev = curr
+
+        return prev[y]
+
+TC: O(x · y)
+SC: O(y)
