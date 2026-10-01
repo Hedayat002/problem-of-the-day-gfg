@@ -1,0 +1,173 @@
+### 1. DFS — Memoization
+
+```python
+class Solution:
+    def dfs(self, u, adj, duration, dp, state):
+        if state[u] == 1:
+            return -1
+        if dp[u] != -1:
+            return dp[u]
+
+        state[u] = 1
+        longest = 0
+
+        for v in adj[u]:
+            t = self.dfs(v, adj, duration, dp, state)
+            if t == -1:
+                return -1
+            longest = max(longest, t)
+
+        state[u] = 2
+        dp[u] = duration[u] + longest
+        return dp[u]
+
+    def minTime(self, duration, dependencies):
+        n = len(duration)
+        adj = [[] for _ in range(n)]
+
+        for u, v in dependencies:
+            adj[u].append(v)
+
+        dp = [-1] * n
+        state = [0] * n
+        ans = 0
+
+        for i in range(n):
+            t = self.dfs(i, adj, duration, dp, state)
+            if t == -1:
+                return -1
+            ans = max(ans, t)
+
+        return ans
+```
+
+**TC:** `O(n + m)`
+**SC:** `O(n + m)` → adjacency list + recursion/memoization
+
+---
+
+### 2. Kahn's Algorithm — BFS Topological Sort
+
+```python
+from collections import deque
+
+class Solution:
+    
+    def minTime(self, duration, dependencies):
+        n = len(duration)
+        
+        adj = [[] for _ in range(n)]
+        indegree = [0] * n
+        
+        for u, v in dependencies:
+            adj[u].append(v)
+            indegree[v] += 1
+        
+        # earliest[i] = earliest time module i can be completed
+        earliest = [0] * n
+        
+        q = deque()
+        
+        for i in range(n):
+            if indegree[i] == 0:
+                earliest[i] = duration[i]
+                q.append(i)
+        
+        count = 0
+        ans = 0
+        
+        while q:
+            u = q.popleft()
+            count += 1
+            
+            ans = max(ans, earliest[u])
+            
+            for v in adj[u]:
+                earliest[v] = max(
+                    earliest[v],
+                    earliest[u] + duration[v]
+                )
+                
+                indegree[v] -= 1
+                
+                if indegree[v] == 0:
+                    q.append(v)
+        
+        # Cycle exists
+        if count != n:
+            return -1
+        
+        return ans
+```
+
+**TC:** `O(n + m)`
+**SC:** `O(n + m)`
+
+---
+
+### 3. Topological Sort using DFS
+
+```python
+class Solution:
+    
+    def dfs(self, u, adj, duration, state, topo):
+        # Cycle detected
+        if state[u] == 1:
+            return False
+        
+        # Already visited
+        if state[u] == 2:
+            return True
+        
+        state[u] = 1
+        
+        for v in adj[u]:
+            if not self.dfs(v, adj, duration, state, topo):
+                return False
+        
+        state[u] = 2
+        topo.append(u)
+        
+        return True
+
+    def minTime(self, duration, dependencies):
+        n = len(duration)
+        
+        adj = [[] for _ in range(n)]
+        
+        for u, v in dependencies:
+            adj[u].append(v)
+        
+        state = [0] * n
+        topo = []
+        
+        # Create topological ordering
+        for i in range(n):
+            if state[i] == 0:
+                if not self.dfs(i, adj, duration, state, topo):
+                    return -1
+        
+        # DFS gives reverse topological order
+        topo.reverse()
+        
+        earliest = [0] * n
+        ans = 0
+        
+        for u in topo:
+            
+            if earliest[u] == 0:
+                earliest[u] = duration[u]
+            
+            ans = max(ans, earliest[u])
+            
+            for v in adj[u]:
+                earliest[v] = max(
+                    earliest[v],
+                    earliest[u] + duration[v]
+                )
+        
+        return ans
+```
+
+**TC:** `O(n + m)`
+**SC:** `O(n + m)` → adjacency list + DFS stack + topological order
