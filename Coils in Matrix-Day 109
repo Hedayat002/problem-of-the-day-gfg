@@ -1,0 +1,87 @@
+## 1. Brute Force Solution
+
+Python
+
+Run
+
+```
+class Solution:
+    def formCoils(self, n: int) -> list[list[int]]:
+        size = 4 * n
+        matrix = [[i * size + j + 1 for j in range(size)]
+                  for i in range(size)]
+
+        coil1, coil2 = [], []
+        visited = [[False] * size for _ in range(size)]
+
+        directions = [(1, 0), (0, 1), (-1, 0), (0, -1)]
+
+        # First coil: simulate spiral traversal
+        r, c, d = 0, 0, 0
+        for _ in range(8 * n * n):
+            coil1.append(matrix[r][c])
+            visited[r][c] = True
+
+            nr, nc = r + directions[d][0], c + directions[d][1]
+
+            if (nr < 0 or nr >= size or nc < 0 or nc >= size
+                    or visited[nr][nc]):
+                d = (d + 1) % 4
+                nr, nc = r + directions[d][0], c + directions[d][1]
+
+            r, c = nr, nc
+
+        # Second coil: complementary values in reverse order
+        coil2 = [size * size + 1 - x for x in coil1[::-1]]
+
+        return [coil1, coil2]
+```
+
+TC: O(n2)O(n^2)O(n2) SC: O(n2)O(n^2)O(n2)
+
+## 2. Optimized Solution
+
+Python
+
+Run
+
+```
+class Solution:
+    def formCoils(self, n: int) -> list[list[int]]:
+        m = 8 * n * n
+
+        coil1 = [0] * m
+        coil1[0] = 8 * n * n + 2 * n
+
+        curr = coil1[0]
+        flag = 1
+        step = 2
+        index = 1
+
+        while index < m:
+            for _ in range(step):
+                if index >= m:
+                    break
+                curr -= 4 * n * flag
+                coil1[index] = curr
+                index += 1
+
+            for _ in range(step):
+                if index >= m:
+                    break
+                curr += flag
+                coil1[index] = curr
+                index += 1
+
+            flag *= -1
+            step += 2
+
+        coil2 = [16 * n * n + 1 - value for value in coil1]
+
+        coil1.reverse()
+        coil2.reverse()
+
+        return [coil2, coil1]
+```
+
+TC: O(n2)O(n^2)O(n2) SC: O(n2)O(n^2)O(n2) — output lists require O(n2)O(n^2)O(n2) space.
