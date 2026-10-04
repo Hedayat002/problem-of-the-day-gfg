@@ -1,0 +1,55 @@
+## 1.Solution
+
+from typing import List
+class Solution:
+    def findPerimeter(self, mat: List[List[int]]) -> int:
+        # code here
+        n = len(mat)
+        m = len(mat[0])
+        perimeter = 0
+
+        directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+        for i in range(n):
+            for j in range(m):
+                if mat[i][j] == 0:
+                    continue
+                
+            
+                # Check all four sides of the current 1 cell.
+                for dr, dc in directions:
+                    ni = i + dr
+                    nj = j + dc
+                    
+                    if (ni < 0 or ni >= n or nj < 0 or nj >= m or
+                    mat[ni][nj] == 0):
+                        perimeter += 1
+        return perimeter
+
+
+TC: \(O(n \times m)\)
+SC: \(O(1)\) — only four directions are stored.
+
+2. Optimized Solution
+
+from typing import List
+
+class Solution:
+    def findPerimeter(self, mat: List[List[int]]) -> int:
+        n, m = len(mat), len(mat[0])
+        perimeter = 0
+
+        for i in range(n):
+            for j in range(m):
+                if mat[i][j] == 1:
+                    perimeter += 4
+
+                    if i > 0 and mat[i - 1][j] == 1:
+                        perimeter -= 2
+
+                    if j > 0 and mat[i][j - 1] == 1:
+                        perimeter -= 2
+
+        return perimeter
+TC: \(O(n \times m)\)
+SC: \(O(1)\)
+Key idea: The optimized solution checks only the top and left neighbors to count each shared side exactly once.
