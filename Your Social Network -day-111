@@ -1,0 +1,144 @@
+## 1. Brute Force Solution
+
+For every user `i`, repeatedly follow the friend link until reaching user `1`.  
+Store the distance for every visited user, then check users `1 ... i-1`.
+
+```python
+class Solution:
+    def socialNetwork(self, arr):
+        n = len(arr) + 1
+        ans = []
+
+        for i in range(2, n + 1):
+            current = i
+            jumps = 0
+
+            while current != 1:
+                current = arr[current - 2]
+                jumps += 1
+                ans.append([i, current, jumps])
+
+        return ans
+```
+
+**TC:** `O(n²)`  
+**SC:** `O(n²)` for the output array.
+
+---
+
+## 2. Optimized Solution — DP / Reuse Previous Result
+
+Since every user's friend has a **smaller number**, when processing user `i`, its friend is already processed.
+
+If:
+
+```text
+i → parent
+```
+
+and `parent` can reach:
+
+```text
+parent → x
+```
+
+then `i` can reach `x` with one additional link.
+
+So we can reuse the reachable list of `parent`.
+
+```python
+class Solution:
+    def socialNetwork(self, arr):
+        n = len(arr) + 1
+        ans = []
+
+        # paths[i] = [(reachable_user, distance), ...]
+        paths = [[] for _ in range(n + 1)]
+
+        for i in range(2, n + 1):
+            parent = arr[i - 2]
+
+            # i can directly reach parent
+            paths[i].append((parent, 1))
+
+            # i can also reach everything parent can reach
+            for user, dist in paths[parent]:
+                paths[i].append((user, dist + 1))
+
+            # Output users in increasing order of user number
+            for j in range(1, i):
+                for user, dist in paths[i]:
+                    if user == j:
+                        ans.append([i, j, dist])
+
+        return ans
+```
+
+However, the above implementation has an unnecessary search through `paths[i]`. A cleaner optimized version stores distances directly:
+
+```python
+class Solution:
+    def socialNetwork(self, arr):
+        n = len(arr) + 1
+        ans = []
+
+        # dist[i][j] = number of links from i to j
+        dist = [[0] * (n + 1) for _ in range(n + 1)]
+
+        for i in range(2, n + 1):
+            parent = arr[i - 2]
+
+            # Direct friend
+            dist[i][parent] = 1
+
+            # Everything reachable from parent is also reachable from i
+            for j in range(1, parent):
+                if dist[parent][j] > 0:
+                    dist[i][j] = dist[parent][j] + 1
+
+            # Required output order: j = 1 -> i-1
+            for j in range(1, i):
+                if dist[i][j] > 0:
+                    ans.append([i, j, dist[i][j]])
+
+        return ans
+```
+
+**TC:** `O(n²)`  
+**SC:** `O(n²)`.
+
+### Key idea
+
+Because:
+
+```text
+arr[i - 2] < i
+```
+
+the parent is **always processed before `i`**.
+
+For example:
+
+```text
+2 → 1
+3 → 2
+4 → 3
+```
+
+When processing `4`:
+
+```text
+4 → 3
+3 → 2
+2 → 1
+```
+
+So:
+
+```text
+dist[4][3] = 1
+dist[4][2] = dist[3][2] + 1 = 2
+dist[4][1] = dist[3][1] + 1 = 3
+```
+
+The important observation is that **the graph is actually a tree/path toward user 1**, because every node has exactly one parent with a smaller number.
