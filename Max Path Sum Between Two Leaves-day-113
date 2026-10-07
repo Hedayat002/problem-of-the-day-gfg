@@ -1,0 +1,159 @@
+## 1. Brute Force Solution
+
+```
+# Node Class:
+# class Node:
+#     def __init__(self, val):
+#         self.data = val
+#         self.left = None
+#         self.right = None
+
+class Solution:
+    def maxPathSum(self, root):
+        if root is None:
+            return -1
+
+        leaves = []
+        self.collectLeaves(root, [], leaves)
+
+        if len(leaves) < 2:
+            return -1
+
+        ans = float('-inf')
+
+        for i in range(len(leaves)):
+            for j in range(i + 1, len(leaves)):
+                p1 = leaves[i]
+                p2 = leaves[j]
+
+                k = 0
+                while k < min(len(p1), len(p2)) and p1[k] is p2[k]:
+                    k += 1
+
+                total = sum(node.data for node in p1[k - 1:])
+                total += sum(node.data for node in p2[k:])
+
+                ans = max(ans, total)
+
+        return ans
+
+    def collectLeaves(self, node, path, leaves):
+        if node is None:
+            return
+
+        path = path + [node]
+
+        if node.left is None and node.right is None:
+            leaves.append(path)
+            return
+
+        self.collectLeaves(node.left, path, leaves)
+        self.collectLeaves(node.right, path, leaves)
+```
+
+**TC:** O(L²H)\
+**SC:** O(LH)
+
+Where L = number of leaves and H = tree height.
+
+## 2. Better Solution
+
+```
+# Node Class:
+# class Node:
+#     def __init__(self, val):
+#         self.data = val
+#         self.left = None
+#         self.right = None
+
+class Solution:
+    def maxPathSum(self, root):
+        if root is None:
+            return -1
+
+        self.ans = float('-inf')
+        self.leafCount = 0
+
+        self.dfs(root)
+
+        if self.leafCount < 2:
+            return -1
+
+        return self.ans
+
+    def dfs(self, node):
+        if node.left is None and node.right is None:
+            self.leafCount += 1
+            return node.data
+
+        if node.left is None:
+            return node.data + self.dfs(node.right)
+
+        if node.right is None:
+            return node.data + self.dfs(node.left)
+
+        left = self.dfs(node.left)
+        right = self.dfs(node.right)
+
+        self.ans = max(
+            self.ans,
+            left + node.data + right
+        )
+
+        return node.data + max(left, right)
+```
+
+**TC:** O(N)\
+**SC:** O(H)
+
+## 3. Optimal Solution
+
+```
+# Node Class:
+# class Node:
+#     def __init__(self, val):
+#         self.data = val
+#         self.left = None
+#         self.right = None
+
+class Solution:
+    def maxPathSum(self, root):
+        if root is None:
+            return -1
+
+        self.ans = float('-inf')
+        self.leafCount = 0
+
+        self.dfs(root)
+
+        if self.leafCount < 2:
+            return -1
+
+        return self.ans
+
+    def dfs(self, node):
+        if node.left is None and node.right is None:
+            self.leafCount += 1
+            return node.data
+
+        if node.left is None:
+            return node.data + self.dfs(node.right)
+
+        if node.right is None:
+            return node.data + self.dfs(node.left)
+
+        left = self.dfs(node.left)
+        right = self.dfs(node.right)
+
+        self.ans = max(
+            self.ans,
+            left + node.data + right
+        )
+
+        return node.data + max(left, right)
+```
+
+**TC:** O(N)\
+**SC:** O(H)
+
+**Best approach:** Optimal Solution — O(N) time, O(H) auxiliary space. Both the better and optimal solutions use the same efficient DFS algorithm.
