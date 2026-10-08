@@ -1,0 +1,134 @@
+Copy and paste this directly into your GitHub README.md.
+
+# Maximum Frequency
+
+Given an array `arr` and an integer `k`, find the maximum frequency of any element after performing at most `k` increment operations. Each operation increases one element by `1`.
+
+**Example**
+
+```
+Input: arr = [2, 2, 4], k = 4
+Output: 3
+Explanation: Increase both 2s to 4 using 4 operations.
+The array becomes [4, 4, 4].
+```
+
+## Approach 1: Brute Force
+
+### Python Code
+
+```
+class Solution:
+    def maxFrequency(self, arr, k):
+        arr.sort()
+        n = len(arr)
+        res = 1
+
+        for right in range(n):
+            operations = 0
+            freq = 1
+
+            for left in range(right - 1, -1, -1):
+                operations += arr[right] - arr[left]
+
+                if operations > k:
+                    break
+
+                freq += 1
+
+            res = max(res, freq)
+
+        return res
+```
+
+**Complexity Analysis**
+
+- Time Complexity: `O(n²)`
+- Auxiliary Space: `O(1)` excluding sorting workspace.
+
+## Approach 2: Prefix Sum + Binary Search
+
+### Python Code
+
+```
+class Solution:
+    def maxFrequency(self, arr, k):
+        arr.sort()
+        n = len(arr)
+        prefix = [0] * (n + 1)
+
+        for i in range(n):
+            prefix[i + 1] = prefix[i] + arr[i]
+
+        res = 1
+
+        for right in range(n):
+            low = 0
+            high = right
+
+            while low < high:
+                mid = low + (high - low) // 2
+
+                window_sum = prefix[right + 1] - prefix[mid]
+                required = (
+                    arr[right] * (right - mid + 1) - window_sum
+                )
+
+                if required <= k:
+                    high = mid
+                else:
+                    low = mid + 1
+
+            res = max(res, right - low + 1)
+
+        return res
+```
+
+**Complexity Analysis**
+
+- Time Complexity: `O(n log n)`
+- Auxiliary Space: `O(n)` for the prefix sum array.
+
+## Approach 3: Sliding Window (Optimal)
+
+### Python Code
+
+```
+class Solution:
+    def maxFrequency(self, arr, k):
+        arr.sort()
+
+        window_sum = 0
+        left = 0
+        res = 1
+
+        for right in range(len(arr)):
+            window_sum += arr[right]
+
+            while (
+                arr[right] * (right - left + 1) - window_sum > k
+            ):
+                window_sum -= arr[left]
+                left += 1
+
+            res = max(res, right - left + 1)
+
+        return res
+```
+
+**Complexity Analysis**
+
+- Time Complexity: `O(n log n)` including sorting.
+- Auxiliary Space: `O(1)` excluding sorting workspace.
+
+## Comparison
+
+| Approach                   | Time Complexity | Auxiliary Space |
+| -------------------------- | --------------- | --------------- |
+| Brute Force                | `O(n²)`         | `O(1)`          |
+| Prefix Sum + Binary Search | `O(n log n)`    | `O(n)`          |
+| Sliding Window             | `O(n log n)`    | `O(1)`          |
+
+**Best Approach:** Sliding Window, because it achieves `O(n log n)` total time and `O(1)` auxiliary space excluding sorting workspace.
+
+Add constraints and edge casesExplain the window cost formula
