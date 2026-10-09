@@ -1,0 +1,38 @@
+Recursion
+class Solution:
+    def solve(self, n):
+        if n == 0:
+            return 0
+
+        if n == 1:
+            return 1
+
+        if n % 2 == 0:
+            return 1 + self.solve(n // 2)
+
+        return 1 + self.solve(n - 1) 
+    
+    
+    def minOperation(self, n):
+        # code here
+        return self.solve(n) 
+
+TC: \(O(\log n)\)
+SC: \(O(\log n)\)
+
+Greedy Approach (Reverse Operations)
+class Solution:
+    def minOperation(self, n):
+        ans = 0
+
+        while n > 1:
+            if n % 2 == 0:
+                n //= 2
+            else:
+                n -= 1
+            ans += 1
+
+        return ans + 1
+TC: \(O(\log n)\)
+SC: \(O(1)\)
+
