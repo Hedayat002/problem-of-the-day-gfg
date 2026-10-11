@@ -1,0 +1,145 @@
+# Sort Two Parts Sorted
+
+**Difficulty:** Easy
+
+**Approach:** Sorting, Two Pointers, Merge
+
+## 1. Brute Force Solution
+
+```
+class Solution:
+    def mergeTwoParts(self, arr):
+        arr.sort()
+        return arr
+```
+
+**TC:** O(n log n)\
+**SC:** O(1) auxiliary space (Python's sorting implementation uses additional internal memory in some cases).
+
+## 2. Better Solution — Two-Pointer Merge
+
+```
+class Solution:
+    def mergeTwoParts(self, arr):
+        n = len(arr)
+
+        if n <= 1:
+            return arr
+
+        pivot = -1
+
+        for i in range(n - 1):
+            if arr[i] > arr[i + 1]:
+                pivot = i
+                break
+
+        if pivot == -1:
+            return arr
+
+        left = arr[:pivot + 1]
+        right = arr[pivot + 1:]
+
+        i = j = 0
+        result = []
+
+        while i < len(left) and j < len(right):
+            if left[i] <= right[j]:
+                result.append(left[i])
+                i += 1
+            else:
+                result.append(right[j])
+                j += 1
+
+        result.extend(left[i:])
+        result.extend(right[j:])
+
+        arr[:] = result
+        return arr
+```
+
+**TC:** O(n)\
+**SC:** O(n)
+
+## 3. Optimal Solution — Direct Merge
+
+```
+class Solution:
+    def mergeTwoParts(self, arr):
+        n = len(arr)
+        pivot = -1
+
+        for i in range(n - 1):
+            if arr[i] > arr[i + 1]:
+                pivot = i
+                break
+
+        if pivot == -1:
+            return arr
+
+        i = 0
+        j = pivot + 1
+        result = []
+
+        while i <= pivot and j < n:
+            if arr[i] <= arr[j]:
+                result.append(arr[i])
+                i += 1
+            else:
+                result.append(arr[j])
+                j += 1
+
+        result.extend(arr[i:pivot + 1])
+        result.extend(arr[j:])
+
+        arr[:] = result
+        return arr
+```
+
+**TC:** O(n)\
+**SC:** O(n)
+
+## Examples
+
+**Input:**
+
+```
+arr = [2, 3, 8, -1, 7, 10]
+```
+
+**Output:**
+
+```
+[-1, 2, 3, 7, 8, 10]
+```
+
+**Input:**
+
+```
+arr = [-4, 6, 9, -1, 3]
+```
+
+**Output:**
+
+```
+[-4, -1, 3, 6, 9]
+```
+
+**Input:**
+
+```
+arr = [10, 20, 30]
+```
+
+**Output:**
+
+```
+[10, 20, 30]
+```
+
+## Best Approach
+
+**Two-pointer merge:** O(n) time and O(n) auxiliary space.
+
+The solution detects the break point, merges the two sorted parts, updates the original array, and returns it.
+
+Keep only the recommended solutionExplain how the break point is found
