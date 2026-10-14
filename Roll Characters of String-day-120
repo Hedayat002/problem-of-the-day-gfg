@@ -1,0 +1,101 @@
+# Roll Characters of String
+
+**Difficulty:** Medium  
+**Topic:** Difference Array, Prefix Sum
+
+## Problem
+Given a string `s` consisting of lowercase English letters and an integer array `roll`, increment the first `roll[i]` characters by one for every roll operation. After `'z'`, the character wraps around to `'a'`. Return the final string.
+
+## 1. Brute Force Solution
+
+```python
+class Solution:
+    def findRollOut(self, s: str, roll: list[int]) -> str:
+        s = list(s)
+
+        for x in roll:
+            for i in range(x):
+                s[i] = chr((ord(s[i]) - ord('a') + 1) % 26 + ord('a'))
+
+        return ''.join(s)
+```
+
+**Time Complexity:** `O(n * m)`  
+**Space Complexity:** `O(n)`
+
+## 2. Better Solution — Count Operations
+
+```python
+class Solution:
+    def findRollOut(self, s: str, roll: list[int]) -> str:
+        n = len(s)
+        count = [0] * n
+
+        for x in roll:
+            for i in range(x):
+                count[i] += 1
+
+        res = []
+
+        for i in range(n):
+            current = ord(s[i]) - ord('a')
+            updated = (current + count[i]) % 26
+            res.append(chr(ord('a') + updated))
+
+        return ''.join(res)
+```
+
+**Time Complexity:** `O(n * m)`  
+**Space Complexity:** `O(n)`
+
+## 3. Optimal Solution — Difference Array
+
+```python
+class Solution:
+    def findRollOut(self, s: str, roll: list[int]) -> str:
+        n = len(s)
+        diff = [0] * (n + 1)
+
+        for x in roll:
+            diff[0] += 1
+            diff[x] -= 1
+
+        res = []
+        prefixSum = 0
+
+        for i in range(n):
+            prefixSum += diff[i]
+
+            current = ord(s[i]) - ord('a')
+            updated = (current + prefixSum) % 26
+
+            res.append(chr(ord('a') + updated))
+
+        return ''.join(res)
+```
+
+**Time Complexity:** `O(n + m)`  
+**Space Complexity:** `O(n)`
+
+## Complexity Comparison
+
+| Solution | Time Complexity | Space Complexity |
+|---|---|---|
+| Brute Force | `O(n * m)` | `O(n)` |
+| Better | `O(n * m)` | `O(n)` |
+| Optimal | `O(n + m)` | `O(n)` |
+
+**Best Approach:** Difference Array — processes all roll operations and characters in linear time.
+
+## Example
+
+**Input:**
+```text
+s = "bca"
+roll = [1, 2, 3]
+```
+
+**Output:**
+```text
+"eeb"
+```
