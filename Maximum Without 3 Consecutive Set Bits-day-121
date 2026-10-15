@@ -1,0 +1,82 @@
+# Maximum Without 3 Consecutive Set Bits
+
+## Problem
+Given a non-negative integer `n`, find the maximum possible value by changing zero or more set bits (`1`) to unset bits (`0`) so that its binary representation does not contain three consecutive set bits (`111`).
+
+## 1. Brute Force Solution
+
+```python
+class Solution:
+    def maxValue(self, n: int) -> int:
+        while "111" in bin(n):
+            for i in range(n.bit_length() - 3, -1, -1):
+                if (n & (7 << i)) == (7 << i):
+                    n ^= (1 << i)
+                    break
+        return n
+```
+
+- **Time Complexity:** O(log² n)
+- **Space Complexity:** O(log n)
+
+## 2. Better Solution
+
+```python
+class Solution:
+    def maxValue(self, n: int) -> int:
+        while True:
+            found = False
+
+            for i in range(n.bit_length() - 1, 1, -1):
+                if ((n & (1 << i)) and
+                    (n & (1 << (i - 1))) and
+                    (n & (1 << (i - 2)))):
+                    n ^= (1 << (i - 2))
+                    found = True
+                    break
+
+            if not found:
+                return n
+```
+
+- **Time Complexity:** O(log² n)
+- **Space Complexity:** O(1)
+
+## 3. Optimal Solution
+
+```python
+class Solution:
+    def maxValue(self, n: int) -> int:
+        for i in range(31, 1, -1):
+            if ((n & (1 << i)) != 0 and
+                (n & (1 << (i - 1))) != 0 and
+                (n & (1 << (i - 2))) != 0):
+                n ^= (1 << (i - 2))
+
+        return n
+```
+
+- **Time Complexity:** O(1) — fixed number of iterations for the given constraints.
+- **Space Complexity:** O(1)
+
+## Example
+
+**Input:**
+```text
+n = 7
+```
+
+**Output:**
+```text
+6
+```
+
+**Explanation:** Binary representation of `7` is `111`. Clearing the rightmost set bit gives `110`, which represents `6` and contains no three consecutive set bits.
+
+## Approach Comparison
+
+| Approach | Time Complexity | Space Complexity |
+|---|---|---|
+| Brute Force | O(log² n) | O(log n) |
+| Better | O(log² n) | O(1) |
+| Optimal | O(1) | O(1) |
