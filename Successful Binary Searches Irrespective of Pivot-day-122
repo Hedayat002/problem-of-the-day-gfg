@@ -1,0 +1,45 @@
+# Successful Binary Searches Irrespective of Pivot
+
+```python
+class Solution:
+    def countAlwaysFound(self, arr):
+        n = len(arr)
+
+        leftMax = [0] * n
+        rightMin = [0] * n
+
+        leftMax[0] = arr[0]
+
+        for i in range(1, n):
+            leftMax[i] = max(leftMax[i - 1], arr[i])
+
+        rightMin[n - 1] = arr[n - 1]
+
+        for i in range(n - 2, -1, -1):
+            rightMin[i] = min(rightMin[i + 1], arr[i])
+
+        count = 0
+
+        for i in range(n):
+            if arr[i] >= leftMax[i] and arr[i] <= rightMin[i]:
+                count += 1
+
+        return count
+```
+
+### Complexity Analysis
+
+- **Time Complexity:** `O(n)`
+- **Auxiliary Space:** `O(n)`
+
+### Example
+
+**Input:**
+```python
+arr = [3, 7, 9, 8, 15]
+```
+
+**Output:**
+```text
+3
+```
