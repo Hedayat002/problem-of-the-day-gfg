@@ -1,0 +1,96 @@
+# Convert One String to Another with Constraints
+
+**Difficulty:** Easy
+
+## 1. Brute Force Solution
+
+```python
+class Solution:
+    def isItPossible(self, s1: str, s2: str) -> bool:
+        return (
+            s1.replace("#", "") == s2.replace("#", "")
+            and len(s1) == len(s2)
+        )
+```
+
+**Time Complexity:** O(n)
+
+**Space Complexity:** O(n)
+
+## 2. Better Solution
+
+```python
+class Solution:
+    def isItPossible(self, s1: str, s2: str) -> bool:
+        if len(s1) != len(s2):
+            return False
+
+        a = [(c, i) for i, c in enumerate(s1) if c != '#']
+        b = [(c, i) for i, c in enumerate(s2) if c != '#']
+
+        if len(a) != len(b):
+            return False
+
+        for (c1, i), (c2, j) in zip(a, b):
+            if c1 != c2:
+                return False
+
+            if c1 == 'A' and i < j:
+                return False
+
+            if c1 == 'B' and i > j:
+                return False
+
+        return True
+```
+
+**Time Complexity:** O(n)
+
+**Space Complexity:** O(n)
+
+## 3. Optimal Solution
+
+```python
+class Solution:
+    def isItPossible(self, s1: str, s2: str) -> bool:
+        n = len(s1)
+
+        if n != len(s2):
+            return False
+
+        i = j = 0
+
+        while i < n and j < n:
+            while i < n and s1[i] == '#':
+                i += 1
+
+            while j < n and s2[j] == '#':
+                j += 1
+
+            if i == n or j == n:
+                break
+
+            if s1[i] != s2[j]:
+                return False
+
+            if s1[i] == 'A' and i < j:
+                return False
+
+            if s1[i] == 'B' and i > j:
+                return False
+
+            i += 1
+            j += 1
+
+        while i < n and s1[i] == '#':
+            i += 1
+
+        while j < n and s2[j] == '#':
+            j += 1
+
+        return i == n and j == n
+```
+
+**Time Complexity:** O(n)
+
+**Auxiliary Space:** O(1)
