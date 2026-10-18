@@ -1,0 +1,85 @@
+# Shortest Path From 1 To N
+
+**Difficulty:** Easy
+
+## 1. Brute Force Solution — BFS
+
+```python
+from collections import deque
+
+class Solution:
+    def minimumStep(self, n):
+        queue = deque([(1, 0)])
+        visited = {1}
+
+        while queue:
+            node, steps = queue.popleft()
+
+            if node == n:
+                return steps
+
+            for nxt in (node + 1, node * 3):
+                if nxt <= n and nxt not in visited:
+                    visited.add(nxt)
+                    queue.append((nxt, steps + 1))
+
+        return -1
+```
+
+**Time Complexity:** O(n)
+
+**Space Complexity:** O(n)
+
+## 2. Better Solution — Dynamic Programming
+
+```python
+class Solution:
+    def minimumStep(self, n):
+        dp = [0] * (n + 1)
+
+        for i in range(2, n + 1):
+            dp[i] = dp[i - 1] + 1
+
+            if i % 3 == 0:
+                dp[i] = min(dp[i], dp[i // 3] + 1)
+
+        return dp[n]
+```
+
+**Time Complexity:** O(n)
+
+**Space Complexity:** O(n)
+
+## 3. Optimal Solution — Reverse Greedy
+
+```python
+class Solution:
+    def minimumStep(self, n):
+        steps = 0
+
+        while n > 1:
+            if n % 3 == 0:
+                n //= 3
+            else:
+                n -= 1
+
+            steps += 1
+
+        return steps
+```
+
+**Time Complexity:** O(log n)
+
+**Space Complexity:** O(1)
+
+## Examples
+
+| Input | Output |
+|---|---:|
+| n = 4 | 2 |
+| n = 9 | 2 |
+| n = 15 | 4 |
+
+## Note
+
+The reverse-greedy solution is **not guaranteed to be optimal** for every input. Use the BFS or dynamic programming solution for a guaranteed correct result.
