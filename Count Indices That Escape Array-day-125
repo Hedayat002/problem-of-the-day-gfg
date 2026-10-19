@@ -1,0 +1,123 @@
+# Good Indices
+
+## 1. Brute Force Solution
+
+```python
+class Solution:
+    def goodIndices(self, arr: list[int]) -> int:
+        n = len(arr)
+        count = 0
+
+        for i in range(n):
+            visited = set()
+            curr = i
+
+            while 0 <= curr < n and arr[curr] != 0 and curr not in visited:
+                visited.add(curr)
+                curr += arr[curr]
+
+            if curr < 0 or curr >= n:
+                count += 1
+
+        return count
+```
+
+**Time Complexity:** O(n²)
+
+**Space Complexity:** O(n)
+
+## 2. Better Solution (DFS + Memoization)
+
+```python
+class Solution:
+    def goodIndices(self, arr: list[int]) -> int:
+        self.arr = arr
+        self.n = len(arr)
+        self.state = [0] * self.n
+
+        count = 0
+
+        for i in range(self.n):
+            if self.state[i] == 0:
+                self.solve(i)
+
+        for i in range(self.n):
+            if self.state[i] == 1:
+                count += 1
+
+        return count
+
+    def solve(self, i: int) -> int:
+        if i < 0 or i >= self.n:
+            return 1
+
+        if self.state[i] == 1 or self.state[i] == 2:
+            return self.state[i]
+
+        if self.arr[i] == 0:
+            self.state[i] = 2
+            return 2
+
+        if self.state[i] == 3:
+            return 2
+
+        self.state[i] = 3
+
+        next_index = i + self.arr[i]
+        res = self.solve(next_index)
+
+        self.state[i] = res
+        return res
+
+
+# State:
+# 0 -> Not visited
+# 1 -> Good
+# 2 -> Bad
+# 3 -> Currently in DFS
+```
+
+**Time Complexity:** O(n)
+
+**Space Complexity:** O(n)
+
+## 3. Optimal Solution (Iterative DFS)
+
+```python
+class Solution:
+    def goodIndices(self, arr: list[int]) -> int:
+        n = len(arr)
+        state = [0] * n
+
+        for i in range(n):
+            if state[i] != 0:
+                continue
+
+            path = []
+            curr = i
+
+            while 0 <= curr < n and state[curr] == 0:
+                if arr[curr] == 0:
+                    state[curr] = 2
+                    break
+
+                state[curr] = 3
+                path.append(curr)
+                curr += arr[curr]
+
+            if curr < 0 or curr >= n:
+                result = 1
+            elif state[curr] == 1:
+                result = 1
+            else:
+                result = 2
+
+            for node in reversed(path):
+                state[node] = result
+
+        return state.count(1)
+```
+
+**Time Complexity:** O(n)
+
+**Space Complexity:** O(n)
