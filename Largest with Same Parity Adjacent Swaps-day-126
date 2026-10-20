@@ -1,0 +1,84 @@
+# Largest with Same Parity Adjacent Swaps
+
+## Problem
+Given an array `arr`, you can swap adjacent elements only if their sum is even. Find the lexicographically largest array obtainable using these operations.
+
+## 1. Brute Force Solution
+
+```python
+class Solution:
+    def lexicographicallyLargest(self, arr: list[int]) -> list[int]:
+        n = len(arr)
+        changed = True
+
+        while changed:
+            changed = False
+
+            for i in range(n - 1):
+                if (arr[i] + arr[i + 1]) % 2 == 0 and arr[i] < arr[i + 1]:
+                    arr[i], arr[i + 1] = arr[i + 1], arr[i]
+                    changed = True
+
+        return arr
+```
+
+- **Time Complexity:** O(n²)
+- **Space Complexity:** O(1)
+
+## 2. Better Solution
+
+```python
+class Solution:
+    def lexicographicallyLargest(self, arr: list[int]) -> list[int]:
+        n = len(arr)
+        i = 0
+
+        while i < n:
+            j = i + 1
+
+            while j < n and arr[j] % 2 == arr[i] % 2:
+                j += 1
+
+            arr[i:j] = sorted(arr[i:j], reverse=True)
+            i = j
+
+        return arr
+```
+
+- **Time Complexity:** O(n log n)
+- **Space Complexity:** O(n)
+
+## 3. Optimal Solution
+
+```python
+class Solution:
+    def lexicographicallyLargest(self, arr: list[int]) -> list[int]:
+        n = len(arr)
+        i = 0
+
+        while i < n:
+            j = i + 1
+
+            while j < n and arr[j] % 2 == arr[i] % 2:
+                j += 1
+
+            arr[i:j] = sorted(arr[i:j], reverse=True)
+            i = j
+
+        return arr
+```
+
+- **Time Complexity:** O(n log n)
+- **Space Complexity:** O(n)
+
+## Example
+
+**Input**
+```python
+arr = [1, 3, 4, 2]
+```
+
+**Output**
+```python
+[3, 1, 4, 2]
+```
