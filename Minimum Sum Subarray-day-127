@@ -1,0 +1,144 @@
+# Problem: Minimum Sum Subarray
+
+# Approach 1: Naive Approach (Try All Subarrays)
+# T.C: O(n^2)
+# S.C: O(1)
+
+class Solution:
+    def minSubarraySum(self, arr: list[int]) -> int:
+        n = len(arr)
+        ans = float('inf')
+
+        for i in range(n):
+            temp = 0
+            for j in range(i, n):
+                temp += arr[j]
+                ans = min(ans, temp)
+
+        return ans
+
+
+# Approach 2: Optimal Approach (Kadane's Algorithm)
+# T.C: O(n)
+# S.C: O(1)
+
+class Solution:
+    def minSubarraySum(self, arr: list[int]) -> int:
+        curMin = float('inf')
+        ans = float('inf')
+
+        for num in arr:
+            if curMin > 0:
+                curMin = num
+            else:
+                curMin += num
+
+            ans = min(ans, curMin)
+
+        return ans
+
+****dynamic apporoch*****
+
+1. Recursion
+class Solution:
+    def solve(self, i, arr, ans):
+        if i == 0:
+            ans[0] = min(ans[0], arr[0])
+            return arr[0]
+
+        prev = self.solve(i - 1, arr, ans)
+
+        curr = min(arr[i], arr[i] + prev)
+
+        ans[0] = min(ans[0], curr)
+
+        return curr
+
+    def minSubarraySum(self, arr: list[int]) -> int:
+        n = len(arr)
+        ans = [float('inf')]
+
+        self.solve(n - 1, arr, ans)
+
+        return ans[0]
+
+
+TC: O(2^n))
+
+SC: \(O(n)\) — recursion stack.
+
+2. Memoization (Top-Down)
+class Solution:
+    def solve(self, i, arr, ans,dp):
+        if i == 0:
+            ans[0] = min(ans[0], arr[0])
+            return arr[0]
+            
+        if dp[i] != -1:
+            return dp[i]
+        
+
+        prev = self.solve(i - 1, arr, ans,dp)
+
+        curr = min(arr[i], arr[i] + prev)
+
+        ans[0] = min(ans[0], curr)
+        
+        dp[i] = curr
+
+        return dp[i]
+
+    def minSubarraySum(self, arr: list[int]) -> int:
+        n = len(arr)
+        ans = [float('inf')]
+        dp = [-1] *n
+
+        self.solve(n - 1, arr, ans,dp)
+
+        return ans[0]
+TC: \(O(n)\)
+
+SC: \(O(n)\) — DP array + recursion stack.
+3. Tabulation (Bottom-Up)
+class Solution:
+
+    def minSubarraySum(self, arr: list[int]) -> int:
+        n = len(arr)
+        ans = [float('inf')]
+        dp = [0] *n
+        dp[0] = arr[0]
+        
+        ans = dp[0]
+
+        for i in range(1,n):
+            prev = dp[i-1]
+
+            curr = min(arr[i], arr[i] + prev)
+            dp[i] = curr
+            ans = min(ans, curr)
+        return ans
+            
+        
+
+TC: \(O(n)\)
+
+SC: \(O(n)\)
+
+4. Tabulation (Space Optimization)
+
+class Solution:
+
+    def minSubarraySum(self, arr: list[int]) -> int:
+       prev = arr[0]
+       ans = prev
+
+       for i in range(1, len(arr)):
+          curr = min(arr[i], arr[i] + prev)
+          ans = min(ans, curr)
+          prev = curr
+
+       return ans
+
+TC: \(O(n)\)
+
+SC: \(O(1)\)
