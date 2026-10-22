@@ -1,0 +1,126 @@
+1. Brute Force Solution
+class Solution:
+    def minCost(self, s: str) -> int:
+        n = len(s)
+        m = (n + 1) // 2
+        arr = []
+
+        for i in range(m):
+            left = s[i]
+            right = s[n - 1 - i]
+
+            if left != '?' and right != '?' and left != right:
+                return -1
+
+            if left != '?':
+                arr.append(left)
+            elif right != '?':
+                arr.append(right)
+            else:
+                arr.append('?')
+
+        ans = float('inf')
+
+        def solve(i, prev, cost):
+            nonlocal ans
+
+            if cost >= ans:
+                return
+
+            if i == m:
+                ans = min(ans, cost)
+                return
+
+            if arr[i] != '?':
+                ch = arr[i]
+                extra = 0 if prev == -1 else abs(ord(ch) - ord(prev))
+                solve(i + 1, ch, cost + extra)
+            else:
+                for c in range(26):
+                    ch = chr(ord('a') + c)
+                    extra = 0 if prev == -1 else abs(ord(ch) - ord(prev))
+                    solve(i + 1, ch, cost + extra)
+
+        solve(0, -1, 0)
+
+        return 2 * ans
+TC: \(O(26^n)\)
+SC: \(O(n)\), excluding recursion overhead details
+
+2. Better Solution — Dynamic Programming
+
+class Solution:
+    def minCost(self, s: str) -> int:
+        n = len(s)
+        m = (n + 1) // 2
+        arr = []
+
+        for i in range(m):
+            left = s[i]
+            right = s[n - 1 - i]
+
+            if left != '?' and right != '?' and left != right:
+                return -1
+
+            if left != '?':
+                arr.append(ord(left) - ord('a'))
+            elif right != '?':
+                arr.append(ord(right) - ord('a'))
+            else:
+                arr.append(-1)
+
+        dp = [0] * 26
+
+        if arr[0] != -1:
+            for c in range(26):
+                dp[c] = 0 if c == arr[0] else float('inf')
+
+        for i in range(1, m):
+            ndp = [float('inf')] * 26
+
+            for c in range(26):
+                if arr[i] != -1 and c != arr[i]:
+                    continue
+
+                for p in range(26):
+                    ndp[c] = min(
+                        ndp[c],
+                        dp[p] + abs(c - p)
+                    )
+
+            dp = ndp
+
+        return 2 * min(dp)
+TC: \(O(n \times 26^2)\)
+SC: \(O(26)\)
+3. Optimal Solution — Greedy
+class Solution:
+    def minCost(self, s: str) -> int:
+        n = len(s)
+        m = (n + 1) // 2
+        prev = -1
+        ans = 0
+
+        for i in range(m):
+            left = s[i]
+            right = s[n - 1 - i]
+
+            if left != '?' and right != '?' and left != right:
+                return -1
+
+            if left != '?':
+                curr = ord(left)
+            elif right != '?':
+                curr = ord(right)
+            else:
+                continue
+
+            if prev != -1:
+                ans += abs(curr - prev)
+
+            prev = curr
+
+        return 2 * ans
+
+TC: \(O(n)\)
+SC: \(O(1)\)
