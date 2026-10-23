@@ -1,0 +1,148 @@
+# Count Pairs Violating BST Property
+
+## Problem
+Given the root of a binary tree with distinct node values, count the pairs of nodes that violate the Binary Search Tree (BST) property.
+
+## 1. Brute Force Solution
+
+```python
+class Solution:
+    def inorder(self, root, arr):
+        if root is None:
+            return
+
+        self.inorder(root.left, arr)
+        arr.append(root.data)
+        self.inorder(root.right, arr)
+
+    def pairsViolatingBST(self, root):
+        arr = []
+        self.inorder(root, arr)
+
+        count = 0
+        n = len(arr)
+
+        for i in range(n):
+            for j in range(i + 1, n):
+                if arr[i] > arr[j]:
+                    count += 1
+
+        return count
+```
+
+**Time Complexity:** O(n²)  
+**Space Complexity:** O(n)
+
+## 2. Better Solution — Merge Sort
+
+```python
+class Solution:
+    def inorder(self, root, arr):
+        if root is None:
+            return
+
+        self.inorder(root.left, arr)
+        arr.append(root.data)
+        self.inorder(root.right, arr)
+
+    def mergeSort(self, arr):
+        if len(arr) <= 1:
+            return arr, 0
+
+        mid = len(arr) // 2
+
+        left, countLeft = self.mergeSort(arr[:mid])
+        right, countRight = self.mergeSort(arr[mid:])
+
+        merged = []
+        i = j = 0
+        count = countLeft + countRight
+
+        while i < len(left) and j < len(right):
+            if left[i] <= right[j]:
+                merged.append(left[i])
+                i += 1
+            else:
+                count += len(left) - i
+                merged.append(right[j])
+                j += 1
+
+        merged.extend(left[i:])
+        merged.extend(right[j:])
+
+        return merged, count
+
+    def pairsViolatingBST(self, root):
+        arr = []
+        self.inorder(root, arr)
+
+        _, count = self.mergeSort(arr)
+        return count
+```
+
+**Time Complexity:** O(n log n)  
+**Space Complexity:** O(n)
+
+## 3. Optimal Solution — Merge Sort with Temporary Array
+
+```python
+class Solution:
+    def inorder(self, root, arr):
+        if root is None:
+            return
+
+        self.inorder(root.left, arr)
+        arr.append(root.data)
+        self.inorder(root.right, arr)
+
+    def mergeSort(self, arr, temp, left, right):
+        if left >= right:
+            return 0
+
+        mid = (left + right) // 2
+
+        count = self.mergeSort(arr, temp, left, mid)
+        count += self.mergeSort(arr, temp, mid + 1, right)
+
+        i = left
+        j = mid + 1
+        k = left
+
+        while i <= mid and j <= right:
+            if arr[i] <= arr[j]:
+                temp[k] = arr[i]
+                i += 1
+            else:
+                temp[k] = arr[j]
+                count += mid - i + 1
+                j += 1
+
+            k += 1
+
+        while i <= mid:
+            temp[k] = arr[i]
+            i += 1
+            k += 1
+
+        while j <= right:
+            temp[k] = arr[j]
+            j += 1
+            k += 1
+
+        for i in range(left, right + 1):
+            arr[i] = temp[i]
+
+        return count
+
+    def pairsViolatingBST(self, root):
+        arr = []
+        self.inorder(root, arr)
+
+        n = len(arr)
+        temp = [0] * n
+
+        return self.mergeSort(arr, temp, 0, n - 1)
+```
+
+**Time Complexity:** O(n log n)  
+**Space Complexity:** O(n)
