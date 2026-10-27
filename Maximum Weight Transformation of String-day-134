@@ -1,0 +1,113 @@
+1. Recursion
+class Solution:
+    def solve(self, s, i):
+        n = len(s)
+
+        if i >= n:
+            return 0
+
+          # Leave the current character unpaired
+        ans = 1 + self.solve(s, i + 1)
+
+          # Pair current character with the next character
+        if i + 1 < n:
+            if s[i] != s[i + 1]:
+                ans = max(ans, 4 + self.solve(s, i + 2))
+            else:
+                ans = max(ans, 3 + self.solve(s, i + 2))
+
+        return ans
+    def getMaxWeight(self, s):
+        # code here
+        n = len(s)
+        return self.solve(s,0)
+
+TC: O(2ⁿ)
+SC: O(n)
+2. Memoization (Top-Down)
+class Solution:
+    def solve(self, s, i,dp):
+        n = len(s)
+
+        if i >= n:
+            return 0
+            
+        if dp[i] != -1:
+            return dp[i]
+
+          # Leave the current character unpaired
+        ans = 1 + self.solve(s, i + 1,dp)
+
+          # Pair current character with the next character
+        if i + 1 < n:
+            if s[i] != s[i + 1]:
+                ans = max(ans, 4 + self.solve(s, i + 2,dp))
+            else:
+                ans = max(ans, 3 + self.solve(s, i + 2,dp))
+        
+        dp[i] = ans
+
+        return dp[i]
+        
+    def getMaxWeight(self, s):
+        # code here
+        n = len(s)
+        dp = [-1] * n
+        return self.solve(s,0,dp)
+
+TC: O(n)
+SC: O(n)
+3. Tabulation (Bottom-Up)
+
+class Solution:
+
+    def getMaxWeight(self, s):
+        # code here
+        n = len(s)
+        dp = [0] * (n + 2)
+
+        for i in range(n - 1, -1, -1):
+            # Leave the current character unpaired
+            ans = 1 + dp[i + 1]
+
+            # Pair current character with the next character
+            if i + 1 < n:
+                if s[i] != s[i + 1]:
+                    ans = max(ans, 4 + dp[i + 2])
+                else:
+                    ans = max(ans, 3 + dp[i + 2])
+
+            dp[i] = ans
+
+        return dp[0]
+TC: O(n)
+SC: O(n)
+
+
+4. Tabulation (Space Optimization)
+
+class Solution:
+
+    def getMaxWeight(self, s):
+        # code here
+        n = len(s)
+        prev1 = 0
+        prev2 = 0
+
+        for i in range(n - 1, -1, -1):
+            # Leave the current character unpaired
+            ans = 1 + prev1
+
+            # Pair current character with the next character
+            if i + 1 < n:
+                if s[i] != s[i + 1]:
+                    ans = max(ans, 4 + prev2)
+                else:
+                    ans = max(ans, 3 + prev2)
+            prev2 = prev1
+
+            prev1 = ans
+
+        return prev1
+TC: O(n)
+SC: O(1)
