@@ -1,0 +1,66 @@
+# Nth in Concatenated Decimal String
+
+## Problem
+Given an integer `n`, find the nth character (1-based indexing) in the string formed by concatenating the decimal representations of all positive integers.
+
+## 1. Brute Force Solution
+
+```python
+class Solution:
+    def nthCharacter(self, n):
+        s = ""
+        num = 1
+
+        while len(s) < n:
+            s += str(num)
+            num += 1
+
+        return s[n - 1]
+```
+
+**Time Complexity:** O(n log n)  
+**Space Complexity:** O(n log n)
+
+## 2. Better Solution
+
+```python
+class Solution:
+    def nthCharacter(self, n):
+        num = 1
+
+        while True:
+            s = str(num)
+
+            if n <= len(s):
+                return s[n - 1]
+
+            n -= len(s)
+            num += 1
+```
+
+**Time Complexity:** O(n)  
+**Space Complexity:** O(log n)
+
+## 3. Optimal Solution
+
+```python
+class Solution:
+    def nthCharacter(self, n):
+        length = 1
+        count = 9
+        start = 1
+
+        while n > length * count:
+            n -= length * count
+            length += 1
+            count *= 10
+            start *= 10
+
+        num = start + (n - 1) // length
+        idx = (n - 1) % length
+
+        return str(num)[idx]
+```
+
+**Time Complexity:** O(log n)  
+**Auxiliary Space:** O(log n)
