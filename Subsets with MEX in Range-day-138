@@ -1,0 +1,131 @@
+# Subsets with MEX in Range
+
+**Difficulty:** Hard
+
+## 1. Brute Force Solution
+
+```python
+from typing import List
+
+class Solution:
+    def cntSubsets(self, arr: List[int], l: int, r: int) -> int:
+        MOD = 10**9 + 7
+        n = len(arr)
+        ans = 0
+
+        for mask in range(1 << n):
+            present = set()
+
+            for i in range(n):
+                if mask & (1 << i):
+                    present.add(arr[i])
+
+            mex = 0
+            while mex in present:
+                mex += 1
+
+            if l <= mex <= r:
+                ans += 1
+
+        return ans % MOD
+```
+
+**Time Complexity:** O(2ⁿ × n)  
+**Space Complexity:** O(n)
+
+## 2. Better Solution
+
+```python
+from typing import List
+
+class Solution:
+    MOD = 10**9 + 7
+
+    def cntSubsets(self, arr: List[int], l: int, r: int) -> int:
+        MOD = self.MOD
+        n = len(arr)
+
+        freq = [0] * (n + 1)
+
+        for x in arr:
+            if x <= n:
+                freq[x] += 1
+
+        powers = [1] * (n + 1)
+
+        for i in range(1, n + 1):
+            powers[i] = (powers[i - 1] * 2) % MOD
+
+        ans = 0
+        pre = 1
+        count = 0
+
+        for mex in range(r + 1):
+            if mex >= l:
+                rem = n - count - freq[mex]
+                ways = (pre * powers[rem]) % MOD
+                ans = (ans + ways) % MOD
+
+            if freq[mex] == 0:
+                break
+
+            pre = (pre * (powers[freq[mex]] - 1)) % MOD
+            count += freq[mex]
+
+        return ans
+```
+
+**Time Complexity:** O(n + r)  
+**Space Complexity:** O(n)
+
+## 3. Optimal Solution
+
+```python
+from typing import List
+
+class Solution:
+    MOD = 10**9 + 7
+
+    def power(self, a: int, b: int) -> int:
+        res = 1
+
+        while b > 0:
+            if b & 1:
+                res = (res * a) % self.MOD
+
+            a = (a * a) % self.MOD
+            b //= 2
+
+        return res
+
+    def cntSubsets(self, arr: List[int], l: int, r: int) -> int:
+        n = len(arr)
+        freq = {}
+
+        for x in arr:
+            freq[x] = freq.get(x, 0) + 1
+
+        ans = 0
+        pre = 1
+        count = 0
+
+        for mex in range(r + 1):
+            if mex >= l:
+                rem = n - count - freq.get(mex, 0)
+                ways = (pre * self.power(2, rem)) % self.MOD
+                ans = (ans + ways) % self.MOD
+
+            if freq.get(mex, 0) == 0:
+                break
+
+            pre = (
+                pre * (self.power(2, freq[mex]) - 1 + self.MOD)
+            ) % self.MOD
+
+            count += freq[mex]
+
+        return ans
+```
+
+**Time Complexity:** O(n + r log n)  
+**Space Complexity:** O(n)
