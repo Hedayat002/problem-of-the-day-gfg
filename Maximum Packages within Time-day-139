@@ -1,0 +1,72 @@
+
+# Maximum Packages within Time
+
+## 1. Brute Force Solution
+
+```python
+class Solution:
+    def maxPackages(self, arr: list[int], totalTime: int) -> int:
+        n = len(arr)
+        mx = 0
+
+        for i in range(n - totalTime + 1):
+            cur_sum = 0
+
+            for j in range(i, i + totalTime):
+                cur_sum += arr[j]
+
+            mx = max(mx, cur_sum)
+
+        return mx
+```
+
+**Time Complexity:** O(n * totalTime)  
+**Space Complexity:** O(1)
+
+## 2. Better Solution (Sliding Window)
+
+```python
+class Solution:
+    def maxPackages(self, arr: list[int], totalTime: int) -> int:
+        n = len(arr)
+
+        cur_mx = sum(arr[:totalTime])
+        mx = cur_mx
+
+        for i in range(totalTime, n):
+            cur_mx += arr[i] - arr[i - totalTime]
+            mx = max(mx, cur_mx)
+
+        return mx
+```
+
+**Time Complexity:** O(n)  
+**Space Complexity:** O(1)
+
+## 3. Optimal Solution (Sliding Window)
+
+```python
+class Solution:
+    def maxPackages(self, arr: list[int], totalTime: int) -> int:
+        n = len(arr)
+        mx = 0
+        cur_mx = 0
+
+        if totalTime >= n:
+            return sum(arr)
+
+        for i in range(totalTime):
+            cur_mx += arr[i]
+
+        mx = cur_mx
+
+        for i in range(totalTime, n):
+            cur_mx += arr[i]
+            cur_mx -= arr[i - totalTime]
+            mx = max(mx, cur_mx)
+
+        return mx
+```
+
+**Time Complexity:** O(n)  
+**Space Complexity:** O(1)
