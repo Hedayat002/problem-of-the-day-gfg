@@ -1,0 +1,27 @@
+class Solution:
+    def maximumSubarray(self, arr):
+        prev0 = float('-inf')
+        prev1 = float('-inf')
+
+        ans = float('-inf')
+
+        for x in arr:
+
+            curr0 = max(x, x + prev0)
+
+            curr1 = max(
+                x * x,
+                x + prev1,
+                x * x + prev0
+            )
+
+            ans = max(ans, curr0, curr1)
+
+            prev0 = curr0
+            prev1 = curr1
+
+        return ans
+
+TC: \(O(n)\)
+
+SC: \(O(1)\)
