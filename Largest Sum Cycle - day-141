@@ -1,0 +1,138 @@
+
+# Largest Sum Cycle
+## 1. Brute Force Solution
+
+```python
+class Solution:
+    def largestSumCycle(self, edge):
+        n = len(edge)
+        max_sum = -1
+
+        for i in range(n):
+            visited = {}
+            curr = i
+            path_sum = 0
+
+            while curr != -1:
+                if curr in visited:
+                    cycle_sum = path_sum - visited[curr]
+                    max_sum = max(max_sum, cycle_sum)
+                    break
+
+                visited[curr] = path_sum
+                path_sum += curr
+                curr = edge[curr]
+
+        return max_sum
+```
+
+**Time Complexity:** O(n²)
+
+**Space Complexity:** O(n)
+
+## 2. Better Solution (DFS + Recursion Stack)
+
+```python
+class Solution:
+    def largestSumCycle(self, edge):
+        n = len(edge)
+        visited = [False] * n
+        path_index = [-1] * n
+        max_sum = -1
+
+        def dfs(node, path):
+            nonlocal max_sum
+
+            visited[node] = True
+            path_index[node] = len(path)
+            path.append(node)
+
+            nxt = edge[node]
+
+            if nxt != -1:
+                if not visited[nxt]:
+                    dfs(nxt, path)
+
+                elif path_index[nxt] != -1:
+                    cycle_sum = sum(path[path_index[nxt]:])
+                    max_sum = max(max_sum, cycle_sum)
+
+            path.pop()
+            path_index[node] = -1
+
+        for i in range(n):
+            if not visited[i]:
+                dfs(i, [])
+
+        return max_sum
+```
+
+**Time Complexity:** O(n)
+
+**Space Complexity:** O(n)
+
+## 3. Optimal Solution (Indegree + Topological Sorting)
+
+```python
+from collections import deque
+
+class Solution:
+    def largestSumCycle(self, edge):
+        n = len(edge)
+        indegree = [0] * n
+
+        for u in range(n):
+            if edge[u] != -1:
+                indegree[edge[u]] += 1
+
+        q = deque()
+
+        for i in range(n):
+            if indegree[i] == 0:
+                q.append(i)
+
+        while q:
+            u = q.popleft()
+            v = edge[u]
+
+            if v != -1:
+                indegree[v] -= 1
+
+                if indegree[v] == 0:
+                    q.append(v)
+
+        max_sum = -1
+        visited = [False] * n
+
+        for i in range(n):
+            if indegree[i] > 0 and not visited[i]:
+                curr = i
+                cycle_sum = 0
+
+                while not visited[curr]:
+                    visited[curr] = True
+                    cycle_sum += curr
+                    curr = edge[curr]
+
+                max_sum = max(max_sum, cycle_sum)
+
+        return max_sum
+```
+
+**Time Complexity:** O(n)
+
+**Space Complexity:** O(n)
+
+## Complexity Comparison
+
+| Approach | Time Complexity | Space Complexity |
+|---|---|---|
+| Brute Force | O(n²) | O(n) |
+| Better (DFS) | O(n) | O(n) |
+| Optimal (Topological Sorting) | O(n) | O(n) |
+
+## Key Takeaway
+
+- **Brute Force:** Checks every starting node independently.
+- **Better:** Uses DFS and recursion-path tracking to detect cycles.
+- **Optimal:** Removes non-cycle nodes using indegree-based topological sorting and calculates the sum of remaining cycles.
