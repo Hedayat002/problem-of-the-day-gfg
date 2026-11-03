@@ -1,0 +1,160 @@
+# Count Tree Paths With Limited Max Edge Weight
+
+## 1. Brute Force Solution
+
+```python
+from collections import deque
+
+class Solution:
+    def maximumWeight(self, n, edges, queries):
+        adj = [[] for _ in range(n + 1)]
+
+        for u, v, w in edges:
+            adj[u].append((v, w))
+            adj[v].append((u, w))
+
+        ans = []
+
+        for limit in queries:
+            count = 0
+
+            for start in range(1, n + 1):
+                q = deque([(start, 0, 0)])
+
+                while q:
+                    node, parent, max_weight = q.popleft()
+
+                    if node > start:
+                        count += 1
+
+                    for nei, weight in adj[node]:
+                        if nei != parent:
+                            new_max = max(max_weight, weight)
+
+                            if new_max <= limit:
+                                q.append((nei, node, new_max))
+
+            ans.append(count)
+
+        return ans
+```
+
+**Time Complexity:** `O(Q * N²)`
+
+**Space Complexity:** `O(N)`
+
+---
+
+## 2. Better Solution — DSU for Each Query
+
+```python
+class Solution:
+    def maximumWeight(self, n, edges, queries):
+        edges.sort(key=lambda x: x[2])
+
+        ans = []
+
+        for limit in queries:
+            parent = list(range(n + 1))
+            size = [1] * (n + 1)
+            total = 0
+
+            def find(u):
+                if parent[u] != u:
+                    parent[u] = find(parent[u])
+                return parent[u]
+
+            for u, v, w in edges:
+                if w > limit:
+                    break
+
+                pu = find(u)
+                pv = find(v)
+
+                if pu != pv:
+                    total += size[pu] * size[pv]
+
+                    if size[pu] < size[pv]:
+                        pu, pv = pv, pu
+
+                    parent[pv] = pu
+                    size[pu] += size[pv]
+
+            ans.append(total)
+
+        return ans
+```
+
+**Time Complexity:** `O(Q * (N + N log N))`
+
+**Space Complexity:** `O(N)`
+
+---
+
+## 3. Optimal Solution — DSU + Sorting + Offline Queries
+
+```python
+class Solution:
+    def find(self, u, parent):
+        if parent[u] != u:
+            parent[u] = self.find(parent[u], parent)
+        return parent[u]
+
+    def union(self, u, v, parent, size):
+        pu = self.find(u, parent)
+        pv = self.find(v, parent)
+
+        if pu == pv:
+            return 0
+
+        paths = size[pu] * size[pv]
+
+        if size[pu] < size[pv]:
+            pu, pv = pv, pu
+
+        parent[pv] = pu
+        size[pu] += size[pv]
+
+        return paths
+
+    def maximumWeight(self, n, edges, queries):
+        parent = list(range(n + 1))
+        size = [1] * (n + 1)
+
+        edges.sort(key=lambda x: x[2])
+
+        q = [(queries[i], i) for i in range(len(queries))]
+        q.sort()
+
+        ans = [0] * len(queries)
+
+        j = 0
+        total = 0
+
+        for weight, idx in q:
+            while j < len(edges) and edges[j][2] <= weight:
+                u, v, w = edges[j]
+
+                total += self.union(u, v, parent, size)
+                j += 1
+
+            ans[idx] = total
+
+        return ans
+```
+
+**Time Complexity:** `O(N log N + Q log Q + (N + Q) α(N))`
+
+**Space Complexity:** `O(N + Q)`
+
+---
+
+## Complexity Comparison
+
+| Approach | Time Complexity | Space Complexity |
+|---|---|---|
+| Brute Force | O(Q × N²) | O(N) |
+| Better | O(Q × N log N) | O(N) |
+| Optimal | O(N log N + Q log Q + (N + Q) α(N)) | O(N + Q) |
+
+**Optimal Approach:** Disjoint Set Union (DSU) + Sorting + Offline Queries.
