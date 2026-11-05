@@ -1,0 +1,98 @@
+
+# Minimum Days
+
+## 1. Brute Force Solution
+
+```python
+class Solution:
+    def minDays(self, s, p):
+        n = len(s)
+        s = list(s)
+
+        for day in range(n + 1):
+            valid = True
+
+            for i in range(n - 1):
+                if s[i] != '?' and s[i + 1] != '?':
+                    if s[i] == s[i + 1]:
+                        valid = False
+                        break
+
+            if valid:
+                return day
+
+            s[p[day]] = '?'
+
+        return n
+```
+
+**Time Complexity:** O(n²)  
+**Space Complexity:** O(n)
+
+---
+
+## 2. Better Solution — Count Equal Adjacent Pairs
+
+```python
+class Solution:
+    def minDays(self, s, p):
+        n = len(s)
+        s = list(s)
+
+        count = 0
+
+        for i in range(n - 1):
+            if s[i] == s[i + 1]:
+                count += 1
+
+        if count == 0:
+            return 0
+
+        for day in range(n):
+            idx = p[day]
+
+            if idx > 0 and s[idx] == s[idx - 1]:
+                count -= 1
+
+            if idx < n - 1 and s[idx] == s[idx + 1]:
+                count -= 1
+
+            s[idx] = '?'
+
+            if count == 0:
+                return day + 1
+
+        return n
+```
+
+**Time Complexity:** O(n)  
+**Space Complexity:** O(n)
+
+---
+
+## 3. Optimized Solution — Reverse Permutation
+
+```python
+class Solution:
+    def minDays(self, s, p):
+        n = len(s)
+
+        days = [0] * n
+
+        for i in range(n):
+            days[p[i]] = i + 1
+
+        ans = 0
+
+        for i in range(n - 1):
+            if s[i] == s[i + 1]:
+                ans = max(ans, min(days[i], days[i + 1]))
+
+        return ans
+```
+
+**Time Complexity:** O(n)  
+**Space Complexity:** O(n)
+
+---
+
