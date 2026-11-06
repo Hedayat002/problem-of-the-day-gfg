@@ -1,0 +1,103 @@
+
+# Balanced Binary Tree Counter
+
+## 1. Recursion
+
+```python
+class Solution:
+    MOD = 10**9 + 7
+
+    def solve(self, h):
+        if h <= 1:
+            return 1
+
+        a = self.solve(h - 1)
+        b = self.solve(h - 2)
+
+        return (a * a + 2 * a * b) % self.MOD
+
+    def countBT(self, h):
+        return self.solve(h)
+```
+
+- **Time Complexity:** O(2^h)
+- **Space Complexity:** O(h)
+
+---
+
+## 2. Memoization (Top-Down)
+
+```python
+class Solution:
+    MOD = 10**9 + 7
+
+    def solve(self, h, dp):
+        if h <= 1:
+            return 1
+
+        if dp[h] != -1:
+            return dp[h]
+
+        a = self.solve(h - 1, dp)
+        b = self.solve(h - 2, dp)
+
+        dp[h] = (a * a + 2 * a * b) % self.MOD
+        return dp[h]
+
+    def countBT(self, h):
+        dp = [-1] * (h + 1)
+        return self.solve(h, dp)
+```
+
+- **Time Complexity:** O(h)
+- **Space Complexity:** O(h)
+
+---
+
+## 3. Tabulation (Bottom-Up)
+
+```python
+class Solution:
+    MOD = 10**9 + 7
+
+    def countBT(self, h):
+        dp = [0] * (h + 1)
+        dp[0] = dp[1] = 1
+
+        for i in range(2, h + 1):
+            a = dp[i - 1]
+            b = dp[i - 2]
+
+            dp[i] = (a * a + 2 * a * b) % self.MOD
+
+        return dp[h]
+```
+
+- **Time Complexity:** O(h)
+- **Space Complexity:** O(h)
+
+---
+
+## 4. Space Optimization (Optimal)
+
+```python
+class Solution:
+    MOD = 10**9 + 7
+
+    def countBT(self, h: int) -> int:
+        prev2 = prev1 = 1
+
+        for i in range(2, h + 1):
+            a = prev1
+            b = prev2
+
+            curr = (a * a + 2 * a * b) % self.MOD
+
+            prev2 = prev1
+            prev1 = curr
+
+        return prev1
+```
+
+- **Time Complexity:** O(h)
+- **Space Complexity:** O(1)
