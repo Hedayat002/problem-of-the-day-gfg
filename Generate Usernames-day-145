@@ -1,0 +1,156 @@
+
+# Generate Usernames
+
+# Approach 1: Brute Force
+
+## Algorithm
+
+1. Store all original usernames in a reserved set.
+2. Maintain a list of already assigned usernames.
+3. Traverse the input array.
+4. If the username is unused, assign it directly.
+5. Otherwise, try suffixes starting from 1.
+6. Choose the first username that is neither reserved nor assigned.
+
+## Python Code
+
+```python
+class Solution:
+    def generateUsernames(self, arr):
+        reserved = set(arr)
+        assigned = []
+        result = []
+
+        for name in arr:
+            if name not in assigned:
+                assigned.append(name)
+                result.append(name)
+            else:
+                k = 1
+
+                while (
+                    name + str(k) in reserved
+                    or name + str(k) in assigned
+                ):
+                    k += 1
+
+                username = name + str(k)
+                assigned.append(username)
+                result.append(username)
+
+        return result
+```
+
+## Complexity Analysis
+
+- **Time Complexity:** O(n² × L)
+- **Space Complexity:** O(n × L)
+
+---
+
+# Approach 2: Better Solution (Hash Set)
+
+## Algorithm
+
+1. Store all original usernames in a reserved set.
+2. Use a hash set to track assigned usernames.
+3. Assign an unused username directly.
+4. For duplicates, start checking suffixes from 1.
+5. Assign the first available username.
+6. Insert the generated username into the used set.
+
+## Python Code
+
+```python
+class Solution:
+    def generateUsernames(self, arr):
+        reserved = set(arr)
+        used = set()
+        result = []
+
+        for name in arr:
+            if name not in used:
+                used.add(name)
+                result.append(name)
+                continue
+
+            k = 1
+
+            while (
+                f"{name}{k}" in reserved
+                or f"{name}{k}" in used
+            ):
+                k += 1
+
+            username = f"{name}{k}"
+
+            used.add(username)
+            result.append(username)
+
+        return result
+```
+
+## Complexity Analysis
+
+- **Time Complexity:** O(n² × L) worst case
+- **Space Complexity:** O(n × L)
+
+---
+
+# Approach 3: Optimized Solution (Hash Map + Hash Set)
+
+## Algorithm
+
+1. Store all input usernames in a reserved set.
+2. Maintain a used set for assigned usernames.
+3. Maintain a hash map `next_suffix` to track the next suffix for each base name.
+4. If a username has not been used, assign it unchanged.
+5. Otherwise, start from its stored suffix.
+6. Skip usernames that are reserved or already assigned.
+7. Assign the first available username.
+8. Update the next suffix for future duplicates.
+
+## Python Code
+
+```python
+class Solution:
+    def generateUsernames(self, arr):
+        reserved = set(arr)
+        used = set()
+        next_suffix = {}
+        result = []
+
+        for name in arr:
+            if name not in used:
+                used.add(name)
+                result.append(name)
+
+            else:
+                k = next_suffix.get(name, 1)
+
+                while (
+                    f"{name}{k}" in reserved
+                    or f"{name}{k}" in used
+                ):
+                    k += 1
+
+                username = f"{name}{k}"
+
+                used.add(username)
+                result.append(username)
+
+                next_suffix[name] = k + 1
+
+        return result
+```
+
+## Complexity Analysis
+
+- **Time Complexity:** O(n × L) amortized
+- **Space Complexity:** O(n × L)
+
+Here:
+- `n` = number of input usernames.
+- `L` = maximum length of a username, including suffixes.
+
+---
