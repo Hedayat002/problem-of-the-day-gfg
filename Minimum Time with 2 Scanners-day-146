@@ -1,0 +1,135 @@
+
+# Minimum Time with 2 Scanners
+# Approach 1: Brute Force
+
+## Python Solution
+
+```python
+class Solution:
+    def minTime(self, n: int, s1: int, s2: int) -> int:
+        min_time = float('inf')
+
+        for i in range(n + 1):
+            time1 = i * s1
+            time2 = (n - i) * s2
+
+            min_time = min(min_time, max(time1, time2))
+
+        return min_time
+```
+
+## Complexity Analysis
+
+- **Time Complexity:** `O(n)`
+- **Space Complexity:** `O(1)`
+
+---
+
+# Approach 2: Better Solution (Mathematical)
+
+## Python Solution
+
+```python
+class Solution:
+    def minTime(self, n: int, s1: int, s2: int) -> int:
+        # Find the ideal distribution
+        x = (n * s2) // (s1 + s2)
+
+        # Check the first candidate
+        time1 = max(x * s1, (n - x) * s2)
+
+        # Check the next candidate
+        if x < n:
+            time2 = max(
+                (x + 1) * s1,
+                (n - x - 1) * s2
+            )
+            return min(time1, time2)
+
+        return time1
+```
+
+## Complexity Analysis
+
+- **Time Complexity:** `O(1)`
+- **Space Complexity:** `O(1)`
+
+---
+
+# Approach 3: Optimized Solution
+## Binary Search on Documents
+
+## Python Solution
+
+```python
+class Solution:
+    def minTime(self, n: int, s1: int, s2: int) -> int:
+        # Keep s1 as the smaller scanning time
+        if s1 > s2:
+            s1, s2 = s2, s1
+
+        low = 0
+        high = n
+        minTime = s2 * n
+
+        # Binary search on document distribution
+        while low <= high:
+            mid = low + (high - low) // 2
+
+            # Time taken by both scanners
+            time1 = mid * s1
+            time2 = (n - mid) * s2
+
+            # Both scanners work simultaneously
+            minTime = min(
+                minTime,
+                max(time1, time2)
+            )
+
+            # Find a better distribution
+            if time1 <= time2:
+                low = mid + 1
+            else:
+                high = mid - 1
+
+        return minTime
+```
+
+## Complexity Analysis
+
+- **Time Complexity:** `O(log n)`
+- **Space Complexity:** `O(1)`
+
+---
+
+# Approach 4: Alternative Optimized Solution
+## Binary Search on Answer (Time)
+
+## Python Solution
+
+```python
+class Solution:
+    def minTime(self, n: int, s1: int, s2: int) -> int:
+        low = 0
+        high = n * min(s1, s2)
+
+        while low < high:
+            mid = low + (high - low) // 2
+
+            # Documents scanned within mid time
+            documents = mid // s1 + mid // s2
+
+            if documents >= n:
+                high = mid
+            else:
+                low = mid + 1
+
+        return low
+```
+
+## Complexity Analysis
+
+- **Time Complexity:** `O(log(n * min(s1, s2)))`
+- **Space Complexity:** `O(1)`
+
+---
