@@ -1,0 +1,120 @@
+
+# Count Group Occurrences
+
+# Solution 1: Brute Force
+
+### Approach: Set + Nested Loop
+
+```python
+class Solution:
+    def getCount(self, s, k):
+        res = 0
+
+        for ch in set(s):
+            groups = 0
+
+            for i in range(len(s)):
+                if s[i] == ch and (i == 0 or s[i - 1] != ch):
+                    groups += 1
+
+            if groups == k:
+                res += 1
+
+        return res
+```
+
+### Complexity Analysis
+
+- **Time Complexity:** O(26 × n) = O(n)
+- **Space Complexity:** O(1)
+
+### Explanation
+
+1. Get all distinct characters using `set(s)`.
+2. For each character, traverse the string.
+3. Count a new group whenever the character starts a consecutive sequence.
+4. If its group count equals `k`, increment the result.
+5. Return the result.
+
+---
+
+# Solution 2: Better Solution
+
+### Approach: Frequency Array + Single Traversal
+
+```python
+class Solution:
+    def getCount(self, s, k):
+        freq = [0] * 26
+        n = len(s)
+
+        for i in range(n):
+            if i == 0 or s[i] != s[i - 1]:
+                index = ord(s[i]) - ord('a')
+                freq[index] += 1
+
+        res = 0
+
+        for count in freq:
+            if count == k:
+                res += 1
+
+        return res
+```
+
+### Complexity Analysis
+
+- **Time Complexity:** O(n)
+- **Space Complexity:** O(1)
+
+### Explanation
+
+1. Create a frequency array of size 26.
+2. Traverse the string once.
+3. If the current character differs from the previous character, a new group starts.
+4. Increment that character's group count.
+5. Count characters whose group frequency equals `k`.
+6. Return the result.
+
+---
+
+# Solution 3: Optimized Solution
+
+### Approach: Two Pointers + Frequency Array
+
+```python
+class Solution:
+    def getCount(self, s, k):
+        n = len(s)
+        freq = [0] * 26
+        i = 0
+
+        # Count groups of consecutive identical characters
+        while i < n:
+            j = i
+
+            # Find the end of the current group
+            while j < n and s[j] == s[i]:
+                j += 1
+
+            # Increment group count
+            freq[ord(s[i]) - ord('a')] += 1
+
+            # Move to the next group
+            i = j
+
+        res = 0
+
+        # Count characters having exactly k groups
+        for i in range(26):
+            if freq[i] == k:
+                res += 1
+
+        return res
+```
+
+### Complexity Analysis
+
+- **Time Complexity:** O(n)
+- **Space Complexity:** O(1)
+
