@@ -1,0 +1,78 @@
+
+# Any Duplicate Within K Distance
+# 1. Brute Force Solution
+
+### Approach: Nested Loops
+
+```python
+class Solution:
+    def checkWithinK(self, arr: list[int], k: int) -> bool:
+        n = len(arr)
+
+        for i in range(n):
+            for j in range(i + 1, min(n, i + k + 1)):
+                if arr[i] == arr[j]:
+                    return True
+
+        return False
+```
+
+**Time Complexity:** `O(n * k)` — Worst case `O(n²)`  
+**Space Complexity:** `O(1)`
+
+---
+
+# 2. Better Solution
+
+### Approach: HashMap (Last Seen Index)
+
+```python
+class Solution:
+    def checkWithinK(self, arr: list[int], k: int) -> bool:
+        last_seen = {}
+
+        for i, num in enumerate(arr):
+
+            if num in last_seen:
+                if i - last_seen[num] <= k:
+                    return True
+
+            last_seen[num] = i
+
+        return False
+```
+
+**Time Complexity:** `O(n)` average  
+**Space Complexity:** `O(n)`
+
+---
+
+# 3. Optimized Solution
+
+### Approach: Sliding Window + HashSet
+
+```python
+class Solution:
+    def checkWithinK(self, arr: list[int], k: int) -> bool:
+        n = len(arr)
+
+        s = set()
+
+        for i in range(n):
+
+            if arr[i] in s:
+                return True
+
+            s.add(arr[i])
+
+            if i >= k:
+                s.remove(arr[i - k])
+
+        return False
+```
+
+**Time Complexity:** `O(n)` average  
+**Space Complexity:** `O(min(n, k))`
+
+---
+
