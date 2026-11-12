@@ -1,0 +1,108 @@
+# Closest in BST
+
+## Approach 1: Brute Force (Recursive DFS)
+
+### Python Code
+
+```python
+class Solution:
+    def minDiff(self, root: 'Node', k: int) -> int:
+        ans = float('inf')
+
+        def dfs(node):
+            nonlocal ans
+
+            if not node:
+                return
+
+            ans = min(ans, abs(node.data - k))
+
+            dfs(node.left)
+            dfs(node.right)
+
+        dfs(root)
+
+        return ans
+```
+
+### Complexity Analysis
+
+- **Time Complexity:** O(N)
+- **Space Complexity:** O(H)
+- **Worst Case Space:** O(N)
+
+Where:
+- `N` = Number of nodes
+- `H` = Height of BST
+
+---
+
+## Approach 2: Better Solution (Iterative DFS Using Stack)
+
+### Python Code
+
+```python
+class Solution:
+    def minDiff(self, root: 'Node', k: int) -> int:
+        ans = float('inf')
+
+        stack = [root]
+
+        while stack:
+            node = stack.pop()
+
+            ans = min(ans, abs(node.data - k))
+
+            if ans == 0:
+                return 0
+
+            if node.left:
+                stack.append(node.left)
+
+            if node.right:
+                stack.append(node.right)
+
+        return ans
+```
+
+### Complexity Analysis
+
+- **Time Complexity:** O(N)
+- **Space Complexity:** O(H)
+- **Worst Case Space:** O(N)
+
+---
+
+## Approach 3: Optimized Solution (BST Property)
+
+### Python Code
+
+```python
+class Solution:
+    def minDiff(self, root: 'Node', k: int) -> int:
+        ans = float('inf')
+
+        while root:
+            ans = min(ans, abs(root.data - k))
+
+            if k > root.data:
+                root = root.right
+
+            elif k < root.data:
+                root = root.left
+
+            else:
+                return 0
+
+        return ans
+```
+
+### Complexity Analysis
+
+- **Time Complexity:** O(H)
+- **Average Time Complexity (Balanced BST):** O(log N)
+- **Worst Case Time Complexity:** O(N)
+- **Space Complexity:** O(1)
+
+---
+
