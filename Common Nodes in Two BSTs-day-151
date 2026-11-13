@@ -1,0 +1,141 @@
+
+# Common Nodes in Two BSTs
+
+```
+
+## 1. Brute Force Solution — Nested Traversal
+
+```python
+class Solution:
+    def findCommon(self, r1: 'Node', r2: 'Node') -> list[int]:
+
+        def inorder(root, result):
+            if root is None:
+                return
+
+            inorder(root.left, result)
+            result.append(root.data)
+            inorder(root.right, result)
+
+        arr1 = []
+        arr2 = []
+
+        inorder(r1, arr1)
+        inorder(r2, arr2)
+
+        result = []
+
+        for x in arr1:
+            for y in arr2:
+                if x == y:
+                    result.append(x)
+                    break
+
+        return result
+```
+
+**Time Complexity:** O(n1 * n2)  
+**Space Complexity:** O(n1 + n2)
+
+---
+
+## 2. Better Solution — Inorder Traversal + Two Pointers
+
+```python
+class Solution:
+    def findCommon(self, r1: 'Node', r2: 'Node') -> list[int]:
+
+        def inorder(root, arr):
+            if root is None:
+                return
+
+            inorder(root.left, arr)
+            arr.append(root.data)
+            inorder(root.right, arr)
+
+        arr1 = []
+        arr2 = []
+
+        inorder(r1, arr1)
+        inorder(r2, arr2)
+
+        i = 0
+        j = 0
+        result = []
+
+        while i < len(arr1) and j < len(arr2):
+
+            if arr1[i] == arr2[j]:
+                result.append(arr1[i])
+                i += 1
+                j += 1
+
+            elif arr1[i] < arr2[j]:
+                i += 1
+
+            else:
+                j += 1
+
+        return result
+```
+
+**Time Complexity:** O(n1 + n2)  
+**Space Complexity:** O(n1 + n2)
+
+---
+
+## 3. Optimized Solution — Two Stacks + Simultaneous Inorder Traversal
+
+```python
+class Solution:
+    def findCommon(self, r1: 'Node', r2: 'Node') -> list[int]:
+
+        stack1 = []
+        stack2 = []
+        result = []
+
+        curr1 = r1
+        curr2 = r2
+
+        while (curr1 or stack1) and (curr2 or stack2):
+
+            # Push all left nodes of BST 1
+            while curr1:
+                stack1.append(curr1)
+                curr1 = curr1.left
+
+            # Push all left nodes of BST 2
+            while curr2:
+                stack2.append(curr2)
+                curr2 = curr2.left
+
+            # Compare smallest available nodes
+            if stack1[-1].data == stack2[-1].data:
+                value = stack1[-1].data
+                result.append(value)
+
+                curr1 = stack1.pop().right
+                curr2 = stack2.pop().right
+
+            elif stack1[-1].data < stack2[-1].data:
+                curr1 = stack1.pop().right
+
+            else:
+                curr2 = stack2.pop().right
+
+        return result
+```
+
+**Time Complexity:** O(n1 + n2)  
+**Auxiliary Space Complexity:** O(h1 + h2)
+
+---
+
+## Complexity Comparison
+
+| Approach | Time Complexity | Auxiliary Space |
+|----------|-----------------|-----------------|
+| Brute Force | O(n1 * n2) | O(n1 + n2) |
+| Better (Two Pointers) | O(n1 + n2) | O(n1 + n2) |
+| Optimized (Two Stacks) | O(n1 + n2) | O(h1 + h2) |
+
