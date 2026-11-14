@@ -1,0 +1,141 @@
+
+# Max Equal Sum in 3 Stacks
+
+**Difficulty:** Medium  
+**Platform:** GeeksforGeeks  
+**Topics:** Greedy, Stack, Three Pointers
+
+
+## 1. Brute Force Solution — Hash Set
+
+```python
+class Solution:
+    def maxEqualSum(self, s1: list[int], s2: list[int], s3: list[int]) -> int:
+        sums1 = set()
+        sums2 = set()
+        sums3 = set()
+
+        total = sum(s1)
+        sums1.add(total)
+
+        for num in s1:
+            total -= num
+            sums1.add(total)
+
+        total = sum(s2)
+        sums2.add(total)
+
+        for num in s2:
+            total -= num
+            sums2.add(total)
+
+        total = sum(s3)
+        sums3.add(total)
+
+        for num in s3:
+            total -= num
+            sums3.add(total)
+
+        return max(sums1 & sums2 & sums3)
+```
+
+**Time Complexity:** O(n1 + n2 + n3) Average  
+**Space Complexity:** O(n1 + n2 + n3)
+
+---
+
+## 2. Better Solution — Prefix Removal Sums
+
+```python
+class Solution:
+    def maxEqualSum(self, s1: list[int], s2: list[int], s3: list[int]) -> int:
+        def possibleSums(stack):
+            total = sum(stack)
+            result = [total]
+
+            for num in stack:
+                total -= num
+                result.append(total)
+
+            return result
+
+        a = possibleSums(s1)
+        b = possibleSums(s2)
+        c = possibleSums(s3)
+
+        i = j = k = 0
+
+        while i < len(a) and j < len(b) and k < len(c):
+            if a[i] == b[j] == c[k]:
+                return a[i]
+
+            maximum = max(a[i], b[j], c[k])
+
+            if a[i] == maximum:
+                i += 1
+            elif b[j] == maximum:
+                j += 1
+            else:
+                k += 1
+
+        return 0
+```
+
+**Time Complexity:** O(n1 + n2 + n3)  
+**Space Complexity:** O(n1 + n2 + n3)
+
+---
+
+## 3. Optimized Solution — Greedy + Three Pointers
+
+```python
+class Solution:
+    def maxEqualSum(self, s1: list[int], s2: list[int], s3: list[int]) -> int:
+        n1 = len(s1)
+        n2 = len(s2)
+        n3 = len(s3)
+
+        top1 = 0
+        top2 = 0
+        top3 = 0
+
+        sum1 = sum(s1)
+        sum2 = sum(s2)
+        sum3 = sum(s3)
+
+        while top1 < n1 and top2 < n2 and top3 < n3:
+            if sum1 == sum2 == sum3:
+                return sum1
+
+            if sum1 >= sum2 and sum1 >= sum3:
+                sum1 -= s1[top1]
+                top1 += 1
+
+            elif sum2 >= sum1 and sum2 >= sum3:
+                sum2 -= s2[top2]
+                top2 += 1
+
+            else:
+                sum3 -= s3[top3]
+                top3 += 1
+
+        return 0
+```
+
+**Time Complexity:** O(n1 + n2 + n3)  
+**Space Complexity:** O(1)
+
+---
+
+## Complexity Comparison
+
+| Approach | Time Complexity | Space Complexity |
+|----------|----------------|------------------|
+| Brute Force (Hash Set) | O(n1 + n2 + n3) Average | O(n1 + n2 + n3) |
+| Better (Prefix Removal Sums) | O(n1 + n2 + n3) | O(n1 + n2 + n3) |
+| Optimized (Greedy + Three Pointers) | O(n1 + n2 + n3) | O(1) |
+
+**Best Approach:** Greedy + Three Pointers
+
+**Expected Time Complexity:** O(n1 + n2 + n3)  
+**Expected Auxiliary Space:** O(1)
