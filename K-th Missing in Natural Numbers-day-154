@@ -1,0 +1,88 @@
+
+# K-th Missing in Natural Numbers
+-
+
+## 1. Brute Force Solution
+
+```python
+class Solution:
+    def findKthSmall(self, arr, k):
+        num = 1
+        count = 0
+
+        while True:
+            if num not in arr:
+                count += 1
+
+                if count == k:
+                    return num
+
+            num += 1
+```
+
+**Time Complexity:** O(N × (N + K))  
+**Space Complexity:** O(1)
+
+---
+
+## 2. Better Solution — Sorting
+
+```python
+class Solution:
+    def findKthSmall(self, arr, k):
+        arr.sort()
+
+        for num in arr:
+            if num <= k:
+                k += 1
+            else:
+                break
+
+        return k
+```
+
+**Time Complexity:** O(N log N)  
+**Space Complexity:** O(N) worst-case auxiliary space with Python's built-in sort.
+
+---
+
+## 3. Optimized Solution — Cyclic Sort
+
+```python
+class Solution:
+    def findKthSmall(self, arr, k):
+        n = len(arr)
+
+        for i in range(n):
+            while 1 <= arr[i] <= n and arr[i] != arr[arr[i] - 1]:
+                j = arr[i] - 1
+                arr[i], arr[j] = arr[j], arr[i]
+
+        missing = 0
+
+        for i in range(n):
+            if arr[i] != i + 1:
+                missing += 1
+
+                if missing == k:
+                    return i + 1
+
+        return n + (k - missing)
+```
+
+**Time Complexity:** O(N)  
+**Space Complexity:** O(1)
+
+---
+
+## Complexity Comparison
+
+| Approach | Time Complexity | Space Complexity |
+|----------|-----------------|------------------|
+| Brute Force | O(N × (N + K)) | O(1) |
+| Sorting | O(N log N) | O(N) worst case |
+| Cyclic Sort | O(N) | O(1) |
+
+**Best Approach:** Cyclic Sort — O(N) time and O(1) auxiliary space.
+
+**Note:** Both the Sorting and Cyclic Sort approaches modify the original array.
