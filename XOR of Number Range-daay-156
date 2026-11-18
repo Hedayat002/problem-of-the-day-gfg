@@ -1,0 +1,154 @@
+
+# XOR of Number Range
+
+---
+
+## 1. Brute Force Solution
+
+```python
+class Solution:
+    def findXOR(self, l: int, r: int) -> int:
+        result = 0
+
+        for i in range(l, r + 1):
+            result ^= i
+
+        return result
+```
+
+**Time Complexity:** O(r - l + 1)  
+**Space Complexity:** O(1)
+
+---
+
+## 2. Better Solution (Prefix XOR)
+
+```python
+class Solution:
+    def findXOR(self, l: int, r: int) -> int:
+        xor_r = 0
+        xor_l = 0
+
+        for i in range(1, r + 1):
+            xor_r ^= i
+
+        for i in range(1, l):
+            xor_l ^= i
+
+        return xor_r ^ xor_l
+```
+
+**Time Complexity:** O(r)  
+**Space Complexity:** O(1)
+
+---
+
+## 3. Optimized Solution (Mathematical Pattern)
+
+```python
+class Solution:
+    def computeXOR(self, n: int) -> int:
+        rem = n % 4
+
+        if rem == 0:
+            return n
+
+        if rem == 1:
+            return 1
+
+        if rem == 2:
+            return n + 1
+
+        return 0
+
+    def findXOR(self, l: int, r: int) -> int:
+        xor_r = self.computeXOR(r)
+
+        xor_l = self.computeXOR(l - 1)
+
+        return xor_r ^ xor_l
+```
+
+**Time Complexity:** O(1)  
+**Space Complexity:** O(1)
+
+---
+
+## XOR Pattern
+
+The XOR of all numbers from `1` to `n` follows a repeating pattern based on `n % 4`.
+
+| n % 4 | XOR(1 to n) |
+|-------|-------------|
+| 0 | n |
+| 1 | 1 |
+| 2 | n + 1 |
+| 3 | 0 |
+
+**Formula:**
+
+```text
+XOR(l, r) = XOR(1, r) ^ XOR(1, l - 1)
+```
+
+---
+
+## Dry Run (Optimized Solution)
+
+**Input:**
+```text
+l = 4
+r = 8
+```
+
+**Step 1: Calculate XOR from 1 to 8**
+
+```text
+8 % 4 = 0
+xor_r = 8
+```
+
+**Step 2: Calculate XOR from 1 to 3**
+
+```text
+3 % 4 = 3
+xor_l = 0
+```
+
+**Step 3: Calculate Final XOR**
+
+```text
+result = xor_r ^ xor_l
+       = 8 ^ 0
+       = 8
+```
+
+**Output:**
+```text
+8
+```
+
+---
+
+## Complexity Comparison
+
+| Approach | Time Complexity | Space Complexity |
+|----------|-----------------|------------------|
+| Brute Force | O(r - l + 1) | O(1) |
+| Better (Prefix XOR) | O(r) | O(1) |
+| Optimized (XOR Pattern) | O(1) | O(1) |
+
+---
+
+## Recommended Approach
+
+**Optimized Solution — XOR Pattern**
+
+- Uses a mathematical XOR pattern.
+- Avoids loops and extra data structures.
+- Works efficiently for large inputs up to `10^9`.
+- Achieves constant time and constant space.
+
+**Final Complexity:**
+- **Time:** O(1)
+- **Space:** O(1)
