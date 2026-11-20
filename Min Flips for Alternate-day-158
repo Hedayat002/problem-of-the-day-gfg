@@ -1,0 +1,102 @@
+# Min Flips for Alternate
+
+
+# Approach 1: Brute Force Solution
+
+```python
+class Solution:
+    def minFlips(self, s):
+        n = len(s)
+
+        pattern1 = ""
+        pattern2 = ""
+
+        for i in range(n):
+            if i % 2 == 0:
+                pattern1 += "0"
+                pattern2 += "1"
+            else:
+                pattern1 += "1"
+                pattern2 += "0"
+
+        cnt1 = 0
+        cnt2 = 0
+
+        for i in range(n):
+            if s[i] != pattern1[i]:
+                cnt1 += 1
+
+            if s[i] != pattern2[i]:
+                cnt2 += 1
+
+        return min(cnt1, cnt2)
+```
+
+### Complexity Analysis
+
+- **Time Complexity:** O(n²) worst case due to repeated string concatenation.
+- **Space Complexity:** O(n)
+
+---
+
+# Approach 2: Better Solution
+
+```python
+class Solution:
+    def minFlips(self, s):
+        n = len(s)
+
+        cnt1 = 0
+        cnt2 = 0
+
+        for i in range(n):
+            if i % 2 == 0:
+                if s[i] != '0':
+                    cnt1 += 1
+
+                if s[i] != '1':
+                    cnt2 += 1
+            else:
+                if s[i] != '1':
+                    cnt1 += 1
+
+                if s[i] != '0':
+                    cnt2 += 1
+
+        return min(cnt1, cnt2)
+```
+
+### Complexity Analysis
+
+- **Time Complexity:** O(n)
+- **Space Complexity:** O(1)
+
+---
+
+# Approach 3: Optimized Solution
+
+```python
+class Solution:
+    def minFlips(self, s):
+        n = len(s)
+
+        cnt = 0
+
+        for i in range(n):
+            if int(s[i]) != i % 2:
+                cnt += 1
+
+        # First pattern: 010101...
+        # Second pattern: 101010...
+        return min(cnt, n - cnt)
+```
+
+### Complexity Analysis
+
+- **Time Complexity:** O(n)
+- **Space Complexity:** O(1)
+
+---
+
+
+`Python` `Strings` `Greedy` `Bit Flipping` `GeeksforGeeks` `DSA`
