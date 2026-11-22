@@ -1,0 +1,104 @@
+
+# Longest Subarray Sum Divisible by K
+
+## 1. Brute Force Solution
+
+```python
+class Solution:
+    def longestSubarrayDivK(self, arr, k):
+        n = len(arr)
+        res = 0
+
+        for i in range(n):
+            for j in range(i, n):
+                total = 0
+
+                for p in range(i, j + 1):
+                    total += arr[p]
+
+                if total % k == 0:
+                    res = max(res, j - i + 1)
+
+        return res
+```
+
+**Time Complexity:** O(n³)  
+**Space Complexity:** O(1)
+
+---
+
+## 2. Better Solution (Your Approach)
+
+```python
+class Solution:
+    def longestSubarrayDivK(self, arr, k):
+        n = len(arr)
+        res = 0
+
+        for i in range(n):
+            total = 0
+
+            for j in range(i, n):
+                total = (total + arr[j]) % k
+
+                if total == 0:
+                    res = max(res, j - i + 1)
+
+        return res
+```
+
+**Time Complexity:** O(n²)  
+**Space Complexity:** O(1)
+
+---
+
+## 3. Optimized Solution (Prefix Sum + HashMap)
+
+```python
+class Solution:
+    def longestSubarrayDivK(self, arr, k):
+        n = len(arr)
+
+        prefix_sum = 0
+        res = 0
+
+        mp = {0: -1}
+
+        for i in range(n):
+            prefix_sum = (prefix_sum + arr[i]) % k
+
+            if prefix_sum in mp:
+                res = max(res, i - mp[prefix_sum])
+            else:
+                mp[prefix_sum] = i
+
+        return res
+```
+
+**Time Complexity:** O(n)  
+**Space Complexity:** O(min(n, k))
+
+---
+
+## Complexity Comparison
+
+| Approach | Time Complexity | Space Complexity |
+|----------|----------------|------------------|
+| Brute Force | O(n³) | O(1) |
+| Better (Your Approach) | O(n²) | O(1) |
+| Optimized (Prefix Sum + HashMap) | O(n) | O(min(n, k)) |
+
+---
+
+## Recommended Solution
+
+**Optimized Prefix Sum + HashMap**
+
+- Traverses the array only once.
+- Stores the earliest occurrence of each remainder.
+- Handles positive and negative integers.
+- Meets the expected time and space complexity.
+
+**Final Complexity:**
+- **TC:** O(n)
+- **SC:** O(min(n, k))
