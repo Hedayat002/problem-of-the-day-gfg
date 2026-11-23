@@ -1,0 +1,118 @@
+
+# Character at Position in Infinite String
+
+
+# Approach 1: Brute Force (Simulation)
+
+### Python Code
+
+```python
+class Solution:
+    def posInfinite(self, s: str, pos: int) -> str:
+        i = 1
+
+        while len(s) < pos:
+            s = s + ('$' * i) + s[::-1]
+            i += 1
+
+        return s[pos - 1]
+```
+
+### Complexity Analysis
+
+- **Time Complexity:** O(pos)
+- **Space Complexity:** O(pos)
+
+---
+
+# Approach 2: Better Solution (Length Tracking)
+
+### Python Code
+
+```python
+class Solution:
+    def posInfinite(self, s: str, pos: int) -> str:
+        n = len(s)
+        lengths = [n]
+
+        i = 1
+
+        while lengths[-1] < pos:
+            lengths.append(2 * lengths[-1] + i)
+            i += 1
+
+        for step in range(len(lengths) - 1, 0, -1):
+            prev_len = lengths[step - 1]
+            curr_len = lengths[step]
+
+            if pos <= prev_len:
+                continue
+
+            elif pos <= curr_len - prev_len:
+                return '$'
+
+            else:
+                pos = curr_len - pos + 1
+
+        return s[pos - 1]
+```
+
+### Complexity Analysis
+
+- **Time Complexity:** O(log(pos))
+- **Space Complexity:** O(log(pos))
+
+---
+
+# Approach 3: Optimized Solution (Reverse Mapping)
+
+### Python Code
+
+```python
+class Solution:
+    def posInfinite(self, s: str, pos: int) -> str:
+        n = len(s)
+        length = n
+        i = 1
+
+        # Step 1: Find required string length
+        while length < pos:
+            length = 2 * length + i
+            i += 1
+
+        # Step 2: Move backwards to original string
+        while i > 1:
+            i -= 1
+
+            prev_len = (length - i) // 2
+
+            if pos <= prev_len:
+                length = prev_len
+
+            elif pos <= prev_len + i:
+                return '$'
+
+            else:
+                pos = length - pos + 1
+                length = prev_len
+
+        return s[pos - 1]
+```
+
+### Complexity Analysis
+
+- **Time Complexity:** O(log(pos))
+- **Space Complexity:** O(1)
+
+---
+
+# Complexity Comparison
+
+| Approach | Time Complexity | Space Complexity |
+|----------|-----------------|------------------|
+| Brute Force (Simulation) | O(pos) | O(pos) |
+| Better (Length Tracking) | O(log(pos)) | O(log(pos)) |
+| Optimized (Reverse Mapping) | O(log(pos)) | O(1) |
+
+---
+
