@@ -1,0 +1,137 @@
+# Two Pairs with Same Sum
+
+- **Platform:** GeeksforGeeks
+- **Difficulty:** Medium
+- **Topics:** Arrays, Hashing, Hash Map
+- **Language:** Python
+
+---
+
+## 1. Brute Force Solution
+
+```python
+class Solution:
+    def findPairs(self, arr: list[int]) -> list[int]:
+        n = len(arr)
+
+        for a in range(n):
+            for b in range(a + 1, n):
+                for c in range(a + 1, n):
+                    if c == b:
+                        continue
+
+                    for d in range(c + 1, n):
+                        if d == b:
+                            continue
+
+                        if arr[a] + arr[b] == arr[c] + arr[d]:
+                            return [a, b, c, d]
+
+        return [-1, -1, -1, -1]
+```
+
+### Complexity Analysis
+
+- **Time Complexity:** O(n⁴)
+- **Space Complexity:** O(1)
+
+---
+
+## 2. Better Solution — Hash Map
+
+```python
+class Solution:
+    def findPairs(self, arr: list[int]) -> list[int]:
+        n = len(arr)
+
+        for a in range(n):
+            for b in range(a + 1, n):
+                target = arr[a] + arr[b]
+                mp = {}
+                best = None
+
+                for c in range(n - 1, a, -1):
+                    if c == b:
+                        continue
+
+                    need = target - arr[c]
+
+                    if need in mp:
+                        best = [a, b, c, mp[need]]
+
+                    mp[arr[c]] = c
+
+                if best is not None:
+                    return best
+
+        return [-1, -1, -1, -1]
+```
+
+### Complexity Analysis
+
+- **Time Complexity:** O(n³)
+- **Space Complexity:** O(n)
+
+---
+
+## 3. Optimized Solution — Hash Map
+
+```python
+class Solution:
+    def findPairs(self, arr: list[int]) -> list[int]:
+        n = len(arr)
+
+        mp = {}
+        res = None
+
+        # Generate pairs in lexicographical order
+        for i in range(n):
+            for j in range(i + 1, n):
+                total = arr[i] + arr[j]
+
+                # Store the first pair for this sum
+                if total not in mp:
+                    mp[total] = (i, j)
+                    continue
+
+                a, b = mp[total]
+
+                # Ensure all four indices are distinct
+                if a == i or a == j or b == i or b == j:
+                    continue
+
+                cur = [a, b, i, j]
+
+                # Keep the lexicographically smallest quadruplet
+                if res is None or cur < res:
+                    res = cur
+
+        if res is None:
+            return [-1, -1, -1, -1]
+
+        return res
+```
+
+### Complexity Analysis
+
+- **Time Complexity:** O(n²)
+- **Space Complexity:** O(n²)
+
+---
+
+## Complexity Comparison
+
+| Approach | Time Complexity | Space Complexity |
+|----------|-----------------|------------------|
+| Brute Force | O(n⁴) | O(1) |
+| Better | O(n³) | O(n) |
+| Optimized | O(n²) | O(n²) |
+
+---
+
+## Best Approach
+
+Optimized Solution — Hash Map
+
+- Time Complexity: O(n²)
+- Space Complexity: O(n²)
