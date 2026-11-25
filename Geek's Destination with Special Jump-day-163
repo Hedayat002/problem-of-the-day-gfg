@@ -1,0 +1,86 @@
+# Geek's Destination with Special Jump
+# Difficulty: Hard
+
+
+# Approach 1: Brute Force (Simulation)
+# TC: O((r - l + 1) * d)
+# SC: O(1)
+
+class Solution:
+    def minTime(self, a: int, b: int, d: int, l: int, r: int) -> int:
+        MOD = 10**9 + 7
+        ans = 0
+
+        for j in range(l, r + 1):
+            target = d - j
+            pos = 0
+            time = 0
+
+            while pos < target:
+                if time % (a + b) < a:
+                    pos += 1
+                else:
+                    pos -= 1
+
+                time += 1
+
+            ans = (ans + time + 1) % MOD
+
+        return ans
+
+
+# Approach 2: Better Solution (Mathematical Calculation)
+# TC: O(r - l + 1)
+# SC: O(1)
+
+class Solution:
+    def minTime(self, a: int, b: int, d: int, l: int, r: int) -> int:
+        MOD = 10**9 + 7
+        net = a - b
+        ans = 0
+
+        for j in range(l, r + 1):
+            target = d - j
+
+            if target <= a:
+                time = target
+            else:
+                cycles = (target - a + net - 1) // net
+                time = target + 2 * b * cycles
+
+            ans = (ans + time + 1) % MOD
+
+        return ans
+
+
+# Approach 3: Optimized Solution (Mathematics + Prefix Sum)
+# TC: O(1)
+# SC: O(1)
+
+class Solution:
+    def minTime(self, a: int, b: int, d: int, l: int, r: int) -> int:
+        MOD = 10**9 + 7
+        net = a - b
+
+        def prefix(x):
+            if x <= 0:
+                return 0
+
+            # Sum of normal distance and jump time
+            total = x * (x + 1) // 2 + x
+
+            if x > a:
+                remaining = x - a
+
+                q, rem = divmod(remaining, net)
+
+                # Calculate the total number of cycles
+                cycles = net * q * (q + 1) // 2
+                cycles += rem * (q + 1)
+
+                # Add backward movement overhead
+                total += 2 * b * cycles
+
+            return total % MOD
+
+        return (prefix(d - l) - prefix(d - r - 1)) % MOD
