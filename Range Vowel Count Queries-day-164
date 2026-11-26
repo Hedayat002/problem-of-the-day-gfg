@@ -1,0 +1,105 @@
+# Range Vowel Count Queries
+
+
+## Approach 1: Brute Force (Nested Loops)
+
+### Python Code
+
+```python
+class Solution:
+    def countVowels(self, s: str, queries: list[list[int]]) -> list[int]:
+        ans = []
+
+        # Process each query
+        for l, r in queries:
+            count = 0
+
+            # Traverse the substring and count vowels
+            for i in range(l, r + 1):
+                ch = s[i]
+
+                if ch in "aeiou":
+                    count += 1
+
+            # Store the vowel count
+            ans.append(count)
+
+        return ans
+```
+
+### Complexity Analysis
+
+- Time Complexity: O(n * q)
+- Auxiliary Space Complexity: O(1)
+
+---
+
+## Approach 2: Better Solution (Binary Search)
+
+### Python Code
+
+```python
+from bisect import bisect_left, bisect_right
+
+class Solution:
+    def countVowels(self, s: str, queries: list[list[int]]) -> list[int]:
+        positions = []
+        ans = []
+
+        # Store the indices of all vowels
+        for i, ch in enumerate(s):
+            if ch in "aeiou":
+                positions.append(i)
+
+        # Process each query using binary search
+        for l, r in queries:
+            left = bisect_left(positions, l)
+            right = bisect_right(positions, r)
+
+            ans.append(right - left)
+
+        return ans
+```
+
+### Complexity Analysis
+
+- Time Complexity: O(n + q * log(n + 1))
+- Auxiliary Space Complexity: O(n)
+
+---
+
+## Approach 3: Optimized Solution (Prefix Sum)
+
+### Python Code
+
+```python
+class Solution:
+    def countVowels(self, s: str, queries: list[list[int]]) -> list[int]:
+        n = len(s)
+
+        prefix = [0] * (n + 1)
+        ans = []
+
+        # Build prefix vowel count array
+        for i in range(n):
+            prefix[i + 1] = prefix[i]
+
+            if s[i] in "aeiou":
+                prefix[i + 1] += 1
+
+        # Answer each query in constant time
+        for l, r in queries:
+            ans.append(prefix[r + 1] - prefix[l])
+
+        return ans
+```
+
+### Complexity Analysis
+
+- Time Complexity: O(n + q)
+- Auxiliary Space Complexity: O(n)
+
+---
+
+## Complexity Comparison
+
