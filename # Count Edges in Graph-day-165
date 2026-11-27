@@ -1,0 +1,104 @@
+# Count Edges in Graph
+
+
+
+## Approach 1: Brute Force — Nested Traversal
+
+### Python Code
+
+```python
+class Solution:
+    def countEdges(self, adj: list[list[int]]) -> int:
+        count = 0
+
+        for i in range(len(adj)):
+            for j in adj[i]:
+                count += 1
+
+        return count // 2
+```
+
+### Complexity Analysis
+
+- Time Complexity: O(V + E)
+- Auxiliary Space: O(1)
+
+---
+
+## Approach 2: Better Solution — Count Each Edge Once
+
+### Python Code
+
+```python
+class Solution:
+    def countEdges(self, adj: list[list[int]]) -> int:
+        count = 0
+
+        for i in range(len(adj)):
+            for j in adj[i]:
+                if i < j:
+                    count += 1
+
+        return count
+```
+
+### Complexity Analysis
+
+- Time Complexity: O(V + E)
+- Auxiliary Space: O(1)
+
+Note: This approach assumes that the graph contains no self-loops.
+
+---
+
+## Approach 3: Optimized Solution — Handshaking Lemma
+
+### Python Code
+
+```python
+class Solution:
+    def countEdges(self, adj: list[list[int]]) -> int:
+        total = 0
+
+        # Traverse all vertices and add their adjacency list sizes
+        for i in adj:
+            total += len(i)
+
+        # Each edge is counted twice in an undirected graph
+        return total // 2
+```
+
+### Complexity Analysis
+
+- Time Complexity: O(V)
+- Auxiliary Space: O(1)
+
+### Explanation
+
+According to the Handshaking Lemma, the sum of the degrees of all vertices in an undirected graph is equal to twice the number of edges.
+
+Formula:
+
+    Total Edges = Sum of Degrees / 2
+
+Since Python's len() function takes O(1) time, we only need to traverse the vertices without visiting each individual edge.
+
+---
+
+## Approach 4: Optimized Python One-Liner
+
+### Python Code
+
+```python
+class Solution:
+    def countEdges(self, adj: list[list[int]]) -> int:
+        return sum(len(i) for i in adj) // 2
+```
+
+### Complexity Analysis
+
+- Time Complexity: O(V)
+- Auxiliary Space: O(1)
+
+---
+
