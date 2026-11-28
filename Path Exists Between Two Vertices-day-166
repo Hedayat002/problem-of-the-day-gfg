@@ -1,0 +1,110 @@
+# ============================================================
+# Problem: Path Exists Between Two Vertices
+# Platform: GeeksforGeeks
+# Difficulty: Easy
+# Topics: Graph, DFS, BFS
+# ============================================================
+
+
+# ------------------------------------------------------------
+# Approach 1: Brute Force - Repeated Graph Traversal
+# Time Complexity: O(V * (V + E))
+# Space Complexity: O(V)
+# ------------------------------------------------------------
+
+class Solution:
+    def checkPath(self, adj: list[list[int]], u: int, v: int) -> bool:
+        n = len(adj)
+
+        visited = [False] * n
+        visited[u] = True
+
+        for _ in range(n):
+            changed = False
+
+            for i in range(n):
+                if visited[i]:
+                    for neighbor in adj[i]:
+                        if not visited[neighbor]:
+                            visited[neighbor] = True
+                            changed = True
+
+            if visited[v]:
+                return True
+
+            if not changed:
+                break
+
+        return False
+
+
+# ------------------------------------------------------------
+# Approach 2: Better Solution - Recursive DFS
+# Time Complexity: O(V + E)
+# Space Complexity: O(V)
+# ------------------------------------------------------------
+
+class Solution:
+    def dfs(self, curr, v, adj, visited):
+
+        # Already explored
+        if visited[curr]:
+            return False
+
+        # Destination reached
+        if curr == v:
+            return True
+
+        visited[curr] = True
+
+        for neighbor in adj[curr]:
+            if not visited[neighbor] and self.dfs(neighbor, v, adj, visited):
+
+                # Path found
+                return True
+
+        # No path found
+        return False
+
+    def checkPath(self, adj: list[list[int]], u: int, v: int) -> bool:
+        n = len(adj)
+
+        visited = [False] * n
+
+        return self.dfs(u, v, adj, visited)
+
+
+# ------------------------------------------------------------
+# Approach 3: Optimized Solution - Iterative BFS
+# Time Complexity: O(V + E)
+# Space Complexity: O(V)
+# ------------------------------------------------------------
+
+from collections import deque
+
+class Solution:
+    def checkPath(self, adj: list[list[int]], u: int, v: int) -> bool:
+        n = len(adj)
+
+        visited = [False] * n
+        queue = deque([u])
+
+        visited[u] = True
+
+        while queue:
+            curr = queue.popleft()
+
+            # Destination reached
+            if curr == v:
+                return True
+
+            # Explore adjacent vertices
+            for neighbor in adj[curr]:
+                if not visited[neighbor]:
+                    visited[neighbor] = True
+                    queue.append(neighbor)
+
+        # No path found
+        return False
+
+
